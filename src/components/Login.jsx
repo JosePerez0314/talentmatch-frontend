@@ -1,6 +1,6 @@
 import React from "react";
 import logoTalentMatch from "../assets/icons/Logo_TalentMatch_AI.png"
-import userIcon from "../assets/icons/icon_user.png"
+import mailIcon from "../assets/icons/icon_mail_login.png"
 import passwIcon from "../assets/icons/icon_lock.png"
 
 const Login = () => {
@@ -31,10 +31,10 @@ const Login = () => {
                             <label className="text-sans serif font-medium text-gray-400 ml-1">Usuario</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <img src={userIcon} alt="" className="h-5 w-5 opacity-40 group-focus-within:opacity-100 transition-opacity" />
+                                    <img src={mailIcon} alt="" className="h-5 w-5 opacity-40 group-focus-within:opacity-100 transition-opacity" />
                                 </div>
-                                    <input type="text" 
-                                    placeholder="Usuario" 
+                                    <input type="email" 
+                                    placeholder="Correo Electronico" 
                                     className="w-full py-4 pl-12 pr-6 bg-white border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#447ECA]/20 focus:border-[#447ECA] transition-all"
                                     />
                             </div>
