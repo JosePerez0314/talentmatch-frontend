@@ -1,5 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+//iconos
+import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.png"
+import iconDashboard from "../assets/icons/icon_dashboard.png";
+import iconPositionCreateSlide from "../assets/icons/icon_position_create_slide.png";
+import iconUploadCvSlide from "../assets/icons/icon_upload_cv_slide.png";
+import iconVacantCreate from "../assets/icons/icon_vacant_create.png";
+import iconEyeHistory from "../assets/icons/icon_eye_history.png";
+import iconHistoryVacant from "../assets/icons/icon_history_vacant.png";
+import iconHistoryPosition from "../assets/icons/icon_history_position.png";
+import iconResultsTrophy from "../assets/icons/icon_results_trophy.png";
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -11,14 +21,14 @@ const Sidebar = () => {
     };
 
     const menuItems = [
-        { name: "Dashboard", active: true },
-        { name: "Crear Posición", active: false },
-        { name: "Subir CVs", active: false },
-        { name: "Crear Vacante", active: false },
-        { name: "Historial de CVs", active: false },
-        { name: "Historial de anuncios", active: false },
-        { name: "Historial de Posiciones", active: false },
-        { name: "Resultados", active: false },
+        { name: "Dashboard", icon: iconDashboard, active: true },
+        { name: "Crear Posición", icon: iconPositionCreateSlide, active: false },
+        { name: "Subir CVs", icon: iconUploadCvSlide, active: false },
+        { name: "Crear Vacante", icon: iconVacantCreate, active: false },
+        { name: "Historial de CVs", icon: iconEyeHistory, active: false },
+        { name: "Historial de anuncios", icon: iconHistoryVacant, active: false },
+        { name: "Historial de Posiciones", icon: iconHistoryPosition, active: false },
+        { name: "Resultados", icon: iconResultsTrophy, active: false },
     ];
 
     return (
@@ -45,19 +55,25 @@ const Sidebar = () => {
                 className={`fixed top-0 left-0 h-screen bg-white z-50 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between py-6
                 ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}`}>
                 <div className="mt-16"> {/* Espacio para que no choque con el botón */}
+                    {/* Logo TalentMatch Small */}
                     <div className="px-8 mb-10 flex items-center">
-                        <span className="text-sm font-bold text-[#447ECA] tracking-tight">
-                            TALENTMATCH AI
-                        </span>
+                        <img src={logoSmall} alt="TalentMatch AI Logo" className="h-10 w-auto object-contain"/>
                     </div>
 
                     <nav className="flex flex-col gap-1 px-4">
                         {menuItems.map((item) => (
                             <button
                                 key={item.name}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap
+                                className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap
                                     ${item.active ? "bg-[#DCF9FF] text-[#447ECA]" : "text-gray-500 hover:bg-gray-50"}`}>
-                                {item.name}
+                                {/* Renderizado del Icono */}
+                                <img 
+                                    src={item.icon} 
+                                    alt="" 
+                                    className={`h-5 w-5 object-contain transition-all
+                                        ${item.active ? "opacity-100" : "opacity-60 grayscale-[0.5] hover:grayscale-0"}`} 
+                                />
+                                <span>{item.name}</span>
                             </button>
                         ))}
                     </nav>

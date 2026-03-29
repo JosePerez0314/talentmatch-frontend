@@ -1,12 +1,22 @@
 import React from "react";
 import Sidebar from "../components/Sidebar";
+//Iconos
+import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.png"
+import iconPositionCreatedBlue from "../assets/icons/icon_position_created_blue.png";
+import iconVacantCreateBlue from "../assets/icons/icon_vacant_create_blue.png";
+import iconVacantActiveBlue from "../assets/icons/icon_vacant_active_blue.png";
+//Iconos de botones
+import iconEyeHistoryGray from "../assets/icons/icon_eye_history.png";
+import iconCreateCircleplus from "../assets/icons/icon_create_circleplus.png";
+import iconUploadCv from "../assets/icons/icon_upload_cv.png";
+import iconVacantCreateButtom from "../assets/icons/icon_vacant_create_buttom.png";
 
 const Dashboard = () => {
     // ESTA ES LA ZONA DONDE SE CONECTARÁ EL BACKEND
     const stats = [
-        { title: "Posiciones creadas", count: 0, btn: "Crear Posiciones" },
-        { title: "CVs subidos", count: 0, btn: "Subir CV" },
-        { title: "Vacantes activas", count: 0, btn: "Crear Vacantes" }
+        { title: "Posiciones creadas", icon: iconPositionCreatedBlue, count: 0, btn: "Crear Posiciones", btnIcon: iconCreateCircleplus },
+        { title: "CVs subidos", icon: iconVacantCreateBlue, count: 0, btn: "Subir CV", btnIcon: iconUploadCv },
+        { title: "Vacantes activas", icon: iconVacantActiveBlue, count: 0, btn: "Crear Vacantes", btnIcon: iconVacantCreateButtom }
     ];
 
     const lastMovements = {
@@ -18,6 +28,15 @@ const Dashboard = () => {
     return (
         <div className="flex min-h-screen bg-[#F0F0F5]">
             <Sidebar />
+
+            {/* LOGO AL LADO DEL SIDEBAR */}
+            <div className="fixed top-8 left-24 z-[60] hidden md:block">
+                <img 
+                    src={logoSmall} 
+                    alt="TalentMatch AI" 
+                    className="h-10 w-auto object-contain opacity-90"
+                />
+            </div>
 
             <main className="flex-1 p-10 overflow-y-auto">
                 {/* Encabezado */}
@@ -34,7 +53,13 @@ const Dashboard = () => {
                             <div className="flex items-center gap-6">
                                 {/* Espacio para el icono que pondrá después */}
                                 <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center">
-                                    <div className="w-6 h-6 bg-[#447ECA]/10 rounded-full"></div>
+                                    <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105">
+                                        <img 
+                                            src={item.icon} 
+                                            alt={item.title} 
+                                            className="w-8 h-8 object-contain" 
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <p className="text-sm text-black font-medium">{item.title}</p>
@@ -44,11 +69,13 @@ const Dashboard = () => {
                                 </div>
                             </div>
                             <div className="flex gap-4">
-                                <button className="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-50 transition-all">
-                                    Ver
+                                <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
+                                    <img src={iconEyeHistoryGray} alt="" className="w-4 h-4 opacity-70" />
+                                    <span>Ver</span>
                                 </button>
-                                <button className="bg-[#447ECA] text-white px-8 py-2.5 rounded-xl text-[13px] font-bold hover:bg-[#3669ab] transition-all shadow-sm active:scale-95">
-                                    {item.btn}
+                                <button className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-2.5 rounded-xl text-[13px] font-bold hover:bg-[#3669ab] transition-all shadow-md active:scale-95">
+                                    <img src={item.btnIcon} alt="" className="w-4 h-4 brightness-0 invert" />
+                                    <span>{item.btn}</span>
                                 </button>
                             </div>
                         </div>
