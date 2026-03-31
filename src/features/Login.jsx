@@ -26,7 +26,7 @@ const Login = () => {
     setInputs((prev) => ({ ...prev, [name]: value }));
     if (uiState === "error") setUiState("form");
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUiState("loading");
@@ -44,7 +44,6 @@ const Login = () => {
     }
   };
 
-  //
   return (
 
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
