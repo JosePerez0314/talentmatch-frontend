@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer/Footer";
 //Icons
 import logoTalentMatch from "../assets/icons/Logo_TalentMatch_AI.svg";
 import mailIcon from "../assets/icons/icon_mail_login.svg";
@@ -145,13 +146,8 @@ La Solución: Nunca se escribe el año de forma estática. Debe ser dinámico us
           </div>
         )}
       </main>
-
-      {/* Implementarlo aparte, no puedo ir dentro del footer*/}
-      <footer className="bg-[#447ECA] py-5 text-white text-[13px] font-medium flex justify-between px-10">
-        <p>Copyright 2024</p>
-        <p>Contáctanos</p>
-        <p>Ayuda</p>
-      </footer>
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
