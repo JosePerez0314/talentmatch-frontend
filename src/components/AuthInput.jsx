@@ -26,7 +26,7 @@ const AuthInput = ({ label, icon, name, type = "text", value, onChange, placehol
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          {...props} // Permite pasar required, autoFocus, etc.
+          {...props} // Permite pasar required, autoFocus
           className="w-full py-4 pl-12 pr-6 bg-white border border-gray-200 rounded-xl outline-none transition-all 
                      focus:ring-2 focus:ring-[#447ECA]/20 focus:border-[#447ECA]
                      placeholder:text-gray-300"
