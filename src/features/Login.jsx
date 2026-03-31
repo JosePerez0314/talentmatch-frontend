@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 //Components
 import Footer from "../components/Footer/Footer";
 import AuthInput from "../components/AuthInput";
-
+//Services
+import { authService } from "../services/api";
 //Assets
 import logoTalentMatch from "../assets/icons/Logo_TalentMatch_AI.svg";
 import mailIcon from "../assets/icons/icon_mail_login.svg";
@@ -20,11 +21,6 @@ const Login = () => {
   const [inputs, setInputs] = useState({ email: "", password: "" });
   const [uiState, setUiState] = useState("form");
 
-  // ¿Dónde está el error?: En la línea const API_URL = "dsfsdf"; y dentro del fetch.
-  // ¿Qué deben cambiar?: ¡Nunca se escriben strings al azar ni URLs directamente en el componente! Exígeles que usen variables de entorno (por ejemplo, import.meta.env.VITE_API_URL). Además, diles que ese fetch completo debería estar en un archivo de servicios centralizado (ej. src/services/api.js) usando la configuración que tú dejaste lista en el backend. Si dejan el fetch ahí, tendrán que repetir los headers y la lógica del token en cada pantalla de TalentMatch AI.
-
-  const API_URL = "http://localhost:5000/api/auth/login";
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -34,26 +30,20 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUiState("loading");
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inputs),
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem("token", data.token);
-        navigate("/dashboard");
-      } else {
-        setUiState("error");
-      }
+    try {
+      // Llamada limpia al servicio centralizado
+      const data = await authService.login(inputs);
+
+      // Si llegamos aquí, el login fue exitoso
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
     } catch (error) {
+      // Cualquier error (401, 500, Red) cae aquí
       setUiState("error");
     }
   };
 
-  //
   return (
 
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
@@ -100,7 +90,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* --- IMPLEMENTACIÓN DRY CON AUTHINPUT --- */}
+              {/* --- IMPLEMENTATION DRY AUTHINPUT --- */}
               <AuthInput
                 label="Usuario"
                 name="email"
