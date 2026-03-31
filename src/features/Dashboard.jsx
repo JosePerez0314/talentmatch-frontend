@@ -1,19 +1,14 @@
 // Comentarios en ingles
 
 import React from "react";
+import { useEffect, useState } from "react";
 //Components
 import Sidebar from "../components/Sidebar";
+import StatCard from "../components/Dashboard/StatCard";
+import MovementCard from "../components/Dashboard/MovementCard";
 
-////Assets
-import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg";
-import iconPositionCreatedBlue from "../assets/icons/icon_position_created_blue.svg";
-import iconVacantCreateBlue from "../assets/icons/icon_vacant_create_blue.svg";
-import iconVacantActiveBlue from "../assets/icons/icon_vacant_active_blue.svg";
-////Assets for buttoms
-import iconEyeHistoryGray from "../assets/icons/icon_eye_history.svg";
-import iconCreateCircleplus from "../assets/icons/icon_create_circleplus.svg";
-import iconUploadCv from "../assets/icons/icon_upload_cv.svg";
-import iconVacantCreateButtom from "../assets/icons/icon_vacant_create_buttom.svg";
+//Config dashboard
+import { STATS_CONFIG } from "../utils/dashboardConfig";
 
 {
   /** 1. El Acertijo del Componente Faltante (Tu observación)
@@ -41,36 +36,33 @@ La Solución: Oblígalos a separar el diseño del dato dinámico. El arreglo de 
 }
 
 const Dashboard = () => {
-  // ESTA ES LA ZONA DONDE SE CONECTARÁ EL BACKEND
-  const stats = [
-    {
-      title: "Posiciones creadas",
-      icon: iconPositionCreatedBlue,
-      count: 0,
-      btn: "Crear Posiciones",
-      btnIcon: iconCreateCircleplus,
-    },
-    {
-      title: "CVs subidos",
-      icon: iconVacantCreateBlue,
-      count: 0,
-      btn: "Subir CV",
-      btnIcon: iconUploadCv,
-    },
-    {
-      title: "Vacantes activas",
-      icon: iconVacantActiveBlue,
-      count: 0,
-      btn: "Crear Vacantes",
-      btnIcon: iconVacantCreateButtom,
-    },
-  ];
+  // 1. ESTADO DE DATOS DINÁMICOS (Aquí es donde escribirás los datos de tu API)
+  // Inicializamos en 0 / "Cargando..." para que la UI no se rompa antes del fetch
+  const [metrics, setMetrics] = useState({
+    posiciones: 0,
+    cvs: 0,
+    vacantes: 0,
+  });
 
-  const lastMovements = {
-    posicion: "Sin posiciones",
-    cv: "N/A",
+  const [lastMovements, setLastMovements] = useState({
+    posicion: "Cargando...",
+    cv: "Cargando...",
     cerradas: 0,
-  };
+  });
+
+  // Simulamos la carga desde el backend
+  useEffect(() => {
+    // Aquí iría tu: const data = await apiService.getDashboardData();
+    // Por ahora, simulamos que los datos llegan después de 1 segundo
+    const fetchDashboardData = async () => {
+      setTimeout(() => {
+        setMetrics({ posiciones: 12, cvs: 45, vacantes: 3 });
+        setLastMovements({ posicion: "Desarrollador React", cv: "juan_perez.pdf", cerradas: 2 });
+      }, 1000);
+    };
+
+    fetchDashboardData();
+  }, []);
 
   {
     /** 1. "Div Inception" (Redundancia HTML Absurda)
@@ -102,105 +94,43 @@ La Solución: Si no hay nada adentro (como un botón de perfil o la fecha actual
   return (
     <div className="flex min-h-screen bg-[#F0F0F5]">
       <Sidebar />
-
-      {/* LOGO AL LADO DEL SIDEBAR */}
-      <div className="fixed top-8 left-24 z-[60] hidden md:block">
-        <img
-          src={logoSmall}
-          alt="TalentMatch AI"
-          className="h-10 w-auto object-contain opacity-90"
-        />
-      </div>
+      {/* El logo flotante (top-8 left-24) fue eliminado según indicaciones del Lead. 
+          Se recomienda integrarlo dentro del componente <Sidebar /> */}
 
       <main className="flex-1 p-10 overflow-y-auto">
-        {/* Encabezado */}
+        
+        {/* Encabezado Limpio (Sin div vacío) */}
         <header className="flex justify-center mb-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
             Dashboard - Centro de Control
           </h1>
-          <div className="flex items-center gap-2 text-sm font-semibold text-gray-400"></div>
         </header>
 
-        {/* Grid Superior: Estadísticas en 0 */}
+        {/* Grid Superior: Mapeo de Componente Limpio */}
         <div className="grid grid-cols-1 gap-6 mb-8">
-          {stats.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white p-6 rounded-[12px] shadow-sm border border-[#DCF9FF] flex justify-between items-center transition-all hover:shadow-md"
-            >
-              <div className="flex items-center gap-6">
-                {/* Espacio para el icono que pondrá después */}
-                <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center">
-                  <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105">
-                    <img
-                      src={item.icon}
-                      alt={item.title}
-                      className="w-8 h-8 object-contain"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm text-black font-medium">{item.title}</p>
-                  <p className="text-3xl font-extrabold text-black tracking-tight">
-                    {item.count}
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
-                  <img
-                    src={iconEyeHistoryGray}
-                    alt=""
-                    className="w-4 h-4 opacity-70"
-                  />
-                  <span>Ver</span>
-                </button>
-                <button className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-2.5 rounded-xl text-[13px] font-bold hover:bg-[#3669ab] transition-all shadow-md active:scale-95">
-                  <img
-                    src={item.btnIcon}
-                    alt=""
-                    className="w-4 h-4 brightness-0 invert"
-                  />
-                  <span>{item.btn}</span>
-                </button>
-              </div>
-            </div>
+          {STATS_CONFIG.map((config) => (
+            <StatCard
+              key={config.id}
+              title={config.title}
+              icon={config.icon}
+              count={metrics[config.id]} // Cruzamos el ID estático con el valor del estado dinámico
+              btnText={config.btn}
+              btnIcon={config.btnIcon}
+            />
           ))}
         </div>
 
-        {/* Grid Inferior: Últimos movimientos con Grid Repeat */}
+        {/* Grid Inferior: Componentes Reutilizables */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-7 rounded-[20px] shadow-sm border border-white text-center">
-            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest italic">
-              Última posición creada
-            </p>
-            <p className="text-[#447ECA] font-bold mt-2 text-sm">
-              {lastMovements.posicion}
-            </p>
-          </div>
-          <div className="bg-white p-7 rounded-[20px] shadow-sm border border-white text-center">
-            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest italic">
-              Último CV subido
-            </p>
-            <p className="text-[#447ECA] font-bold mt-2 text-sm">
-              {lastMovements.cv}
-            </p>
-          </div>
-          <div className="bg-white p-7 rounded-[20px] shadow-sm border border-white text-center">
-            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest italic">
-              Vacantes cerradas
-            </p>
-            <p className="text-[#447ECA] font-bold mt-2 text-sm">
-              {lastMovements.cerradas}
-            </p>
-          </div>
+          <MovementCard title="Última posición creada" value={lastMovements.posicion} />
+          <MovementCard title="Último CV subido" value={lastMovements.cv} />
+          <MovementCard title="Vacantes cerradas" value={lastMovements.cerradas} />
         </div>
 
-        {/* Sección de CTA/ llamado a la accion*/}
+        {/* Sección de CTA */}
         <div className="bg-[#DCF9FF] p-12 rounded-[20px] text-center border border-[#447ECA]/5">
           <p className="text-[#447ECA] font-semibold text-lg mb-8 italic">
-            "¿Listo para encontrar tu próximo talento? Crea una vacante y deja
-            que la IA haga el trabajo."
+            "¿Listo para encontrar tu próximo talento? Crea una vacante y deja que la IA haga el trabajo."
           </p>
           <button className="bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
             Crear Vacante ahora
