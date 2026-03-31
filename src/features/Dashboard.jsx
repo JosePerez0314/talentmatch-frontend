@@ -26,10 +26,9 @@ const Dashboard = () => {
     cerradas: 0,
   });
 
-  // Simulamos la carga desde el backend
+  // Simulamos la carga
   useEffect(() => {
-    // Aquí iría tu: const data = await apiService.getDashboardData();
-    // Por ahora, simulamos que los datos llegan después de 1 segundo
+    // Aquí iría: const data = await apiService.getDashboardData();
     const fetchDashboardData = async () => {
       setTimeout(() => {
         setMetrics({ posiciones: 12, cvs: 45, vacantes: 3 });
@@ -43,8 +42,6 @@ const Dashboard = () => {
   return (
     <div className="flex min-h-screen bg-[#F0F0F5]">
       <Sidebar />
-      {/* El logo flotante (top-8 left-24) fue eliminado según indicaciones del Lead. 
-          Se recomienda integrarlo dentro del componente <Sidebar /> */}
 
       <main className="flex-1 p-10 overflow-y-auto">
         
