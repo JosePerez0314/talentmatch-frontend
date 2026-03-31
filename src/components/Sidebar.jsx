@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 //iconos
-import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.png"
-import iconDashboard from "../assets/icons/icon_dashboard.png";
-import iconPositionCreateSlide from "../assets/icons/icon_position_create_slide.png";
-import iconUploadCvSlide from "../assets/icons/icon_upload_cv_slide.png";
-import iconVacantCreate from "../assets/icons/icon_vacant_create.png";
-import iconEyeHistory from "../assets/icons/icon_eye_history.png";
-import iconHistoryVacant from "../assets/icons/icon_history_vacant.png";
-import iconHistoryPosition from "../assets/icons/icon_history_position.png";
-import iconResultsTrophy from "../assets/icons/icon_results_trophy.png";
+import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg"
+import iconDashboard from "../assets/icons/icon_dashboard.svg";
+import iconPositionCreateSlide from "../assets/icons/icon_position_create_slide.svg";
+import iconUploadCvSlide from "../assets/icons/icon_upload_cv_slide.svg";
+import iconVacantCreate from "../assets/icons/icon_vacant_create.svg";
+import iconEyeHistory from "../assets/icons/icon_eye_history.svg";
+import iconHistoryVacant from "../assets/icons/icon_history_vacant.svg";
+import iconHistoryPosition from "../assets/icons/icon_history_position.svg";
+import iconResultsTrophy from "../assets/icons/icon_results_trophy.svg";
 
 const Sidebar = () => {
     const navigate = useNavigate();
