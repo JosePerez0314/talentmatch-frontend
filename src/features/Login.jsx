@@ -100,7 +100,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* --- IMPLEMENTACIÓN DRY CON AUTHINPUT --- */}
+              {/* --- IMPLEMENTATION DRY AUTHINPUT --- */}
               <AuthInput
                 label="Usuario"
                 name="email"
