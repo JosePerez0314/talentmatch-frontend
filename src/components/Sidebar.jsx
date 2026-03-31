@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom"; // Importamos NavLink
 //iconos
 import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg"
 import iconDashboard from "../assets/icons/icon_dashboard.svg";
@@ -13,36 +13,36 @@ import iconResultsTrophy from "../assets/icons/icon_results_trophy.svg";
 
 const Sidebar = () => {
     const navigate = useNavigate();
-    // Empezamos con el menú cerrado (false) para que no se vea nada al inicio
     const [isOpen, setIsOpen] = useState(false);
 
     const handleLogout = () => {
         navigate("/login");
     };
 
+    // Añadimos la propiedad 'path' para saber a dónde redirigir
     const menuItems = [
-        { name: "Dashboard", icon: iconDashboard, active: true },
-        { name: "Crear Posición", icon: iconPositionCreateSlide, active: false },
-        { name: "Subir CVs", icon: iconUploadCvSlide, active: false },
-        { name: "Crear Vacante", icon: iconVacantCreate, active: false },
-        { name: "Historial de CVs", icon: iconEyeHistory, active: false },
-        { name: "Historial de anuncios", icon: iconHistoryVacant, active: false },
-        { name: "Historial de Posiciones", icon: iconHistoryPosition, active: false },
-        { name: "Resultados", icon: iconResultsTrophy, active: false },
+        { name: "Dashboard", icon: iconDashboard, path: "/dashboard" },
+        { name: "Crear Posición", icon: iconPositionCreateSlide, path: "/position" },
+        { name: "Subir CVs", icon: iconUploadCvSlide, path: "/upload" },
+        { name: "Crear Vacante", icon: iconVacantCreate, path: "/create-vacant" },
+        { name: "Historial de CVs", icon: iconEyeHistory, path: "/cv-history" },
+        { name: "Historial de anuncios", icon: iconHistoryVacant, path: "/ads-history" },
+        { name: "Historial de Posiciones", icon: iconHistoryPosition, path: "/position-history" },
+        { name: "Resultados", icon: iconResultsTrophy, path: "/results" },
     ];
 
     return (
         <>
-            {/* 1. BOTÓN DE LAS 3 BARRITAS: Siempre visible y fijo */}
+            {/* 1. BOTÓN HAMBURGUESA */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed top-8 left-8 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg hover:bg-white shadow-sm transition-all gap-1.5">
+                className="fixed top-8 left-8 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm transition-all gap-1.5">
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 rotate-45 translate-y-2" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "opacity-0" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 -rotate-45 -translate-y-2" : "w-6"}`}></span>
             </button>
 
-            {/* 2. FONDO OSCURO (Overlay): Aparece solo cuando el menú se abre */}
+            {/* 2. OVERLAY */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-40 transition-opacity"
@@ -50,39 +50,48 @@ const Sidebar = () => {
                 </div>
             )}
 
-            {/* 3. EL MENÚ: Solo aparece al dar clic */}
+            {/* 3. MENÚ LATERAL */}
             <aside
                 className={`fixed top-0 left-0 h-screen bg-white z-50 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between py-6
                 ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}`}>
-                <div className="mt-16"> {/* Espacio para que no choque con el botón */}
-                    {/* Logo TalentMatch Small */}
+                <div className="mt-16">
+                    {/* Logo */}
                     <div className="px-8 mb-10 flex items-center">
-                        <img src={logoSmall} alt="TalentMatch AI Logo" className="h-10 w-auto object-contain"/>
+                        <img src={logoSmall} alt="TalentMatch AI Logo" className="h-10 w-auto object-contain" />
                     </div>
 
                     <nav className="flex flex-col gap-1 px-4">
                         {menuItems.map((item) => (
-                            <button
+                            <NavLink
                                 key={item.name}
-                                className={`flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap
-                                    ${item.active ? "bg-[#DCF9FF] text-[#447ECA]" : "text-gray-500 hover:bg-gray-50"}`}>
-                                {/* Renderizado del Icono */}
-                                <img 
-                                    src={item.icon} 
-                                    alt="" 
-                                    className={`h-5 w-5 object-contain transition-all
-                                        ${item.active ? "opacity-100" : "opacity-60 grayscale-[0.5] hover:grayscale-0"}`} 
-                                />
-                                <span>{item.name}</span>
-                            </button>
+                                to={item.path}
+                                onClick={() => setIsOpen(false)} // Cierra el menú al navegar
+                                className={({ isActive }) => `
+                                    flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap
+                                    ${isActive
+                                        ? "bg-[#DCF9FF] text-[#447ECA]"
+                                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}
+                                `}>
+                                {({ isActive }) => (
+                                    <>
+                                        <img
+                                            src={item.icon}
+                                            alt=""
+                                            className={`h-5 w-5 object-contain transition-all
+                                                ${isActive ? "opacity-100" : "opacity-60 grayscale-[0.5]"}`} />
+                                        <span>{item.name}</span>
+                                    </>
+                                )}
+                            </NavLink>
                         ))}
                     </nav>
                 </div>
 
+                {/* Footer del Sidebar */}
                 <div className="px-4 border-t border-gray-50 pt-4">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center justify-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-medium border border-gray-100 rounded-lg overflow-hidden">
+                        className="flex items-center justify-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-gray-100 rounded-lg">
                         <span>Cerrar sesión</span>
                     </button>
                 </div>
