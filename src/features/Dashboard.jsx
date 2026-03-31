@@ -10,30 +10,6 @@ import MovementCard from "../components/Dashboard/MovementCard";
 //Config dashboard
 import { STATS_CONFIG } from "../utils/dashboardConfig";
 
-{
-  /** 1. El Acertijo del Componente Faltante (Tu observación)
-La directriz: Tienen que crear un componente reutilizable, por ejemplo src/components/Dashboard/StatCard.jsx.
-
-El estándar Senior: El Dashboard solo debe hacer un .map() sobre ese arreglo y renderizar los componentes limpios. Ejemplo:
-
-JavaScript
-{stats.map((stat, index) => (
-  <StatCard key={index} data={stat} />
-))}
-2. La Trampa del Re-renderizado (El error invisible)
-El Error: Declararon la constante stats y lastMovements dentro de la función const Dashboard = () => { ... }.
-
-Por qué es grave: En React, cada vez que el estado del Dashboard cambie (por ejemplo, cuando cargue la data del backend), el componente se vuelve a renderizar. Al tener ese arreglo adentro, React va a destruir y volver a crear ese arreglo en memoria en cada renderizado, destruyendo el rendimiento de la aplicación.
-
-La Solución: Todo dato estático (iconos, textos de botones, títulos) debe declararse fuera del componente, arriba del todo, o en un archivo de configuración separado (ej. src/utils/dashboardConfig.js).
-
-3. Mezclando Interfaz con Datos (Problema de Integración)
-El Error: Están mezclando la configuración visual (iconos, textos de botones) con el estado de los datos (count: 0).
-
-Por qué afectará tu API: Como tú mismo construiste el backend, sabes perfectamente que tu API RESTful no les va a devolver iconos de flechas ni textos de botones. Tu API solo les va a devolver números: { posicionesCreadas: 12, cvsSubidos: 45, vacantesActivas: 3 }.
-
-La Solución: Oblígalos a separar el diseño del dato dinámico. El arreglo de configuración estática solo debe tener los iconos y títulos. Los números (counts) deben venir exclusivamente de un estado controlado por la respuesta de tu backend (const [metrics, setMetrics] = useState(...)).*/
-}
 
 const Dashboard = () => {
   // 1. ESTADO DE DATOS DINÁMICOS (Aquí es donde escribirás los datos de tu API)
@@ -63,34 +39,7 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, []);
-
-  {
-    /** 1. "Div Inception" (Redundancia HTML Absurda)
-El Error: Mira el espacio del ícono dentro del .map(). Tienen un div envolviendo a otro div con exactamente las mismas clases:
-
-JavaScript
-<div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center">
-  <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105">
-La Solución: Esto es un error de copy-paste de Tailwind. Diles que eliminen el div exterior. Solo necesitan un contenedor para la imagen.
-
-2. DRY en el "Grid Inferior" (Tarjetas Repetidas)
-El Error: Escribieron la misma estructura de tarjeta blanca con el texto gris itálico tres veces seguidas para Última posición, Último CV y Vacantes cerradas.
-
-La Solución: Oblígalos a crear un micro-componente (ej. <MovementCard title="Última posición creada" value={lastMovements.posicion} />) y que lo usen tres veces. Si el día de mañana quieres que esas tarjetas tengan sombra, ahora mismo tendrían que editar el código en tres lugares distintos.
-
-3. Números Mágicos y Responsividad Rota
-El Error: El logo pequeño tiene la clase fixed top-8 left-24 z-[60].
-
-Por qué es un peligro: left-24 es un "número mágico". Si en una pantalla de tablet el Sidebar se colapsa o cambia de tamaño, ese logo va a quedar flotando en medio de la nada o tapando texto.
-
-La Solución: El logo superior debería ser parte del componente <Header /> o de la estructura del <Sidebar />, no estar flotando con coordenadas absolutas/fijas.
-
-4. Basura en el DOM (Etiquetas Vacías)
-El Error: Tienen un div vacío en el encabezado: <div className="flex items-center gap-2 text-sm font-semibold text-gray-400"></div>
-
-La Solución: Si no hay nada adentro (como un botón de perfil o la fecha actual), que lo borren. El código de producción no debe tener etiquetas muertas. */
-  }
-
+  
   return (
     <div className="flex min-h-screen bg-[#F0F0F5]">
       <Sidebar />
