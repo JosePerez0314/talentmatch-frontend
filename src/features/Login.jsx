@@ -13,6 +13,7 @@ import mailIcon from "../assets/icons/icon_mail_login.svg";
 import passwIcon from "../assets/icons/icon_lock.svg";
 import loadingIcon from "../assets/icons/icon_loading_refresh.svg";
 
+
 // Implementar return dentro de los condicionales y funciones
 // ¿Qué deben cambiar?: El componente Login hace toda la lógica pero se les olvidó devolver la interfaz gráfica. Necesitan agregar el bloque return ( <JSX> ); al final de la función Login. Si ejecutas este código ahora mismo, la pantalla se quedará totalmente en blanco o React lanzará un error porque la función devuelve undefined.
 
