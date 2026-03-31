@@ -1,15 +1,15 @@
 // Comentarios en ingles
 
 import React from "react";
+//Components
 import Sidebar from "../components/Sidebar";
-//Iconos
 
-// Lo mismo a corregir que en el login.jsx
+////Assets
 import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg";
 import iconPositionCreatedBlue from "../assets/icons/icon_position_created_blue.svg";
 import iconVacantCreateBlue from "../assets/icons/icon_vacant_create_blue.svg";
 import iconVacantActiveBlue from "../assets/icons/icon_vacant_active_blue.svg";
-//Iconos de botones
+////Assets for buttoms
 import iconEyeHistoryGray from "../assets/icons/icon_eye_history.svg";
 import iconCreateCircleplus from "../assets/icons/icon_create_circleplus.svg";
 import iconUploadCv from "../assets/icons/icon_upload_cv.svg";
