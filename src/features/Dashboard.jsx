@@ -61,8 +61,7 @@ const Dashboard = () => {
               icon={config.icon}
               count={metrics[config.id]} // Cruzamos el ID estático con el valor del estado dinámico
               btnText={config.btn}
-              btnIcon={config.btnIcon}
-            />
+              btnIcon={config.btnIcon} />
           ))}
         </div>
 

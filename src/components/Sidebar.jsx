@@ -23,7 +23,7 @@ const Sidebar = () => {
     const menuItems = [
         { name: "Dashboard", icon: iconDashboard, path: "/dashboard" },
         { name: "Crear Posición", icon: iconPositionCreateSlide, path: "/position" },
-        { name: "Subir CVs", icon: iconUploadCvSlide, path: "/upload" },
+        { name: "Subir CVs", icon: iconUploadCvSlide, path: "/uploadcv" },
         { name: "Crear Vacante", icon: iconVacantCreate, path: "/create-vacant" },
         { name: "Historial de CVs", icon: iconEyeHistory, path: "/cv-history" },
         { name: "Historial de anuncios", icon: iconHistoryVacant, path: "/ads-history" },

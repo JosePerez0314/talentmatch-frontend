@@ -52,10 +52,9 @@ const Login = () => {
         <img
           src={logoTalentMatch}
           alt="Logo"
-          className="h-40 w-auto object-contain pt-10"
-        />
+          className="h-40 w-auto object-contain pt-10" />
 
-        {/**
+        {/*
 3. Colores "Hardcodeados" en Tailwind
 El Error: Están escribiendo el color hexadecimal [#447ECA] directamente en las clases (ej. bg-[#447ECA], text-[#447ECA], focus:border-[#447ECA]) por todo el archivo.
 
@@ -100,8 +99,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
                 icon={mailIcon}
                 value={inputs.email}
                 onChange={handleInputChange}
-                required
-              />
+                required />
 
               <AuthInput
                 label="Contraseña"
@@ -111,13 +109,11 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
                 icon={passwIcon}
                 value={inputs.password}
                 onChange={handleInputChange}
-                required
-              />
+                required />
 
               <button
                 type="submit"
-                className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]"
-              >
+                className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]">
                 Inicia sesión
               </button>
             </form>
@@ -132,9 +128,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
 
 export default Login;
 
-{/* ==========================================================================
-  REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)
-  ==========================================================================
+{/* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)
 
   3. COLORES "HARDCODEADOS" EN TAILWIND:
      - El Error: Escribir el hexadecimal [#447ECA] directamente en las clases por todo 
