@@ -36,7 +36,7 @@ const Sidebar = () => {
             {/* 1. BOTÓN HAMBURGUESA */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed top-8 left-8 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm transition-all gap-1.5">
+                className="fixed top-3 left-8 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm transition-all gap-1.5">
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 rotate-45 translate-y-2" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "opacity-0" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 -rotate-45 -translate-y-2" : "w-6"}`}></span>
@@ -92,6 +92,7 @@ const Sidebar = () => {
                     <button
                         onClick={handleLogout}
                         className="flex items-center justify-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-gray-100 rounded-lg">
+                        <span className="text-xl flex-shrink-0">⇥</span>
                         <span>Cerrar sesión</span>
                     </button>
                 </div>
