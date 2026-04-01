@@ -74,8 +74,7 @@ const Position = () => {
 
                     <form
                         onSubmit={handleContinue}
-                        className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100"
-                    >
+                        className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100">
                         {/* Título Principal dentro del cuadro blanco */}
                         <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase">
                             Configuración de Posiciones
@@ -94,8 +93,7 @@ const Position = () => {
                                         placeholder="Ej. Senior Frontend Developer"
                                         className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] transition-all placeholder:text-gray-400 font-medium ${hasAttemptedSubmit && errors.role ? 'border-red-500' : 'border-[#D4D4DA]'}`}
                                         value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    />
+                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })} />
                                     {hasAttemptedSubmit && errors.role && <span className="text-red-500 text-xs font-bold italic">{errors.role}</span>}
                                 </div>
 
@@ -105,8 +103,7 @@ const Position = () => {
                                         <select
                                             className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] cursor-pointer appearance-none text-gray-600 font-medium"
                                             value={formData.experience}
-                                            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                                        >
+                                            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}>
                                             <option value="0">Ninguno</option>
                                             {[...Array(10)].map((_, i) => (
                                                 <option key={i + 1} value={i + 1}>{i + 1} Año{i + 1 > 1 ? 's' : ''}</option>
@@ -149,8 +146,7 @@ const Position = () => {
                                                 value={tempInputs[field.id]}
                                                 onChange={(e) => setTempInputs({ ...tempInputs, [field.id]: e.target.value })}
                                                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPill(field.id, e.target.value))}
-                                                onBlur={(e) => handleAddPill(field.id, e.target.value)}
-                                            />
+                                                onBlur={(e) => handleAddPill(field.id, e.target.value)} />
                                         </div>
                                         {hasAttemptedSubmit && errors[field.id] && <span className="text-red-500 text-xs font-bold italic">{errors[field.id]}</span>}
                                     </div>
@@ -164,8 +160,7 @@ const Position = () => {
                                         placeholder="Escribe aquí las responsabilidades del cargo..."
                                         className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] resize-none transition-all placeholder:text-gray-400 font-medium ${hasAttemptedSubmit && errors.description ? 'border-red-500' : 'border-[#D4D4DA]'}`}
                                         value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    />
+                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
                                     <div className="flex justify-between items-center">
                                         {hasAttemptedSubmit && errors.description && <span className="text-red-500 text-xs font-bold italic">{errors.description}</span>}
                                         <span className="text-[10px] text-gray-400 font-extrabold ml-auto uppercase">{formData.description.length} / 3000</span>
@@ -187,8 +182,7 @@ const Position = () => {
                                         placeholder="Ej. Ingeniería de Software..."
                                         className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] placeholder:text-gray-400 font-medium"
                                         value={formData.education}
-                                        onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-                                    />
+                                        onChange={(e) => setFormData({ ...formData, education: e.target.value })} />
                                 </div>
 
                                 <div className="flex flex-col gap-2">
@@ -207,8 +201,7 @@ const Position = () => {
                                             value={tempInputs.languages}
                                             onChange={(e) => setTempInputs({ ...tempInputs, languages: e.target.value })}
                                             onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddPill("languages", e.target.value))}
-                                            onBlur={(e) => handleAddPill("languages", e.target.value)}
-                                        />
+                                            onBlur={(e) => handleAddPill("languages", e.target.value)} />
                                     </div>
                                 </div>
                             </div>
@@ -218,8 +211,7 @@ const Position = () => {
                         <div className="flex justify-end pt-4">
                             <button
                                 type="submit"
-                                className="bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-[0.97] transition-all uppercase tracking-wider"
-                            >
+                                className="bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-[0.97] transition-all uppercase tracking-wider">
                                 Continuar
                             </button>
                         </div>

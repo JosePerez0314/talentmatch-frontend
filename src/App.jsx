@@ -7,6 +7,7 @@ import {
 import Login from "./features/Login";
 import Dashboard from "./features/Dashboard";
 import Position from "./features/Position";
+import UploadCV from "./features/UploadCV";
 import Layout from "./components/Layout";
 
 function App() {
@@ -21,6 +22,9 @@ function App() {
 
         {/* Ruta Position*/}
         <Route path="/position" element={<Layout> <Position /> </Layout>} />
+
+        {/* Ruta al Dashboard*/}
+        <Route path="/uploadcv" element={<Layout> <UploadCV /> </Layout>} />
 
         {/* Redireccion por defecto */}
         <Route path="*" element={<Navigate to="/login" />} />
