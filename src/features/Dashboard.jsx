@@ -38,22 +38,22 @@ const Dashboard = () => {
 
     fetchDashboardData();
   }, []);
-  
+
   return (
     <div className="flex min-h-screen bg-[#F0F0F5]">
       <Sidebar />
 
       <main className="flex-1 p-10 overflow-y-auto">
-        
+
         {/* Encabezado Limpio (Sin div vacío) */}
-        <header className="flex justify-center mb-10">
+        <header className="flex max-w-4xl mx-auto px-4 mb-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
             Dashboard - Centro de Control
           </h1>
         </header>
 
         {/* Grid Superior: Mapeo de Componente Limpio */}
-        <div className="grid grid-cols-1 gap-6 mb-8">
+        <div className="grid grid-col-1 md:grid-cols-1 gap-6 mb-8 max-w-4xl mx-auto px-4">
           {STATS_CONFIG.map((config) => (
             <StatCard
               key={config.id}
@@ -67,16 +67,16 @@ const Dashboard = () => {
         </div>
 
         {/* Grid Inferior: Componentes Reutilizables */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto px-4">
           <MovementCard title="Última posición creada" value={lastMovements.posicion} />
           <MovementCard title="Último CV subido" value={lastMovements.cv} />
           <MovementCard title="Vacantes cerradas" value={lastMovements.cerradas} />
         </div>
 
         {/* Sección de CTA */}
-        <div className="bg-[#DCF9FF] p-12 rounded-[20px] text-center border border-[#447ECA]/5">
+        <div className="bg-[#DCF9FF] p-12 rounded-[20px] text-center border border-[#447ECA]/5 grid-cols-1 gap-6 mb-8 max-w-4xl mx-auto px-4">
           <p className="text-[#447ECA] font-semibold text-lg mb-8 italic">
-            "¿Listo para encontrar tu próximo talento? Crea una vacante y deja que la IA haga el trabajo."
+            ¿Listo para encontrar tu próximo talento? Crea una vacante y deja que la IA haga el trabajo.
           </p>
           <button className="bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
             Crear Vacante ahora
