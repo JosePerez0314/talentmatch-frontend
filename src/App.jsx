@@ -7,19 +7,20 @@ import {
 import Login from "./features/Login";
 import Dashboard from "./features/Dashboard";
 import Position from "./features/Position";
+import Layout from "./components/Layout";
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* Ruta Login*/}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Layout> <Login /> </Layout>} />   {/*QUitar el Layout del login, dejado por mientras*/}
 
         {/* Ruta al Dashboard*/}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Layout> <Dashboard /> </Layout>} />
 
         {/* Ruta Position*/}
-        <Route path="/position" element={<Position />} />
+        <Route path="/position" element={<Layout> <Position /> </Layout>} />
 
         {/* Redireccion por defecto */}
         <Route path="*" element={<Navigate to="/login" />} />
