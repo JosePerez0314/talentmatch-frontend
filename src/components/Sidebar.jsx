@@ -1,6 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom"; // Importamos NavLink
-//iconos
+//Liks
+import { useNavigate, NavLink } from "react-router-dom"; 
+
+
+//Assets
 import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg"
 import iconDashboard from "../assets/icons/icon_dashboard.svg";
 import iconPositionCreateSlide from "../assets/icons/icon_position_create_slide.svg";
@@ -19,7 +22,7 @@ const Sidebar = () => {
         navigate("/login");
     };
 
-    // Añadimos la propiedad 'path' para saber a dónde redirigir
+    // Add the 'path' property to define where each menu item should redirect
     const menuItems = [
         { name: "Dashboard", icon: iconDashboard, path: "/dashboard" },
         { name: "Crear Posición", icon: iconPositionCreateSlide, path: "/position" },
@@ -33,7 +36,7 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* 1. BOTÓN HAMBURGUESA */}
+            {/* HAMBURGER BUTTON */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="fixed top-8 left-8 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-sm transition-all gap-1.5">
@@ -42,7 +45,7 @@ const Sidebar = () => {
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 -rotate-45 -translate-y-2" : "w-6"}`}></span>
             </button>
 
-            {/* 2. OVERLAY */}
+            {/* OVERLAY */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-40 transition-opacity"
@@ -50,7 +53,7 @@ const Sidebar = () => {
                 </div>
             )}
 
-            {/* 3. MENÚ LATERAL */}
+            {/* SIDEBAR MENU */}
             <aside
                 className={`fixed top-0 left-0 h-screen bg-white z-50 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between py-6
                 ${isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}`}>
@@ -65,7 +68,7 @@ const Sidebar = () => {
                             <NavLink
                                 key={item.name}
                                 to={item.path}
-                                onClick={() => setIsOpen(false)} // Cierra el menú al navegar
+                                onClick={() => setIsOpen(false)} // Close the menu when navigating
                                 className={({ isActive }) => `
                                     flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap
                                     ${isActive
@@ -87,7 +90,7 @@ const Sidebar = () => {
                     </nav>
                 </div>
 
-                {/* Footer del Sidebar */}
+                {/* SIDEBAR FOOTER */}
                 <div className="px-4 border-t border-gray-50 pt-4">
                     <button
                         onClick={handleLogout}

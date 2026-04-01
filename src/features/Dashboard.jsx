@@ -12,8 +12,8 @@ import { STATS_CONFIG } from "../utils/dashboardConfig";
 
 
 const Dashboard = () => {
-  // 1. ESTADO DE DATOS DINÁMICOS (Aquí es donde escribirás los datos de tu API)
-  // Inicializamos en 0 / "Cargando..." para que la UI no se rompa antes del fetch
+  // 1. DYNAMIC DATA STATE (This is where you will populate the data coming from your API)
+  // Initialized with 0 / "Loading..." to prevent the UI from breaking before the fetch completes
   const [metrics, setMetrics] = useState({
     posiciones: 0,
     cvs: 0,
@@ -26,9 +26,9 @@ const Dashboard = () => {
     cerradas: 0,
   });
 
-  // Simulamos la carga
+  /// Simulate data loading
   useEffect(() => {
-    // Aquí iría: const data = await apiService.getDashboardData();
+    // This is where the real API call would go: const data = await apiService.getDashboardData();
     const fetchDashboardData = async () => {
       setTimeout(() => {
         setMetrics({ posiciones: 12, cvs: 45, vacantes: 3 });
@@ -45,35 +45,35 @@ const Dashboard = () => {
 
       <main className="flex-1 p-10 overflow-y-auto">
 
-        {/* Encabezado Limpio (Sin div vacío) */}
+        {/* Clean header (without empty div) */}
         <header className="flex max-w-4xl mx-auto px-4 mb-10">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
             Dashboard - Centro de Control
           </h1>
         </header>
 
-        {/* Grid Superior: Mapeo de Componente Limpio */}
+        {/* Top grid: clean component mapping */}
         <div className="grid grid-col-1 md:grid-cols-1 gap-6 mb-8 max-w-4xl mx-auto px-4">
           {STATS_CONFIG.map((config) => (
             <StatCard
               key={config.id}
               title={config.title}
               icon={config.icon}
-              count={metrics[config.id]} // Cruzamos el ID estático con el valor del estado dinámico
+              count={metrics[config.id]} // Match the static ID with the dynamic state value
               btnText={config.btn}
               btnIcon={config.btnIcon}
             />
           ))}
         </div>
 
-        {/* Grid Inferior: Componentes Reutilizables */}
+        {/* Bottom grid: reusable components */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto px-4">
           <MovementCard title="Última posición creada" value={lastMovements.posicion} />
           <MovementCard title="Último CV subido" value={lastMovements.cv} />
           <MovementCard title="Vacantes cerradas" value={lastMovements.cerradas} />
         </div>
 
-        {/* Sección de CTA */}
+        {/* Call-to-action section */}
         <div className="bg-[#DCF9FF] p-12 rounded-[20px] text-center border border-[#447ECA]/5 grid-cols-1 gap-6 mb-8 max-w-4xl mx-auto px-4">
           <p className="text-[#447ECA] font-semibold text-lg mb-8 italic">
             ¿Listo para encontrar tu próximo talento? Crea una vacante y deja que la IA haga el trabajo.

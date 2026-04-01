@@ -1,5 +1,3 @@
-// Implementar comentarios en ingles
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 //Components
@@ -33,14 +31,14 @@ const Login = () => {
     setUiState("loading");
 
     try {
-      // Llamada limpia al servicio centralizado
+      // Clean call to the centralized authentication service
       const data = await authService.login(inputs);
 
-      // Si llegamos aquí, el login fue exitoso
+      // If execution reaches this point, the login was successful
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
     } catch (error) {
-      // Cualquier error (401, 500, Red) cae aquí
+      // Any error (401, 500, network) is handled here
       setUiState("error");
     }
   };
@@ -91,7 +89,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* --- IMPLEMENTATION DRY AUTHINPUT --- */}
+              {/* Reusable AuthInput component implementation (DRY principle) */}
               <AuthInput
                 label="Usuario"
                 name="email"

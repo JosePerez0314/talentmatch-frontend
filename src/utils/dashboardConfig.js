@@ -7,7 +7,7 @@ import iconVacantCreateButtom from "../assets/icons/icon_vacant_create_buttom.sv
 
 export const STATS_CONFIG = [
   {
-    id: "posiciones", // Clave para mapear con los datos del backend
+    id: "posiciones", // Key used to map with backend data
     title: "Posiciones creadas",
     icon: iconPositionCreatedBlue,
     btn: "Crear Posiciones",
