@@ -1,5 +1,3 @@
-// Implementar comentarios en ingles
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 //Components
@@ -13,10 +11,6 @@ import mailIcon from "../assets/icons/icon_mail_login.svg";
 import passwIcon from "../assets/icons/icon_lock.svg";
 import loadingIcon from "../assets/icons/icon_loading_refresh.svg";
 
-
-// Implementar return dentro de los condicionales y funciones
-// ¿Qué deben cambiar?: El componente Login hace toda la lógica pero se les olvidó devolver la interfaz gráfica. Necesitan agregar el bloque return ( <JSX> ); al final de la función Login. Si ejecutas este código ahora mismo, la pantalla se quedará totalmente en blanco o React lanzará un error porque la función devuelve undefined.
-
 const Login = () => {
   const navigate = useNavigate();
   const [inputs, setInputs] = useState({ email: "", password: "" });
@@ -25,9 +19,13 @@ const Login = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
+    // Clear error message if user starts typing again
     if (uiState === "error") setUiState("form");
   };
 
+  /**
+   * Handles form submission to the authentication service
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUiState("loading");
@@ -45,6 +43,7 @@ const Login = () => {
     }
   };
 
+  
   return (
 
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
@@ -53,14 +52,6 @@ const Login = () => {
           src={logoTalentMatch}
           alt="Logo"
           className="h-40 w-auto object-contain pt-10" />
-
-        {/*
-3. Colores "Hardcodeados" en Tailwind
-El Error: Están escribiendo el color hexadecimal [#447ECA] directamente en las clases (ej. bg-[#447ECA], text-[#447ECA], focus:border-[#447ECA]) por todo el archivo.
-
-La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativo de TalentMatch AI, tendrán que buscar y reemplazar ese hexadecimal en 50 archivos distintos. Exígeles que configuren el archivo tailwind.config.js y agreguen este color como primary: '#447ECA'. Así solo tendrán que escribir bg-primary y text-primary.
-
- */}
 
       </header>
 
@@ -85,7 +76,7 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
 
             {uiState === "error" && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold text-center">
-                Credenciales incorrectas o error de servidor.
+                Credenciales incorrectas.
               </div>
             )}
 
@@ -117,20 +108,6 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
                 Inicia sesión
               </button>
             </form>
-            {/* Informative box for demo credentials */}
-            <div className="mt-8 p-4 bg-gray-300 border border-gray-100 rounded-xl flex flex-col items-center justify-center gap-1">
-              <p className="text-gray-900 text-xs font-medium uppercase tracking-wider">
-                Acceso de Prueba
-              </p>
-              <div className="flex gap-2 text-[13px]">
-                <span className="text-gray-800 font-bold">Email:</span>
-                <span className="text-[#447ECA]">admin@admin.ai</span>
-              </div>
-              <div className="flex gap-2 text-[13px]">
-                <span className="text-gray-800 font-bold">Contraseña:</span>
-                <span className="text-[#447ECA]">Admin123</span>
-              </div>
-            </div>
           </div>
         )}
       </main>

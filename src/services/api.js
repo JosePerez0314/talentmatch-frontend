@@ -1,9 +1,5 @@
-// Obtenemos la URL desde las variables de entorno de Vite
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-/**
- * Servicio de Autenticación
- */
 export const authService = {
   login: async (credentials) => {
     try {
@@ -15,16 +11,20 @@ export const authService = {
         body: JSON.stringify(credentials),
       });
 
-      // Si la respuesta no es 2xx, lanzamos el error para que el catch lo capture
+      // 1. Verificamos si la respuesta es JSON antes de parsear
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      const data = isJson ? await response.json() : null;
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error en la autenticación");
+        // Si no es OK, lanzamos error con el mensaje del servidor o uno genérico
+        throw new Error(data?.message || `Error del servidor: ${response.status}`);
       }
 
-      return await response.json(); // Retorna { token, user, etc. }
+      return data; 
     } catch (error) {
-      console.error("Error en authService.login:", error.message);
-      throw error; // Re-lanzamos para que el componente maneje la UI
+      // Log para el desarrollador, pero relanzamos para la UI
+      console.error("API Error [login]:", error.message);
+      throw error; 
     }
   },
 };
