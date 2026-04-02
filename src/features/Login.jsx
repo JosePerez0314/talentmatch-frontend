@@ -117,6 +117,20 @@ La Solución: Esto es inmanejable. Si mañana decides cambiar el azul corporativ
                 Inicia sesión
               </button>
             </form>
+            {/* Informative box for demo credentials */}
+            <div className="mt-8 p-4 bg-gray-300 border border-gray-100 rounded-xl flex flex-col items-center justify-center gap-1">
+              <p className="text-gray-900 text-xs font-medium uppercase tracking-wider">
+                Acceso de Prueba
+              </p>
+              <div className="flex gap-2 text-[13px]">
+                <span className="text-gray-800 font-bold">Email:</span>
+                <span className="text-[#447ECA]">admin@admin.ai</span>
+              </div>
+              <div className="flex gap-2 text-[13px]">
+                <span className="text-gray-800 font-bold">Contraseña:</span>
+                <span className="text-[#447ECA]">Admin123</span>
+              </div>
+            </div>
           </div>
         )}
       </main>
