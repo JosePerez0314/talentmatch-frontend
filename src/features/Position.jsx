@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 // Componentes
 import Sidebar from "../components/Sidebar";
+//Assets
+import iconCheck from "../assets/icons/icon_check_blue.svg"
 
 const Position = () => {
     // --- Estado del Formulario ---
@@ -212,7 +214,7 @@ const Position = () => {
                             <button
                                 type="submit"
                                 className="bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-[0.97] transition-all uppercase tracking-wider">
-                                Continuar
+                                Crear Posición
                             </button>
                         </div>
                     </form>
