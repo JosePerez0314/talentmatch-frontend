@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
+// Revisar porque la el try no cubre todo
 export const authService = {
   login: async (credentials) => {
     try {
@@ -20,11 +21,11 @@ export const authService = {
         throw new Error(data?.message || `Error del servidor: ${response.status}`);
       }
 
-      return data; 
+      return data;
     } catch (error) {
       // Log para el desarrollador, pero relanzamos para la UI
       console.error("API Error [login]:", error.message);
-      throw error; 
+      throw error;
     }
   },
 };

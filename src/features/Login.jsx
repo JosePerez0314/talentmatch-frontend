@@ -6,6 +6,8 @@ import AuthInput from "../components/AuthInput";
 //Services
 import { authService } from "../services/api";
 //Assets
+
+// Revisar si se puede optimizar
 import logoTalentMatch from "../assets/icons/Logo_TalentMatch_AI.svg";
 import mailIcon from "../assets/icons/icon_mail_login.svg";
 import passwIcon from "../assets/icons/icon_lock.svg";
@@ -20,7 +22,10 @@ const Login = () => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
     // Clear error message if user starts typing again
-    if (uiState === "error") setUiState("form");
+    if (uiState === "error") setUiState("form"); // Les dejare un ejemploConfirmar si esto se ejecuta porque el if falta un return
+    // Ejemplo de implementacion
+
+    if (uiState === "error") return setUiState("form"); // revisar si la logica es correcta
   };
 
   /**
@@ -38,21 +43,22 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
     } catch (error) {
-      // Cualquier error (401, 500, Red) cae aquí
+      // Cualquier error (401, 500, Red) cae aquí\
+      console.error("error que si yo que", error); // Ejemplo de como utilizar el catch pero revisar la implementacion de forma correcta
       setUiState("error");
     }
   };
 
-  
-  return (
+  // Implementacion de componente en el registro del login
 
+  return (
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
       <header className="flex justify-center">
         <img
           src={logoTalentMatch}
           alt="Logo"
-          className="h-40 w-auto object-contain pt-10" />
-
+          className="h-40 w-auto object-contain pt-10"
+        />
       </header>
 
       <main className="flex flex-grow items-center justify-center pb-12 w-full px-6">
@@ -90,7 +96,8 @@ const Login = () => {
                 icon={mailIcon}
                 value={inputs.email}
                 onChange={handleInputChange}
-                required />
+                required
+              />
 
               <AuthInput
                 label="Contraseña"
@@ -100,11 +107,13 @@ const Login = () => {
                 icon={passwIcon}
                 value={inputs.password}
                 onChange={handleInputChange}
-                required />
+                required
+              />
 
               <button
                 type="submit"
-                className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]">
+                className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]"
+              >
                 Inicia sesión
               </button>
             </form>
@@ -119,7 +128,8 @@ const Login = () => {
 
 export default Login;
 
-{/* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)
+{
+  /* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)
 
   3. COLORES "HARDCODEADOS" EN TAILWIND:
      - El Error: Escribir el hexadecimal [#447ECA] directamente en las clases por todo 
@@ -128,8 +138,5 @@ export default Login;
      - La Solución: Configurar tailwind.config.js con primary: '#447ECA'. 
        Así solo usamos bg-primary y text-primary.
 
-*/}
-
-
-
-
+*/
+}
