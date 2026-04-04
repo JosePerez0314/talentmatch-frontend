@@ -2,6 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar"; // Se mantiene la importación para renderizarlo, pero sin lógica interna aquí
 
+//Aseets
+import { Icons } from "../assets/icons";
+
 const Layout = ({ children }) => {
     const navigate = useNavigate();
 

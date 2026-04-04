@@ -50,7 +50,7 @@ const Sidebar = () => {
                 <div className="mt-16">
                     {/* Logo */}
                     <div className="px-8 mb-10 flex items-center">
-                        <img src={logoSmall} alt="TalentMatch AI Logo" className="h-10 w-auto object-contain" />
+                        <img src={Icons.logos.small} alt="TalentMatch AI Logo" className="h-10 w-auto object-contain" />
                     </div>
 
                     <nav className="flex flex-col gap-1 px-4">

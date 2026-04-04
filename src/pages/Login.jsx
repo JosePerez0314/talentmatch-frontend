@@ -6,12 +6,7 @@ import AuthInput from "../components/ui/AuthInput";
 //Services
 import { authService } from "../services/api";
 //Assets
-
-// Revisar si se puede optimizar
-import logoTalentMatch from "../assets/icons/Logo_TalentMatch_AI.svg";
-import mailIcon from "../assets/icons/icon_mail_login.svg";
-import passwIcon from "../assets/icons/icon_lock.svg";
-import loadingIcon from "../assets/icons/icon_loading_refresh.svg";
+import { Icons } from "../assets/icons";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -55,7 +50,7 @@ const Login = () => {
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
       <header className="flex justify-center">
         <img
-          src={logoTalentMatch}
+          src={Icons.logos.large}
           alt="Logo"
           className="h-40 w-auto object-contain pt-10"
         />
@@ -68,7 +63,7 @@ const Login = () => {
               Verificando credenciales...
             </p>
             <img
-              src={loadingIcon}
+              src={Icons.auth.loading}
               alt="Cargando"
               className="h-16 w-16 animate-spin opacity-80"
             />
@@ -93,7 +88,7 @@ const Login = () => {
                 name="email"
                 type="email"
                 placeholder="Correo Electrónico"
-                icon={mailIcon}
+                icon={Icons.auth.mail}
                 value={inputs.email}
                 onChange={handleInputChange}
                 required
@@ -104,7 +99,7 @@ const Login = () => {
                 name="password"
                 type="password"
                 placeholder="Contraseña"
-                icon={passwIcon}
+                icon={Icons.auth.lock}
                 value={inputs.password}
                 onChange={handleInputChange}
                 required
