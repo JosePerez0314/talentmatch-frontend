@@ -44,6 +44,7 @@ export const Icons = {
         loading,
         eyeOpen,
         eyeClosed,
+        logOut
     },
     sidebar: {
         dashboard,
@@ -64,8 +65,5 @@ export const Icons = {
         vacantCreateBtn,
         eyeHistoryGray,
         checkBlue,
-    },
-    layout: {
-        logOut
     }
 };
