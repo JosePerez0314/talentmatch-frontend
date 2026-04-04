@@ -3,9 +3,9 @@
 import React from "react";
 import { useEffect, useState } from "react";
 //Components
-import Sidebar from "../components/Sidebar";
-import StatCard from "../components/Dashboard/StatCard";
-import MovementCard from "../components/Dashboard/MovementCard";
+import Sidebar from "../layouts/Sidebar";
+import StatCard from "../components/cards/StatCard";
+import MovementCard from "../components/cards/MovementCard";
 
 //Config dashboard
 import { STATS_CONFIG } from "../utils/dashboardConfig";

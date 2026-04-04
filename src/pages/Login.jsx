@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 //Components
-import Footer from "../components/Footer/Footer";
-import AuthInput from "../components/AuthInput";
+import Footer from "../layouts/Footer";
+import AuthInput from "../components/ui/AuthInput";
 //Services
 import { authService } from "../services/api";
 //Assets
