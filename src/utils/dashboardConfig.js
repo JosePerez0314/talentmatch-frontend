@@ -1,9 +1,23 @@
 //Assets
 import { Icons } from "../assets/icons";
 
+// Default values for metrics when the page loads
+export const INITIAL_METRICS = {
+  posiciones: 0,
+  cvs: 0,
+  vacantes: 0,
+};
+
+// Default values for last movements
+export const INITIAL_MOVEMENTS = {
+  posicion: "Cargando...",
+  cv: "Cargando...",
+  cerradas: 0,
+};
+
 export const STATS_CONFIG = [
   {
-    id: "posiciones", // Clave para mapear con los datos del backend
+    id: "posiciones",
     title: "Posiciones creadas",
     icon: Icons.stats.posCreatedBlue,
     btn: "Crear Posiciones",
