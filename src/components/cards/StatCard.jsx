@@ -1,5 +1,6 @@
 import React from "react";
-import iconEyeHistoryGray from "../../assets/icons/icon_eye_history.svg";
+//Aseets
+import { Icons } from "../../assets/icons";
 
 const StatCard = ({ title, icon, count, btnText, btnIcon }) => {
   return (
@@ -21,7 +22,7 @@ const StatCard = ({ title, icon, count, btnText, btnIcon }) => {
 
       <div className="flex gap-4">
         <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
-          <img src={iconEyeHistoryGray} alt="Ver historial" className="w-4 h-4 opacity-70" />
+          <img src={Icons.stats.eyeHistoryGray} alt="Ver historial" className="w-4 h-4 opacity-70" />
           <span>Ver</span>
         </button>
 

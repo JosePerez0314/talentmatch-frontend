@@ -29,6 +29,9 @@ import uploadCv from "./icon_upload_cv.svg";
 import vacantCreateBtn from "./icon_vacant_create_buttom.svg";
 import checkBlue from "./icon_check_blue.svg";
 
+// --- Layout ---
+import logOut from "./icon_log_out.svg";
+
 // --- EXPORT UNIF ---
 export const Icons = {
     logos: {
@@ -61,5 +64,8 @@ export const Icons = {
         vacantCreateBtn,
         eyeHistoryGray,
         checkBlue,
+    },
+    layout: {
+        logOut
     }
 };
