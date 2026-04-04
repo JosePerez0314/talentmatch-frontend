@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 // Componentes
-import Sidebar from "../components/Sidebar";
+import Sidebar from "../layouts/Sidebar";
 //Assets
 import iconCheck from "../assets/icons/icon_check_blue.svg"; // Nunca se utiliza
 

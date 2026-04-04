@@ -4,11 +4,11 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Login from "./features/Login";
-import Dashboard from "./features/Dashboard";
-import Position from "./features/Position";
-import UploadCV from "./features/UploadCV";
-import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Position from "./pages/Position";
+import UploadCV from "./pages/UploadCV";
+import Layout from "./layouts/Layout";
 
 function App() {
   return (
