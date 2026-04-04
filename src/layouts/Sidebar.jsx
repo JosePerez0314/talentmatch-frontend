@@ -1,15 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom"; // Importamos NavLink
-//iconos
-import logoSmall from "../assets/icons/Logo_TalentMatch_AI_Small.svg"
-import iconDashboard from "../assets/icons/icon_dashboard.svg";
-import iconPositionCreateSlide from "../assets/icons/icon_position_create_slide.svg";
-import iconUploadCvSlide from "../assets/icons/icon_upload_cv_slide.svg";
-import iconVacantCreate from "../assets/icons/icon_vacant_create.svg";
-import iconEyeHistory from "../assets/icons/icon_eye_history.svg";
-import iconHistoryVacant from "../assets/icons/icon_history_vacant.svg";
-import iconHistoryPosition from "../assets/icons/icon_history_position.svg";
-import iconResultsTrophy from "../assets/icons/icon_results_trophy.svg";
+import { useNavigate, NavLink } from "react-router-dom";
+
+//Assets
+import { Icons } from "../assets/icons";
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -21,14 +14,14 @@ const Sidebar = () => {
 
     // Añadimos la propiedad 'path' para saber a dónde redirigir
     const menuItems = [
-        { name: "Dashboard", icon: iconDashboard, path: "/dashboard" },
-        { name: "Crear Posición", icon: iconPositionCreateSlide, path: "/position" },
-        { name: "Subir CVs", icon: iconUploadCvSlide, path: "/uploadcv" },
-        { name: "Crear Vacante", icon: iconVacantCreate, path: "/create-vacant" },
-        { name: "Historial de CVs", icon: iconEyeHistory, path: "/cv-history" },
-        { name: "Historial de anuncios", icon: iconHistoryVacant, path: "/ads-history" },
-        { name: "Historial de Posiciones", icon: iconHistoryPosition, path: "/position-history" },
-        { name: "Resultados", icon: iconResultsTrophy, path: "/results" },
+        { name: "Dashboard", icon: Icons.sidebar.dashboard, path: "/dashboard" },
+        { name: "Crear Posición", icon: Icons.sidebar.positionCreate, path: "/position" },
+        { name: "Subir CVs", icon: Icons.sidebar.uploadCv, path: "/uploadcv" },
+        { name: "Crear Vacante", icon: Icons.sidebar.vacant, path: "/create-vacant" },
+        { name: "Historial de CVs", icon: Icons.sidebar.history.eyeHistory, path: "/cv-history" },
+        { name: "Historial de anuncios", icon: Icons.sidebar.history.historyVacant, path: "/ads-history" },
+        { name: "Historial de Posiciones", icon: Icons.sidebar.history.historyPosition, path: "/position-history" },
+        { name: "Resultados", icon: Icons.sidebar.trophy, path: "/results" },
     ];
 
     return (
