@@ -21,8 +21,13 @@ const Layout = ({ children }) => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={handleLogout}
-                        className="px-5 py-2 border border-gray-200 rounded-xl text-[11px] font-black text-gray-400 hover:bg-gray-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-[0.15em]">
-                        Cerrar
+                        className="group flex items-center gap-3 px-5 py-2 border border-gray-200 rounded-xl text-[11px] font-black text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-[0.15em]">
+                        <span>Cerrar</span>
+                        <img 
+                            src={Icons.auth.logOut} 
+                            alt="Log out" 
+                            className="w-4 h-4 opacity-50 transition-all group-hover:opacity-100 group-hover:invert-[27%] group-hover:sepia-[91%] group-hover:saturate-[2352%] group-hover:hue-rotate-[339deg] group-hover:brightness-[105%] group-hover:contrast-[108%]" 
+                        />
                     </button>
 
                     <button
