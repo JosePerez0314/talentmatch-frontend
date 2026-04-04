@@ -1,30 +1,26 @@
-import iconPositionCreatedBlue from "../assets/icons/icon_position_created_blue.svg";
-import iconVacantCreateBlue from "../assets/icons/icon_vacant_create_blue.svg";
-import iconVacantActiveBlue from "../assets/icons/icon_vacant_active_blue.svg";
-import iconCreateCircleplus from "../assets/icons/icon_create_circleplus.svg";
-import iconUploadCv from "../assets/icons/icon_upload_cv.svg";
-import iconVacantCreateButtom from "../assets/icons/icon_vacant_create_buttom.svg";
+//Assets
+import { Icons } from "../assets/icons";
 
 export const STATS_CONFIG = [
   {
     id: "posiciones", // Clave para mapear con los datos del backend
     title: "Posiciones creadas",
-    icon: iconPositionCreatedBlue,
+    icon: Icons.stats.posCreatedBlue,
     btn: "Crear Posiciones",
-    btnIcon: iconCreateCircleplus,
+    btnIcon: Icons.stats.createPlus,
   },
   {
     id: "cvs",
     title: "CVs subidos",
-    icon: iconVacantCreateBlue,
+    icon: Icons.stats.vacantCreateBlue,
     btn: "Subir CV",
-    btnIcon: iconUploadCv,
+    btnIcon: Icons.stats.uploadCv,
   },
   {
     id: "vacantes",
     title: "Vacantes activas",
-    icon: iconVacantActiveBlue,
+    icon: Icons.stats.vacantActiveBlue,
     btn: "Crear Vacantes",
-    btnIcon: iconVacantCreateButtom,
+    btnIcon: Icons.stats.vacantCreateBtn,
   },
 ];
