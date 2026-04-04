@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 //Components
 import Footer from "../layouts/Footer";
-import AuthInput from "../components/ui/AuthInput";
-//Services
+import LoginForm from "../components/ui/LoginForm";
+
+// Services & Assets
 import { authService } from "../services/api";
-//Assets
 import { Icons } from "../assets/icons";
 
 const Login = () => {
@@ -16,35 +17,26 @@ const Login = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
-    // Clear error message if user starts typing again
-    if (uiState === "error") setUiState("form"); // Les dejare un ejemploConfirmar si esto se ejecuta porque el if falta un return
-    // Ejemplo de implementacion
-
-    if (uiState === "error") return setUiState("form"); // revisar si la logica es correcta
-  };
-
-  /**
-   * Handles form submission to the authentication service
-   */
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUiState("loading");
-
-    try {
-      // Llamada limpia al servicio centralizado
-      const data = await authService.login(inputs);
-
-      // Si llegamos aquí, el login fue exitoso
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
-    } catch (error) {
-      // Cualquier error (401, 500, Red) cae aquí\
-      console.error("error que si yo que", error); // Ejemplo de como utilizar el catch pero revisar la implementacion de forma correcta
-      setUiState("error");
+     
+    //reset the error if the user types again
+    if (uiState === "error") {
+      setUiState("form");
     }
   };
 
-  // Implementacion de componente en el registro del login
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setUiState("loading");
+    
+    try {
+      const data = await authService.login(inputs);
+      localStorage.setItem("token", data.token);
+      navigate("/dashboard");
+    } catch (error) {
+      //avoid the log of sensitive errors
+      setUiState("error");
+    }
+  };
 
   return (
     <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
@@ -58,10 +50,8 @@ const Login = () => {
 
       <main className="flex flex-grow items-center justify-center pb-12 w-full px-6">
         {uiState === "loading" ? (
-          <div className="flex flex-col items-center justify-center gap-6 animate-pulse pb-50">
-            <p className="text-xl font-medium text-gray-700">
-              Verificando credenciales...
-            </p>
+          <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
+            <p className="text-xl font-medium text-gray-700">Verificando...</p>
             <img
               src={Icons.auth.loading}
               alt="Cargando"
@@ -69,52 +59,15 @@ const Login = () => {
             />
           </div>
         ) : (
-          <div className="w-full max-w-[420px] bg-white rounded-[24px] p-10 shadow-sm border border-blue-50">
-            <div className="text-center mb-10">
-              <h1 className="text-3xl font-bold">Inicia Sesión</h1>
-              <p className="text-[#447ECA] font-medium mt-2">TalentMatch AI</p>
-            </div>
-
-            {uiState === "error" && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold text-center">
-                Credenciales incorrectas.
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {/* --- IMPLEMENTATION DRY AUTHINPUT --- */}
-              <AuthInput
-                label="Usuario"
-                name="email"
-                type="email"
-                placeholder="Correo Electrónico"
-                icon={Icons.auth.mail}
-                value={inputs.email}
-                onChange={handleInputChange}
-                required
-              />
-
-              <AuthInput
-                label="Contraseña"
-                name="password"
-                type="password"
-                placeholder="Contraseña"
-                icon={Icons.auth.lock}
-                value={inputs.password}
-                onChange={handleInputChange}
-                required
-              />
-
-              <button
-                type="submit"
-                className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]"
-              >
-                Inicia sesión
-              </button>
-            </form>
-          </div>
+          <LoginForm 
+            inputs={inputs} 
+            onChange={handleInputChange} 
+            onSubmit={handleSubmit} 
+            uiState={uiState} 
+          />
         )}
       </main>
+
       {/* Footer */}
       <Footer />
     </div>
