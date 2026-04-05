@@ -22,6 +22,8 @@ export const STATS_CONFIG = [
     icon: Icons.stats.posCreatedBlue,
     btn: "Crear Posiciones",
     btnIcon: Icons.stats.createPlus,
+    actionPath: "/position",
+    viewPath: ""
   },
   {
     id: "cvs",
@@ -29,6 +31,8 @@ export const STATS_CONFIG = [
     icon: Icons.stats.vacantCreateBlue,
     btn: "Subir CV",
     btnIcon: Icons.stats.uploadCv,
+    actionPath: "/uploadcv",
+    viewPath: "/cv-history"
   },
   {
     id: "vacantes",
@@ -36,5 +40,7 @@ export const STATS_CONFIG = [
     icon: Icons.stats.vacantActiveBlue,
     btn: "Crear Vacantes",
     btnIcon: Icons.stats.vacantCreateBtn,
+    actionPath: "",
+    viewPath: ""
   },
 ];

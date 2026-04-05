@@ -1,8 +1,10 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 //Aseets
 import { Icons } from "../../assets/icons";
 
-const StatCard = ({ title, icon, count, btnText, btnIcon }) => {
+const StatCard = ({ title, icon, count, btnText, btnIcon, actionPath, viewPath }) => {
+  const navigate = useNavigate();
   return (
     <div className="bg-white p-6 rounded-[12px] shadow-sm border border-[#DCF9FF] flex justify-between items-center transition-all hover:shadow-md">
       <div className="flex items-center gap-6 group">
@@ -21,12 +23,12 @@ const StatCard = ({ title, icon, count, btnText, btnIcon }) => {
       </div>
 
       <div className="flex gap-4">
-        <button className="flex items-center gap-2 px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
+        <button onClick={() => navigate(viewPath)} className="flex items-center gap-2 px-6 py-2.5 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all">
           <img src={Icons.stats.eyeHistoryGray} alt="Ver historial" className="w-4 h-4 opacity-70" />
           <span>Ver</span>
         </button>
 
-        <button className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-2.5 rounded-xl text-[13px] font-bold hover:bg-[#3669ab] transition-all shadow-md active:scale-95">
+        <button onClick={() => navigate(actionPath)} className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-2.5 rounded-xl text-[13px] font-bold hover:bg-[#3669ab] transition-all shadow-md active:scale-95">
           <img src={btnIcon} alt={btnText} className="w-4 h-4 brightness-0 invert" />
           <span>{btnText}</span>
         </button>
