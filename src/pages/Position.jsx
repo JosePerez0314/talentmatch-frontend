@@ -76,7 +76,6 @@ const Position = () => {
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 bg-[#447ECA] text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-[#3669ab] active:scale-95 transition-all uppercase text-xs tracking-wider">
-          <span className="text-lg">←</span>
           Volver
         </button>
       </div>
