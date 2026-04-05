@@ -1,12 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Navigate,} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
-//Pages
+// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Position from "./pages/Position";
 import UploadCV from "./pages/UploadCV";
+import CVHistory from "./pages/CVHistory";
 
-//Layout
+// Layout
 import Layout from "./layouts/Layout";
 
 function App() {
@@ -18,10 +19,9 @@ function App() {
 
         {/* PRIVATE ROUTES (WITH LAYOUT) */}
         <Route path="/dashboard" element={<Layout> <Dashboard /> </Layout>} />
-
         <Route path="/position" element={<Layout> <Position /> </Layout>} />
-
         <Route path="/uploadcv" element={<Layout> <UploadCV /> </Layout>} />
+        <Route path="/cv-history" element={<Layout> <CVHistory /> </Layout>} />
 
         {/* DEFAULT REDIRECTION */}
         <Route path="*" element={<Navigate to="/login" replace />} />
