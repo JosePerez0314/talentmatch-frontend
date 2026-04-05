@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+//Assets
+import { Icons } from "../assets/icons";
 
 const UploadCV = () => {
   const navigate = useNavigate();
@@ -103,7 +105,7 @@ const UploadCV = () => {
           <div className="flex justify-between items-center mb-10">
             <div className="bg-[#E9F7FF] flex items-center gap-5 p-5 rounded-2xl border border-[#D1E9FF]">
               <div className="w-12 h-12 bg-[#447ECA] rounded-xl flex items-center justify-center shadow-inner">
-                <div className="w-5 h-6 border-2 border-white rounded-sm" />
+                <img src={Icons.stats.vacantCreateBtn} alt="Documento" className="w-7 h-7 object-contain" />
               </div>
               <div>
                 <p className="text-gray-400 text-[10px] font-black uppercase tracking-wider">
@@ -144,8 +146,8 @@ const UploadCV = () => {
             </div>
           ) : (
             <>
-              <div className="w-20 h-20 bg-[#F5FBFF] rounded-3xl flex items-center justify-center mb-8 border border-[#E9F7FF]">
-                <div className="w-8 h-10 border-[3px] border-[#447ECA] rounded-md" />
+              <div className="w-20 h-20 bg-[#DCF9FF] rounded-3xl flex items-center justify-center mb-8 border border-[#E9F7FF]">
+                <img src={Icons.stats.vacantCreateBlue} alt="Documento" className="w-10 h-10 object-contain" />
               </div>
 
               <input
