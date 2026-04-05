@@ -64,6 +64,8 @@ const Dashboard = () => {
               count={metrics[config.id]}
               btnText={config.btn}
               btnIcon={config.btnIcon}
+              actionPath={config.actionPath}
+              viewPath={config.viewPath}
             />
           ))}
         </section>
