@@ -1,20 +1,19 @@
 import React, { useState } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 
-//Assets
+// Assets
 import { Icons } from "../assets/icons";
 
-    // STATIC DATA OUTSIDE THE COMPONENT
-    const MENU_ITEMS = [
-        { name: "Dashboard", icon: Icons.sidebar.dashboard, path: "/dashboard" },
-        { name: "Crear Posición", icon: Icons.sidebar.positionCreate, path: "/position" },
-        { name: "Subir CVs", icon: Icons.sidebar.uploadCv, path: "/uploadcv" },
-        { name: "Crear Vacante", icon: Icons.sidebar.vacant, path: "/create-vacant" },
-        { name: "Historial de CVs", icon: Icons.sidebar.history, path: "/cv-history" },
-        { name: "Historial de anuncios", icon: Icons.sidebar.historyVacant, path: "/ads-history" },
-        { name: "Historial de Posiciones", icon: Icons.sidebar.historyPosition, path: "/position-history" },
-        { name: "Resultados", icon: Icons.sidebar.trophy, path: "/results" },
-    ];
+const MENU_ITEMS = [
+    { name: "Dashboard", icon: Icons.sidebar.dashboard, path: "/dashboard" },
+    { name: "Crear Posición", icon: Icons.sidebar.positionCreate, path: "/position" },
+    { name: "Subir CVs", icon: Icons.sidebar.uploadCv, path: "/uploadcv" },
+    { name: "Crear Vacante", icon: Icons.sidebar.vacant, path: "/create-vacant" },
+    { name: "Historial de CVs", icon: Icons.sidebar.history, path: "/cv-history" }, // Conexión lista
+    { name: "Historial de anuncios", icon: Icons.sidebar.historyVacant, path: "/ads-history" },
+    { name: "Historial de Posiciones", icon: Icons.sidebar.historyPosition, path: "/position-history" },
+    { name: "Resultados", icon: Icons.sidebar.trophy, path: "/results" },
+];
 
 const Sidebar = () => {
     const navigate = useNavigate();
@@ -29,7 +28,7 @@ const Sidebar = () => {
 
     return (
         <>
-            {/* HAMBURGER BUTTON - Adjusted */}
+            {/* HAMBURGER BUTTON */}
             <button
                 onClick={toggleMenu}
                 aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
@@ -48,17 +47,15 @@ const Sidebar = () => {
                 ></div>
             )}
 
-            {/* SIDE MENU */}
             <aside
                 className={`fixed top-0 left-0 h-screen bg-white z-50 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between py-6 
                 ${isOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"}`}
             >
                 <div className="mt-16 overflow-y-auto custom-scrollbar">
-                    {/* Logo in Sidebar */}
                     <div className="px-8 mb-10">
-                        <img 
-                            src={Icons.logos.small} 
-                            alt="TalentMatch AI" 
+                        <img
+                            src={Icons.logos.small}
+                            alt="TalentMatch AI"
                             className="h-10 w-auto object-contain"
                         />
                     </div>
@@ -79,7 +76,7 @@ const Sidebar = () => {
                                             src={item.icon}
                                             alt=""
                                             className={`h-5 w-5 object-contain transition-all
-                                                ${isActive ? "opacity-100" : "opacity-60 grayscale-[0.5] group-hover:grayscale-0"}`} 
+                                                ${isActive ? "opacity-100" : "opacity-60 grayscale-[0.5]"}`}
                                         />
                                         <span>{item.name}</span>
                                     </>
@@ -89,18 +86,12 @@ const Sidebar = () => {
                     </nav>
                 </div>
 
-                {/* Footer of Sidebar*/}
                 <div className="px-4 border-t border-gray-100 pt-4 mt-2">
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-4 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-transparent hover:border-red-100 rounded-xl"
                     >
-                        <img 
-                            src={Icons.auth.logOut} 
-                            alt="" 
-                            className="w-5 h-5 opacity-50 group-hover:opacity-100"
-                            style={{ filter: 'grayscale(1)' }} // Filter so that it is gray by default
-                        />
+                        <img src={Icons.auth.logOut} alt="" className="w-5 h-5 opacity-50" style={{ filter: 'grayscale(1)' }} />
                         <span>Cerrar sesión</span>
                     </button>
                 </div>
