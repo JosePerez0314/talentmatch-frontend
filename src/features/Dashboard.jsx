@@ -26,9 +26,9 @@ const Dashboard = () => {
     cerradas: 0,
   });
 
-  // Simulamos la carga
+  // We simulate the loading
   useEffect(() => {
-    // Aquí iría: const data = await apiService.getDashboardData();
+    // Here would go: const data = await apiService.getDashboardData();
     const fetchDashboardData = async () => {
       setTimeout(() => {
         setMetrics({ posiciones: 12, cvs: 45, vacantes: 3 });
