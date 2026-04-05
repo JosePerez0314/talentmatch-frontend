@@ -8,7 +8,7 @@ const StatCard = ({ title, icon, count, btnText, btnIcon, actionPath, viewPath }
   return (
     <div className="bg-white p-6 rounded-[12px] shadow-sm border border-[#DCF9FF] flex justify-between items-center transition-all hover:shadow-md">
       <div className="flex items-center gap-6 group">
-        
+
         {/* Solución to Div Inception*/}
         <div className="w-16 h-16 bg-[#DCF9FF] rounded-2xl flex items-center justify-center transition-transform group-hover:scale-105">
           <img src={icon} alt={title} className="w-8 h-8 object-contain" />
