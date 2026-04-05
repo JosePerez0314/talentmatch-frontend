@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-//Components
+// Components
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
+import DemoCredentials from "../components/DemoCredential";
 
 // Services & Assets
 import { authService } from "../services/api";
@@ -11,64 +12,84 @@ import { Icons } from "../assets/icons";
 
 const Login = () => {
   const navigate = useNavigate();
+
+  // State for form inputs
   const [inputs, setInputs] = useState({ email: "", password: "" });
+
+  // State for UI management (form, loading, error)
   const [uiState, setUiState] = useState("form");
 
+  /**
+   * Updates state on input change and clears errors
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
-     
-    //reset the error if the user types again
+
+    // Reset error state if user starts typing again
     if (uiState === "error") {
       setUiState("form");
     }
   };
 
+  /**
+   * Handles form submission and authentication service call
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUiState("loading");
-    
+
     try {
       const data = await authService.login(inputs);
+      // Persist token and redirect to dashboard
       localStorage.setItem("token", data.token);
       navigate("/dashboard");
     } catch (error) {
-      //avoid the log of sensitive errors
+      // Silence sensitive error details for security
       setUiState("error");
     }
   };
 
   return (
-    <div className="grid min-h-screen grid-rows-[1fr_auto] bg-[#F0F0F5]">
-      <header className="flex justify-center">
+    <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
+      {/* Header section with brand logo */}
+      <header className="flex justify-center shrink-0">
         <img
           src={Icons.logos.large}
-          alt="Logo"
+          alt="TalentMatch AI Logo"
           className="h-40 w-auto object-contain pt-10"
         />
       </header>
 
-      <main className="flex flex-grow items-center justify-center pb-12 w-full px-6">
+      {/* Main interaction area */}
+      <main className="flex flex-col items-center justify-center pb-12 w-full px-6">
         {uiState === "loading" ? (
+          /* Loading indicator during authentication */
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
-            <p className="text-xl font-medium text-gray-700">Verificando...</p>
+            <p className="text-xl font-medium text-gray-700 font-sans">Verifying...</p>
             <img
               src={Icons.auth.loading}
-              alt="Cargando"
+              alt="Loading"
               className="h-16 w-16 animate-spin opacity-80"
             />
           </div>
         ) : (
-          <LoginForm 
-            inputs={inputs} 
-            onChange={handleInputChange} 
-            onSubmit={handleSubmit} 
-            uiState={uiState} 
-          />
+          /* Central container for Form and Demo information */
+          <div className="w-full max-w-md flex flex-col items-center">
+            <LoginForm
+              inputs={inputs}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+              uiState={uiState}
+            />
+
+            {/* Minimalist Demo Access display */}
+            <DemoCredentials />
+          </div>
         )}
       </main>
 
-      {/* Footer */}
+      {/* Persistent application footer */}
       <Footer />
     </div>
   );
