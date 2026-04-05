@@ -1,8 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 // Componentes
 import PillInput from "../components/ui/PillInput";
 
 const Position = () => {
+  const navigate = useNavigate();
+
+  // --- Estado de Éxito ---
+  const [isSuccess, setIsSuccess] = useState(false);
+
   // --- Estado del Formulario ---
   const [formData, setFormData] = useState({
     role: "",
@@ -44,18 +50,16 @@ const Position = () => {
     }));
   };
 
-  // --- Validación Optimizada (Evitamos múltiples if repetitivos) ---
+  // --- Validación ---
   const validateForm = () => {
     const newErrors = {};
     const requiredStrings = ["role", "description"];
     const requiredArrays = ["mandatoryTech", "softSkills"];
 
-    // Validar strings vacíos
     requiredStrings.forEach((field) => {
       if (!formData[field].trim()) newErrors[field] = "Este campo es obligatorio";
     });
 
-    // Validar arrays vacíos
     requiredArrays.forEach((field) => {
       if (formData[field].length === 0) newErrors[field] = "Este campo es obligatorio";
     });
@@ -68,8 +72,9 @@ const Position = () => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
     if (validateForm()) {
-      console.log("Formulario válido. Datos listos para la API:", formData);
-      // Aquí iría el estado setIsSuccess(true) que vimos antes
+      console.log("Formulario válido:", formData);
+      // Success Trigger
+      setIsSuccess(true);
     }
   };
 
@@ -80,32 +85,80 @@ const Position = () => {
     { label: "Habilidades blandas", id: "softSkills", placeholder: "Ej. Liderazgo, Empatía..." },
   ];
 
+  // --- RENDERIZADO CONDICIONAL: PANTALLA DE ÉXITO ---
+  if (isSuccess) {
+    return (
+      <div className="p-10 animate-fade-in flex flex-col items-center justify-center min-h-[80vh]">
+        <div className="max-w-5xl w-full flex flex-col items-center">
+
+          {/* Success Card - 100% Faithful to Dark Design */}
+          <div className="bg-[#2D2D2D] w-full max-w-2xl rounded-[40px] p-20 flex flex-col items-center justify-center text-center shadow-2xl mb-10 relative overflow-hidden">
+            <div className="flex items-center gap-5 mb-6">
+              <h2 className="text-white text-3xl font-bold tracking-tight">
+                Posición creada con éxito
+              </h2>
+              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                <span className="text-[#447ECA] text-xl font-bold">✓</span>
+              </div>
+            </div>
+            <p className="text-gray-400 text-lg font-medium">
+              "{formData.role}" ha sido agregada al sistema.
+            </p>
+          </div>
+
+          {/* Action Buttons Row */}
+          <div className="flex w-full max-w-2xl justify-between items-center px-2">
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="flex items-center gap-3 bg-white text-gray-600 px-8 py-4 rounded-2xl font-bold border border-gray-100 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+            >
+              <span className="text-xl">←</span>
+              Volver al menú
+            </button>
+
+            <button
+              onClick={() => {
+                setIsSuccess(false);
+                setFormData({ role: "", experience: "0", mandatoryTech: [], optionalTech: [], softSkills: [], description: "", education: "", languages: [] });
+                setHasAttemptedSubmit(false);
+              }}
+              className="bg-[#447ECA] text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95"
+            >
+              Crear otra posición
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDERIZADO: FORMULARIO PRINCIPAL ---
   return (
-    /* Eliminamos el div wrapper gigante y el Sidebar porque Layout se encarga de eso */
     <div className="p-10 animate-fade-in">
       <div className="max-w-5xl mx-auto">
         <form
           onSubmit={handleContinue}
-          className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100"
+          className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100 text-left"
         >
           <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase">
             Configuración de Posiciones
           </h1>
 
-          {/* --- SECCIÓN: DETALLES DEL ROL --- */}
+          {/* Secciones del formulario (Detalles, Habilidades, etc.) */}
+          {/* ... (Tu código de secciones se mantiene igual aquí) ... */}
+
           <section className="mb-12">
             <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
               Detalles del rol
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label className="text-sm font-bold">¿Cuál es el puesto que buscas?</label>
                 <input
                   type="text"
                   placeholder="Ej. Senior Frontend Developer"
-                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] transition-all placeholder:text-gray-400 font-medium ${
-                    hasAttemptedSubmit && errors.role ? "border-red-500" : "border-[#D4D4DA]"
-                  }`}
+                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] transition-all placeholder:text-gray-400 font-medium ${hasAttemptedSubmit && errors.role ? "border-red-500" : "border-[#D4D4DA]"
+                    }`}
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 />
@@ -130,24 +183,17 @@ const Position = () => {
                     ))}
                     <option value="10+">10+ Años</option>
                   </select>
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* --- SECCIÓN: HABILIDADES Y CUALIFICACIONES --- */}
-          <section className="mb-12">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
+          {/* --- Renderizado de Píldoras y Resto del Formulario --- */}
+          <section className="mb-12 text-left">
+            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50 text-left">
               Habilidades y cualificaciones
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              
-              {/* Renderizamos las 3 Píldoras usando el nuevo componente */}
               {pillConfigs.map((config) => (
                 <PillInput
                   key={config.id}
@@ -164,15 +210,14 @@ const Position = () => {
                 />
               ))}
 
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label className="text-sm font-bold">Describe el puesto solicitado</label>
                 <textarea
                   maxLength={3000}
                   rows={4}
                   placeholder="Escribe aquí las responsabilidades del cargo..."
-                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] resize-none transition-all placeholder:text-gray-400 font-medium ${
-                    hasAttemptedSubmit && errors.description ? "border-red-500" : "border-[#D4D4DA]"
-                  }`}
+                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] resize-none transition-all placeholder:text-gray-400 font-medium ${hasAttemptedSubmit && errors.description ? "border-red-500" : "border-[#D4D4DA]"
+                    }`}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
@@ -188,13 +233,12 @@ const Position = () => {
             </div>
           </section>
 
-          {/* --- SECCIÓN: EDUCACIÓN E IDIOMAS --- */}
-          <section className="mb-12">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
+          <section className="mb-12 text-left">
+            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50 text-left">
               Educación e idiomas
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 text-left">
                 <label className="text-sm font-bold">Educación necesaria</label>
                 <input
                   type="text"
@@ -205,7 +249,6 @@ const Position = () => {
                 />
               </div>
 
-              {/* El cuarto PillInput (Idiomas) */}
               <PillInput
                 label="Idiomas"
                 id="languages"
@@ -221,7 +264,6 @@ const Position = () => {
             </div>
           </section>
 
-          {/* --- ACCIÓN --- */}
           <div className="flex justify-end pt-4">
             <button
               type="submit"
