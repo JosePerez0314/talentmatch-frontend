@@ -13,39 +13,53 @@ import { Icons } from "../assets/icons";
 const Login = () => {
   const navigate = useNavigate();
 
-  // State for form inputs
+  // Estado para los inputs del formulario
   const [inputs, setInputs] = useState({ email: "", password: "" });
 
-  // State for UI management (form, loading, error)
+  // Estado para manejar la UI (form, loading, error)
   const [uiState, setUiState] = useState("form");
 
   /**
-   * Updates state on input change and clears errors
+   * Actualiza el estado de los inputs y limpia errores
    */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
 
-    // Reset error state if user starts typing again
+    // Si el usuario estaba en error y vuelve a escribir, restauramos el formulario
     if (uiState === "error") {
       setUiState("form");
     }
   };
 
   /**
-   * Handles form submission and authentication service call
+   * Maneja el envío del formulario de forma asíncrona hacia el backend real
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUiState("loading");
 
     try {
+      // Llamada al endpoint real POST /users/login
       const data = await authService.login(inputs);
-      // Persist token and redirect to dashboard
-      localStorage.setItem("token", data.token);
-      navigate("/dashboard");
+      
+      // Programación Defensiva: Verificamos que el backend nos haya enviado el token
+      if (data && data.token) {
+        localStorage.setItem("token", data.token);
+        
+        // Si el backend envía info del usuario, también es buena práctica guardarla
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+        }
+
+        navigate("/dashboard");
+      } else {
+        // Si el backend responde 200 OK pero no manda token, forzamos el error
+        throw new Error("Token de autenticación no recibido.");
+      }
     } catch (error) {
-      // Silence sensitive error details for security
+      // Capturamos credenciales incorrectas o caídas del servidor
+      console.error("Fallo de Autenticación:", error.message);
       setUiState("error");
     }
   };
@@ -66,7 +80,7 @@ const Login = () => {
         {uiState === "loading" ? (
           /* Loading indicator during authentication */
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
-            <p className="text-xl font-medium text-gray-700 font-sans">Verifying...</p>
+            <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>
             <img
               src={Icons.auth.loading}
               alt="Loading"
@@ -83,7 +97,7 @@ const Login = () => {
               uiState={uiState}
             />
 
-            {/* Minimalist Demo Access display */}
+            {/* Mantenemos el Demo Access intacto como pediste */}
             <DemoCredentials />
           </div>
         )}
