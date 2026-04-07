@@ -24,7 +24,7 @@ const PositionSuccess = ({ positionName = "Desarrollador React" }) => {
                     </h2>
                     <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
                         {/* Replace with your specific blue check icon */}
-                        <span className="text-[#447ECA] text-xl font-bold">✓</span>
+                        <img src={Icons.stats.checkBlue} alt="Check" className="w-7 h-7 object-contain" />
                     </div>
                 </div>
 

@@ -36,30 +36,32 @@ const Login = () => {
    * Maneja el envío del formulario de forma asíncrona hacia el backend real
    */
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUiState("loading");
+  e.preventDefault();
+  setUiState("loading");
 
-    try {
-      // Llamada al endpoint real POST /users/login
-      const data = await authService.login(inputs);
+  try {
+    // 1. Llamamos al servicio (que ahora devuelve responseBody.data)
+    const data = await authService.login(inputs);
+    
+    // 2. GUARDADO CRÍTICO: Guardamos el objeto de usuario completo
+    // Según tu JSON, 'data' debería traer { id, email, ... }
+    if (data) {
+      localStorage.setItem("user", JSON.stringify(data));
       
-      // Programación Defensiva: Verificamos que el backend nos haya enviado el token
-      if (data && data.token) {
-        localStorage.setItem("token", data.token);
-      }
-        // Si el backend envía info del usuario, también es buena práctica guardarla
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-
+      // Si el backend también manda token (aunque no lo usemos en headers), 
+      // es bueno guardarlo por si acaso
+      if (data.token) localStorage.setItem("token", data.token);
+      
       navigate("/dashboard");
-      
-    } catch (error) {
-      // Capturamos credenciales incorrectas o caídas del servidor
-      console.error("Fallo de Autenticación:", error.message);
-      setUiState("error");
+    } else {
+      throw new Error("No se recibieron datos del usuario.");
     }
-  };
+
+  } catch (error) {
+    console.error("Fallo de Autenticación:", error.message);
+    setUiState("error");
+  }
+};
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
