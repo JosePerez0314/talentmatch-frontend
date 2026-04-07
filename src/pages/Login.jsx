@@ -46,17 +46,14 @@ const Login = () => {
       // Programación Defensiva: Verificamos que el backend nos haya enviado el token
       if (data && data.token) {
         localStorage.setItem("token", data.token);
-        
+      }
         // Si el backend envía info del usuario, también es buena práctica guardarla
         if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
         }
 
-        navigate("/dashboard");
-      } else {
-        // Si el backend responde 200 OK pero no manda token, forzamos el error
-        throw new Error("Token de autenticación no recibido.");
-      }
+      navigate("/dashboard");
+      
     } catch (error) {
       // Capturamos credenciales incorrectas o caídas del servidor
       console.error("Fallo de Autenticación:", error.message);
