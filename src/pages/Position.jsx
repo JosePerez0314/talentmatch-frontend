@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+// UI imports
 import PillInput from "../components/ui/PillInput";
 import PositionSuccess from "../components/Sections/PositionSuccess";
 
-// 1. Constantes fuera del componente para evitar re-renderizados innecesarios
+// Services
+import { positionService } from "../services/api";
+
+// 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
 const INITIAL_STATE = {
-  role: "", experience: "0", mandatoryTech: [], optionalTech: [],
-  softSkills: [], description: "", education: "", languages: [],
+  role: "", 
+  yearsOfExperience: 0, // Se inicializa como Int
+  technicalSkills: [],  // Renombrado
+  optionalTechnicalSkills: [], // Renombrado
+  softSkills: [], 
+  description: "", 
+  education: "", 
+  languages: [],
 };
 
 // 2. Sub-componentes de UI (Clean Code)
@@ -29,12 +40,20 @@ const FormField = ({ label, error, children }) => (
 
 const Position = () => {
   const navigate = useNavigate();
+  
+  // Estados UI
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
+  
+  // Estados de Datos
   const [formData, setFormData] = useState(INITIAL_STATE);
+  
+  // Mapeamos los inputs temporales con las mismas llaves del backend
   const [tempInputs, setTempInputs] = useState({
-    mandatoryTech: "", optionalTech: "", softSkills: "", languages: ""
+    technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
   });
 
   // --- Lógica de Negocio ---
@@ -51,12 +70,47 @@ const Position = () => {
   const validate = () => {
     const errs = {};
     ["role", "description"].forEach(f => !formData[f].trim() && (errs[f] = "Obligatorio"));
-    ["mandatoryTech", "softSkills"].forEach(f => formData[f].length === 0 && (errs[f] = "Obligatorio"));
+    // Actualizamos las llaves de validación
+    ["technicalSkills", "softSkills"].forEach(f => formData[f].length === 0 && (errs[f] = "Obligatorio"));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // Renderizado condicional para la pantalla de éxito
+  // --- Conexión al Backend Real ---
+  const handleContinue = async (e) => {
+    e.preventDefault();
+    setHasAttemptedSubmit(true);
+    setApiError("");
+
+    if (validate()) {
+      setIsLoading(true);
+      try {
+        const userString = localStorage.getItem("user");
+        const user = userString ? JSON.parse(userString) : null;
+        const userId = user?.id;
+
+        if (!userId) {
+          throw new Error("No se encontró tu ID de sesión. Por favor, cierra sesión y vuelve a entrar.");
+        }
+
+        // Ahora el envío es directo y limpio, formData ya tiene la estructura perfecta
+        const payload = {
+          ...formData,
+          userId: userId
+        };
+
+        await positionService.create(payload);
+        setIsSuccess(true);
+        
+      } catch (error) {
+        console.error("Error creando posición:", error);
+        setApiError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   if (isSuccess) return (
     <PositionSuccess
       positionName={formData.role}
@@ -69,9 +123,7 @@ const Position = () => {
   );
 
   return (
-    <div className="p-10 animate-fade-in max-w-5xl mx-auto">
-
-      {/* NUEVO: Botón Volver - Posicionado arriba a la izquierda para navegación rápida */}
+    <div className="p-10 animate-fade-in max-w-5xl mx-auto relative">
       <div className="flex justify-start mb-6">
         <button
           onClick={() => navigate("/dashboard")}
@@ -81,10 +133,16 @@ const Position = () => {
       </div>
 
       <form
-        onSubmit={(e) => { e.preventDefault(); setHasAttemptedSubmit(true); if (validate()) setIsSuccess(true); }}
-        className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100">
+        onSubmit={handleContinue}
+        className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100 relative">
 
-        <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase">
+        {apiError && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[80%] bg-red-50 text-red-600 px-6 py-3 rounded-xl border border-red-200 text-sm font-bold text-center animate-fade-in">
+            {apiError}
+          </div>
+        )}
+
+        <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase mt-4">
           Configuración de Posiciones
         </h1>
 
@@ -102,23 +160,25 @@ const Position = () => {
           <FormField label="Años de experiencia">
             <select
               className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none appearance-none font-medium cursor-pointer"
-              value={formData.experience}
-              onChange={e => setFormData({ ...formData, experience: e.target.value })}>
+              value={formData.yearsOfExperience}
+              // Parseamos a entero en el momento en que cambia para mantener el estado como Int
+              onChange={e => setFormData({ ...formData, yearsOfExperience: parseInt(e.target.value, 10) || 0 })}>
               <option value="0">Ninguno</option>
               {[...Array(10)].map((_, i) => (
                 <option key={i + 1} value={i + 1}>
                   {i + 1} Año{i > 0 ? 's' : ''}
                 </option>
               ))}
-              <option value="10+">10+ Años</option>
+              <option value="10">10+ Años</option> {/* Cambié "10+" a "10" como value porque debe ser entero */}
             </select>
           </FormField>
         </FormSection>
 
         <FormSection title="Habilidades y cualificaciones">
           {[
-            { id: "mandatoryTech", label: "Habilidades técnicas obligatorias" },
-            { id: "optionalTech", label: "Habilidades técnicas opcionales" },
+            // IDs actualizados a las llaves de Prisma
+            { id: "technicalSkills", label: "Habilidades técnicas obligatorias" },
+            { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales" },
             { id: "softSkills", label: "Habilidades blandas" }
           ].map(c => (
             <PillInput
@@ -169,8 +229,9 @@ const Position = () => {
         <div className="flex justify-end pt-4">
           <button
             type="submit"
-            className="bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-95 transition-all uppercase tracking-wider">
-            Crear Posición
+            disabled={isLoading}
+            className={`bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-95 transition-all uppercase tracking-wider ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
+            {isLoading ? "Creando..." : "Crear Posición"}
           </button>
         </div>
       </form>
