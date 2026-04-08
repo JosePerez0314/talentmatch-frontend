@@ -58,3 +58,33 @@ export const positionService = {
     }
   },
 };
+
+// Request for UploadCV.jsx
+export const uploadService = {
+  uploadCVs: async (files) => {
+    try {
+      // Native FormData for sending files
+      const formData = new FormData();
+      // The key 'pdfs'
+      files.forEach(file => formData.append("pdfs", file));
+
+      const response = await fetch(`${BASE_URL}/uploads`, {
+        method: "POST",
+        // NO enviamos headers() porque el navegador debe calcular el Content-Type multipart/form-data con su propio boundary
+        body: formData,
+      });
+
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      const responseBody = isJson ? await response.json() : null;
+
+      if (!response.ok || (responseBody && responseBody.success === false)) {
+        throw new Error(responseBody?.error || `Error del servidor: ${response.status}`);
+      }
+
+      return responseBody.data;
+    } catch (error) {
+      console.error("API Error [uploadCVs]:", error.message);
+      throw error;
+    }
+  },
+};
