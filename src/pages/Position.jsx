@@ -11,9 +11,9 @@ import { positionService } from "../services/api";
 // 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
 const INITIAL_STATE = {
   role: "", 
-  yearsOfExperience: 0, // Se inicializa como Int
-  technicalSkills: [],  // Renombrado
-  optionalTechnicalSkills: [], // Renombrado
+  yearsOfExperience: 0, 
+  technicalSkills: [],  
+  optionalTechnicalSkills: [],
   softSkills: [], 
   description: "", 
   education: "", 
@@ -51,7 +51,7 @@ const Position = () => {
   // Estados de Datos
   const [formData, setFormData] = useState(INITIAL_STATE);
   
-  // Mapeamos los inputs temporales con las mismas llaves del backend
+  // Mapeamos inputs temporales
   const [tempInputs, setTempInputs] = useState({
     technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
   });
@@ -76,7 +76,7 @@ const Position = () => {
     return Object.keys(errs).length === 0;
   };
 
-  // --- Conexión al Backend Real ---
+  // --- Conexión Backend ---
   const handleContinue = async (e) => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
@@ -93,7 +93,7 @@ const Position = () => {
           throw new Error("No se encontró tu ID de sesión. Por favor, cierra sesión y vuelve a entrar.");
         }
 
-        // Ahora el envío es directo y limpio, formData ya tiene la estructura perfecta
+        //envío 
         const payload = {
           ...formData,
           userId: userId
