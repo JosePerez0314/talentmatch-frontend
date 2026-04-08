@@ -132,7 +132,7 @@ const UploadCV = () => {
           onDragLeave={handleDrag}
           onDrop={handleDrop}
           className={`relative border-2 border-dashed rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 mx-auto w-full
-                        ${isDragging ? "bg-[#1E1E2E] border-[#447ECA] scale-[1.01]" : "bg-white border-gray-200"}
+                        ${isDragging ? "bg-gray-500 border-[#447ECA] scale-[1.01]" : "bg-white border-gray-200"}
                         ${files.length > 0 ? "py-10 max-w-[90%]" : "py-12 max-w-[90%]"}`}
         >
           {isDragging ? (
@@ -140,7 +140,7 @@ const UploadCV = () => {
               <h2 className="text-white text-6xl font-black mb-2 tracking-tighter italic">
                 ¡SÚELTALOS!
               </h2>
-              <p className="text-blue-400 font-bold uppercase text-xs tracking-[0.3em]">
+              <p className="text-white font-bold uppercase text-xs tracking-[0.3em]">
                 Arrastra y suelta el PDF aquí
               </p>
             </div>
