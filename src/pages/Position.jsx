@@ -1,237 +1,240 @@
 import React, { useState } from "react";
-// Componentes
+import { useNavigate } from "react-router-dom";
+
+// UI imports
 import PillInput from "../components/ui/PillInput";
+import PositionSuccess from "../components/Sections/PositionSuccess";
+
+// Services
+import { positionService } from "../services/api";
+
+// 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
+const INITIAL_STATE = {
+  role: "", 
+  yearsOfExperience: 0, // Se inicializa como Int
+  technicalSkills: [],  // Renombrado
+  optionalTechnicalSkills: [], // Renombrado
+  softSkills: [], 
+  description: "", 
+  education: "", 
+  languages: [],
+};
+
+// 2. Sub-componentes de UI (Clean Code)
+const FormSection = ({ title, children }) => (
+  <section className="mb-12 text-left">
+    <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
+      {title}
+    </h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">{children}</div>
+  </section>
+);
+
+const FormField = ({ label, error, children }) => (
+  <div className="flex flex-col gap-2 text-left">
+    <label className="text-sm font-bold">{label}</label>
+    {children}
+    {error && <span className="text-red-500 text-xs font-bold italic">{error}</span>}
+  </div>
+);
 
 const Position = () => {
-  // --- Estado del Formulario ---
-  const [formData, setFormData] = useState({
-    role: "",
-    experience: "0",
-    mandatoryTech: [],
-    optionalTech: [],
-    softSkills: [],
-    description: "",
-    education: "",
-    languages: [],
-  });
-
-  const [tempInputs, setTempInputs] = useState({
-    mandatoryTech: "",
-    optionalTech: "",
-    softSkills: "",
-    languages: "",
-  });
-
-  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+  
+  // Estados UI
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState("");
+  
+  // Estados de Datos
+  const [formData, setFormData] = useState(INITIAL_STATE);
+  
+  // Mapeamos los inputs temporales con las mismas llaves del backend
+  const [tempInputs, setTempInputs] = useState({
+    technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
+  });
 
-  // --- Lógica de Píldoras ---
-  const handleAddPill = (field, value) => {
-    const trimmedValue = value.trim();
-    if (trimmedValue && !formData[field].includes(trimmedValue)) {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: [...prev[field], trimmedValue],
-      }));
-      setTempInputs((prev) => ({ ...prev, [field]: "" }));
-    }
-  };
-
-  const removePill = (field, index) => {
-    setFormData((prev) => ({
+  // --- Lógica de Negocio ---
+  const handlePill = (field, val, action, idx) => {
+    setFormData(prev => ({
       ...prev,
-      [field]: prev[field].filter((_, i) => i !== index),
+      [field]: action === 'add'
+        ? [...new Set([...prev[field], val.trim()])]
+        : prev[field].filter((_, i) => i !== idx)
     }));
+    if (action === 'add') setTempInputs(prev => ({ ...prev, [field]: "" }));
   };
 
-  // --- Validación Optimizada (Evitamos múltiples if repetitivos) ---
-  const validateForm = () => {
-    const newErrors = {};
-    const requiredStrings = ["role", "description"];
-    const requiredArrays = ["mandatoryTech", "softSkills"];
-
-    // Validar strings vacíos
-    requiredStrings.forEach((field) => {
-      if (!formData[field].trim()) newErrors[field] = "Este campo es obligatorio";
-    });
-
-    // Validar arrays vacíos
-    requiredArrays.forEach((field) => {
-      if (formData[field].length === 0) newErrors[field] = "Este campo es obligatorio";
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const validate = () => {
+    const errs = {};
+    ["role", "description"].forEach(f => !formData[f].trim() && (errs[f] = "Obligatorio"));
+    // Actualizamos las llaves de validación
+    ["technicalSkills", "softSkills"].forEach(f => formData[f].length === 0 && (errs[f] = "Obligatorio"));
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
-  const handleContinue = (e) => {
+  // --- Conexión al Backend Real ---
+  const handleContinue = async (e) => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
-    if (validateForm()) {
-      console.log("Formulario válido. Datos listos para la API:", formData);
-      // Aquí iría el estado setIsSuccess(true) que vimos antes
+    setApiError("");
+
+    if (validate()) {
+      setIsLoading(true);
+      try {
+        const userString = localStorage.getItem("user");
+        const user = userString ? JSON.parse(userString) : null;
+        const userId = user?.id;
+
+        if (!userId) {
+          throw new Error("No se encontró tu ID de sesión. Por favor, cierra sesión y vuelve a entrar.");
+        }
+
+        // Ahora el envío es directo y limpio, formData ya tiene la estructura perfecta
+        const payload = {
+          ...formData,
+          userId: userId
+        };
+
+        await positionService.create(payload);
+        setIsSuccess(true);
+        
+      } catch (error) {
+        console.error("Error creando posición:", error);
+        setApiError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  // --- Configuraciones de Píldoras (DRY) ---
-  const pillConfigs = [
-    { label: "Habilidades técnicas obligatorias", id: "mandatoryTech", placeholder: "Ej. React, Tailwind..." },
-    { label: "Habilidades técnicas opcionales", id: "optionalTech", placeholder: "Ej. Github, Figma..." },
-    { label: "Habilidades blandas", id: "softSkills", placeholder: "Ej. Liderazgo, Empatía..." },
-  ];
+  if (isSuccess) return (
+    <PositionSuccess
+      positionName={formData.role}
+      onReset={() => {
+        setIsSuccess(false);
+        setFormData(INITIAL_STATE);
+        setHasAttemptedSubmit(false);
+      }}
+    />
+  );
 
   return (
-    /* Eliminamos el div wrapper gigante y el Sidebar porque Layout se encarga de eso */
-    <div className="p-10 animate-fade-in">
-      <div className="max-w-5xl mx-auto">
-        <form
-          onSubmit={handleContinue}
-          className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100"
-        >
-          <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase">
-            Configuración de Posiciones
-          </h1>
-
-          {/* --- SECCIÓN: DETALLES DEL ROL --- */}
-          <section className="mb-12">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
-              Detalles del rol
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold">¿Cuál es el puesto que buscas?</label>
-                <input
-                  type="text"
-                  placeholder="Ej. Senior Frontend Developer"
-                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] transition-all placeholder:text-gray-400 font-medium ${
-                    hasAttemptedSubmit && errors.role ? "border-red-500" : "border-[#D4D4DA]"
-                  }`}
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                />
-                {hasAttemptedSubmit && errors.role && (
-                  <span className="text-red-500 text-xs font-bold italic">{errors.role}</span>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold">Años de experiencia</label>
-                <div className="relative">
-                  <select
-                    className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] cursor-pointer appearance-none text-gray-600 font-medium"
-                    value={formData.experience}
-                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                  >
-                    <option value="0">Ninguno</option>
-                    {[...Array(10)].map((_, i) => (
-                      <option key={i + 1} value={i + 1}>
-                        {i + 1} Año{i + 1 > 1 ? "s" : ""}
-                      </option>
-                    ))}
-                    <option value="10+">10+ Años</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* --- SECCIÓN: HABILIDADES Y CUALIFICACIONES --- */}
-          <section className="mb-12">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
-              Habilidades y cualificaciones
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              
-              {/* Renderizamos las 3 Píldoras usando el nuevo componente */}
-              {pillConfigs.map((config) => (
-                <PillInput
-                  key={config.id}
-                  label={config.label}
-                  id={config.id}
-                  placeholder={config.placeholder}
-                  pills={formData[config.id]}
-                  tempValue={tempInputs[config.id]}
-                  error={errors[config.id]}
-                  hasAttemptedSubmit={hasAttemptedSubmit}
-                  onAddPill={handleAddPill}
-                  onRemovePill={removePill}
-                  onChangeTemp={(id, value) => setTempInputs({ ...tempInputs, [id]: value })}
-                />
-              ))}
-
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold">Describe el puesto solicitado</label>
-                <textarea
-                  maxLength={3000}
-                  rows={4}
-                  placeholder="Escribe aquí las responsabilidades del cargo..."
-                  className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] resize-none transition-all placeholder:text-gray-400 font-medium ${
-                    hasAttemptedSubmit && errors.description ? "border-red-500" : "border-[#D4D4DA]"
-                  }`}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                />
-                <div className="flex justify-between items-center">
-                  {hasAttemptedSubmit && errors.description && (
-                    <span className="text-red-500 text-xs font-bold italic">{errors.description}</span>
-                  )}
-                  <span className="text-[10px] text-gray-400 font-extrabold ml-auto uppercase">
-                    {formData.description.length} / 3000
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* --- SECCIÓN: EDUCACIÓN E IDIOMAS --- */}
-          <section className="mb-12">
-            <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
-              Educación e idiomas
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold">Educación necesaria</label>
-                <input
-                  type="text"
-                  placeholder="Ej. Ingeniería de Software..."
-                  className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] placeholder:text-gray-400 font-medium"
-                  value={formData.education}
-                  onChange={(e) => setFormData({ ...formData, education: e.target.value })}
-                />
-              </div>
-
-              {/* El cuarto PillInput (Idiomas) */}
-              <PillInput
-                label="Idiomas"
-                id="languages"
-                placeholder="Ej. Inglés C1..."
-                pills={formData.languages}
-                tempValue={tempInputs.languages}
-                error={errors.languages}
-                hasAttemptedSubmit={hasAttemptedSubmit}
-                onAddPill={handleAddPill}
-                onRemovePill={removePill}
-                onChangeTemp={(id, value) => setTempInputs({ ...tempInputs, [id]: value })}
-              />
-            </div>
-          </section>
-
-          {/* --- ACCIÓN --- */}
-          <div className="flex justify-end pt-4">
-            <button
-              type="submit"
-              className="bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-[0.97] transition-all uppercase tracking-wider"
-            >
-              Crear Posición
-            </button>
-          </div>
-        </form>
+    <div className="p-10 animate-fade-in max-w-5xl mx-auto relative">
+      <div className="flex justify-start mb-6">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="flex items-center gap-2 bg-[#447ECA] text-white px-6 py-2.5 rounded-xl font-bold shadow-md hover:bg-[#3669ab] active:scale-95 transition-all uppercase text-xs tracking-wider">
+          Volver
+        </button>
       </div>
+
+      <form
+        onSubmit={handleContinue}
+        className="bg-white rounded-[32px] p-12 shadow-sm border border-gray-100 relative">
+
+        {apiError && (
+          <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[80%] bg-red-50 text-red-600 px-6 py-3 rounded-xl border border-red-200 text-sm font-bold text-center animate-fade-in">
+            {apiError}
+          </div>
+        )}
+
+        <h1 className="text-2xl font-extrabold mb-10 text-center tracking-tight uppercase mt-4">
+          Configuración de Posiciones
+        </h1>
+
+        <FormSection title="Detalles del rol">
+          <FormField label="¿Cuál es el puesto que buscas?" error={hasAttemptedSubmit && errors.role}>
+            <input
+              type="text"
+              placeholder="Ej. Senior Frontend"
+              className={`p-4 bg-[#F8F9FA] border rounded-xl outline-none focus:border-[#447ECA] font-medium ${errors.role && hasAttemptedSubmit ? "border-red-500" : "border-[#D4D4DA]"}`}
+              value={formData.role}
+              onChange={e => setFormData({ ...formData, role: e.target.value })}
+            />
+          </FormField>
+
+          <FormField label="Años de experiencia">
+            <select
+              className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none appearance-none font-medium cursor-pointer"
+              value={formData.yearsOfExperience}
+              // Parseamos a entero en el momento en que cambia para mantener el estado como Int
+              onChange={e => setFormData({ ...formData, yearsOfExperience: parseInt(e.target.value, 10) || 0 })}>
+              <option value="0">Ninguno</option>
+              {[...Array(10)].map((_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1} Año{i > 0 ? 's' : ''}
+                </option>
+              ))}
+              <option value="10">10+ Años</option> {/* Cambié "10+" a "10" como value porque debe ser entero */}
+            </select>
+          </FormField>
+        </FormSection>
+
+        <FormSection title="Habilidades y cualificaciones">
+          {[
+            // IDs actualizados a las llaves de Prisma
+            { id: "technicalSkills", label: "Habilidades técnicas obligatorias" },
+            { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales" },
+            { id: "softSkills", label: "Habilidades blandas" }
+          ].map(c => (
+            <PillInput
+              key={c.id} {...c}
+              pills={formData[c.id]}
+              tempValue={tempInputs[c.id]}
+              error={errors[c.id]}
+              hasAttemptedSubmit={hasAttemptedSubmit}
+              onAddPill={(id, v) => handlePill(id, v, 'add')}
+              onRemovePill={(id, i) => handlePill(id, null, 'remove', i)}
+              onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })}
+            />
+          ))}
+
+          <FormField label="Describe el puesto solicitado" error={hasAttemptedSubmit && errors.description}>
+            <textarea
+              maxLength={3000}
+              rows={4}
+              className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] resize-none font-medium"
+              value={formData.description}
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
+            />
+            <span className="text-[10px] text-gray-400 font-extrabold ml-auto uppercase">
+              {formData.description.length} / 3000
+            </span>
+          </FormField>
+        </FormSection>
+
+        <FormSection title="Educación e idiomas">
+          <FormField label="Educación necesaria">
+            <input
+              type="text"
+              className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl font-medium"
+              value={formData.education}
+              onChange={e => setFormData({ ...formData, education: e.target.value })}
+            />
+          </FormField>
+          <PillInput
+            label="Idiomas" id="languages"
+            pills={formData.languages}
+            tempValue={tempInputs.languages}
+            onAddPill={(id, v) => handlePill(id, v, 'add')}
+            onRemovePill={(id, i) => handlePill(id, null, 'remove', i)}
+            onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })}
+          />
+        </FormSection>
+
+        <div className="flex justify-end pt-4">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`bg-[#447ECA] text-white px-20 py-4 rounded-xl font-extrabold text-[13px] shadow-lg hover:bg-[#3669ab] active:scale-95 transition-all uppercase tracking-wider ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}>
+            {isLoading ? "Creando..." : "Crear Posición"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

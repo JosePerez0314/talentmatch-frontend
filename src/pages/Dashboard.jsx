@@ -1,10 +1,8 @@
 import React from "react";
 import { useEffect, useState } from "react";
-
 //Components
 import StatCard from "../components/cards/StatCard";
 import MovementCard from "../components/cards/MovementCard";
-
 //Config dashboard
 import { STATS_CONFIG, INITIAL_METRICS, INITIAL_MOVEMENTS } from "../utils/dashboardConfig";
 
@@ -41,12 +39,12 @@ const Dashboard = () => {
   }, []);
 
   return (
-    /* We remove 'flex' and 'Sidebar' because Dashboard is now 
-       rendered inside the 'main' tag of Layout.jsx 
+    /* We remove 'flex' and 'Sidebar' because Dashboard is now
+        rendered inside the 'main' tag of Layout.jsx
     */
     <div className="p-10 animate-fade-in">
       <div className="max-w-4xl mx-auto">
-        
+
         {/* Page Header */}
         <header className="mb-10 px-4">
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
@@ -76,9 +74,9 @@ const Dashboard = () => {
             title="Última posición creada"
             value={lastMovements.posicion}
           />
-          <MovementCard 
-            title="Último CV subido" 
-            value={lastMovements.cv} 
+          <MovementCard
+            title="Último CV subido"
+            value={lastMovements.cv}
           />
           <MovementCard
             title="Vacantes cerradas"
@@ -98,10 +96,11 @@ const Dashboard = () => {
             </button>
           </div>
         </section>
-        
+
       </div>
     </div>
   );
 };
 
 export default Dashboard;
+
