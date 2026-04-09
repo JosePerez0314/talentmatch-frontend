@@ -7,14 +7,14 @@ const AuthInput = ({ label, icon, name, type = "text", value, onChange, placehol
       <label htmlFor={name} className="text-sm font-medium text-gray-400 ml-1">
         {label}
       </label>
-      
+
       <div className="relative group">
         {/* Icono dinámico */}
         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <img 
-            src={icon} 
-            alt="" 
-            className="h-5 w-5 opacity-40 group-focus-within:opacity-100 transition-opacity" 
+          <img
+            src={icon}
+            alt=""
+            className="h-5 w-5 opacity-40 group-focus-within:opacity-100 transition-opacity"
           />
         </div>
 
