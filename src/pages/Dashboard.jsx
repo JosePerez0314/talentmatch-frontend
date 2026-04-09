@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import StatCard from "../components/cards/StatCard";
 import MovementCard from "../components/cards/MovementCard";
 //Config dashboard
-import { STATS_CONFIG, INITIAL_METRICS, INITIAL_MOVEMENTS } from "../utils/dashboardConfig";
+import {
+  STATS_CONFIG,
+  INITIAL_METRICS,
+  INITIAL_MOVEMENTS,
+} from "../utils/dashboardConfig";
 
 const Dashboard = () => {
   // 1. STATE MANAGEMENT
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [lastMovements, setLastMovements] = useState(INITIAL_MOVEMENTS);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Revisar, porque el isLoading nunca se utiliza
 
   // 2. DATA FETCHING
   useEffect(() => {
@@ -42,7 +46,6 @@ const Dashboard = () => {
     */
     <div className="p-4 md:p-10 animate-fade-in">
       <div className="max-w-5xl mx-auto">
-
         {/* Page Header - Texto más pequeño en móvil para evitar saltos de línea */}
         <header className="mb-8 md:mb-10 px-2 md:px-4 text-left">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
@@ -73,10 +76,7 @@ const Dashboard = () => {
             title="Última posición creada"
             value={lastMovements.posicion}
           />
-          <MovementCard
-            title="Último CV subido"
-            value={lastMovements.cv}
-          />
+          <MovementCard title="Último CV subido" value={lastMovements.cv} />
           <MovementCard
             title="Vacantes cerradas"
             value={lastMovements.cerradas}
@@ -97,11 +97,9 @@ const Dashboard = () => {
             </button>
           </div>
         </section>
-
       </div>
     </div>
   );
 };
 
 export default Dashboard;
-
