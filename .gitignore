@@ -7,16 +7,26 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
+dist/
+dist-ssr/
+
+# Environment Variables (SEGURIDAD)
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+# Ignorar cualquier archivo que empiece por .env y no sea el .example
+.env*
+!.env.example
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
