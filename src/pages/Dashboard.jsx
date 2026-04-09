@@ -8,7 +8,6 @@ import { STATS_CONFIG, INITIAL_METRICS, INITIAL_MOVEMENTS } from "../utils/dashb
 
 const Dashboard = () => {
   // 1. STATE MANAGEMENT
-  // Using centralized initial states from config file
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [lastMovements, setLastMovements] = useState(INITIAL_MOVEMENTS);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,7 +17,6 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         // Simulation of API call
-        // In the future: const response = await apiService.getMetrics();
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         setMetrics({ posiciones: 12, cvs: 45, vacantes: 3 });
@@ -29,7 +27,6 @@ const Dashboard = () => {
         });
       } catch (error) {
         console.error("Critical error fetching dashboard data:", error);
-        // Error handling logic could go here (e.g., toast notification)
       } finally {
         setIsLoading(false);
       }
@@ -39,21 +36,22 @@ const Dashboard = () => {
   }, []);
 
   return (
-    /* We remove 'flex' and 'Sidebar' because Dashboard is now
-        rendered inside the 'main' tag of Layout.jsx
+    /* AJUSTES RESPONSIVE:
+       - p-4 en móvil para evitar desbordes, md:p-10 en escritorio.
+       - max-w-5xl para dar un poco más de aire a las tarjetas.
     */
-    <div className="p-10 animate-fade-in">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-4 md:p-10 animate-fade-in">
+      <div className="max-w-5xl mx-auto">
 
-        {/* Page Header */}
-        <header className="mb-10 px-4">
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+        {/* Page Header - Texto más pequeño en móvil para evitar saltos de línea */}
+        <header className="mb-8 md:mb-10 px-2 md:px-4 text-left">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
             Dashboard - Centro de Control
           </h1>
         </header>
 
         {/* Top Grid: Statistics Section */}
-        <section className="grid grid-cols-1 gap-6 mb-8 px-4">
+        <section className="grid grid-cols-1 gap-6 mb-8 px-2 md:px-4">
           {STATS_CONFIG.map((config) => (
             <StatCard
               key={config.id}
@@ -69,7 +67,8 @@ const Dashboard = () => {
         </section>
 
         {/* Bottom Grid: Recent Activity Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 px-4">
+        {/* grid-cols-1 asegura que en móvil se apilen verticalmente */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 px-2 md:px-4">
           <MovementCard
             title="Última posición creada"
             value={lastMovements.posicion}
@@ -85,13 +84,15 @@ const Dashboard = () => {
         </section>
 
         {/* CTA Section: IA Vacancy Creation */}
-        <section className="px-4">
-          <div className="bg-[#DCF9FF] p-12 rounded-[20px] text-center border border-[#447ECA]/5">
-            <p className="text-[#447ECA] font-semibold text-lg mb-8 italic">
+        <section className="px-2 md:px-4">
+          {/* p-8 en móvil para que el texto no choque con los bordes */}
+          <div className="bg-[#DCF9FF] p-8 md:p-12 rounded-[24px] text-center border border-[#447ECA]/10">
+            <p className="text-[#447ECA] font-semibold text-base md:text-lg mb-6 md:mb-8 italic">
               ¿Listo para encontrar tu próximo talento? Crea una vacante y deja
               que la IA haga el trabajo.
             </p>
-            <button className="bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
+            {/* Botón w-full en móvil para mejor UX táctil */}
+            <button className="w-full md:w-auto bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
               Crear Vacante ahora
             </button>
           </div>
