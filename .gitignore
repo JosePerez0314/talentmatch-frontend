@@ -3,11 +3,7 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-# Dependencies
 node_modules/
 dist/
 dist-ssr/
@@ -19,7 +15,6 @@ dist-ssr/
 .env.test.local
 .env.production.local
 .env*.local
-# Ignorar cualquier archivo que empiece por .env y no sea el .example
 .env*
 !.env.example
 
@@ -28,8 +23,3 @@ dist-ssr/
 !.vscode/extensions.json
 .idea/
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
