@@ -12,7 +12,7 @@ import { positionService } from "../services/api";
 const INITIAL_STATE = {
   role: "",
   yearsOfExperience: 0, // Se inicializa como Int
-  technicalSkills: [],  // Renombrado
+  technicalSkills: [],  // Renombrados
   optionalTechnicalSkills: [], // Renombrado
   softSkills: [],
   description: "",
