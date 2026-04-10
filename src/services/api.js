@@ -88,3 +88,29 @@ export const uploadService = {
     }
   },
 };
+
+// Request for CVHistory.jsx
+export const candidateService = {
+  getAll: async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/candidates`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      const responseBody = isJson ? await response.json() : null;
+
+      if (!response.ok || (responseBody && responseBody.success === false)) {
+        throw new Error(responseBody?.error || `Error del servidor: ${response.status}`);
+      }
+
+      return responseBody.data;
+    } catch (error) {
+      console.error("API Error [getCandidates]:", error.message);
+      throw error;
+    }
+  },
+};
