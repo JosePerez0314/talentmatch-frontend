@@ -11,7 +11,7 @@ export const apiClient = async (endpoint, options = {}) => {
     const isJson = response.headers.get('content-type')?.includes('application/json');
     const responseBody = isJson ? await response.json() : null;
 
-    // Standard validation according to the Railway architecture
+    // // Handling the success flag and extracting the error message
     if (!response.ok || (responseBody && responseBody.success === false)) {
       throw new Error(responseBody?.error || `Error del servidor: ${response.status}`);
     }
