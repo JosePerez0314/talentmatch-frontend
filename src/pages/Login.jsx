@@ -7,7 +7,7 @@ import LoginForm from "../components/ui/LoginForm";
 import DemoCredentials from "../components/DemoCredential";
 
 // Services & Assets
-import { authService } from "../services/api";
+import { authService } from "../services/api/auth.api";
 import { Icons } from "../assets/icons";
 
 const Login = () => {

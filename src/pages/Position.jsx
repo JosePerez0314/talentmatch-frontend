@@ -6,7 +6,7 @@ import PillInput from "../components/ui/PillInput";
 import PositionSuccess from "../components/Sections/PositionSuccess";
 
 // Services
-import { positionService } from "../services/api";
+import { positionService } from "../services/api/positions.api";
 
 // 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
 const INITIAL_STATE = {

@@ -6,7 +6,7 @@ import UploadCVSuccess from "../components/Sections/UploadCVSuccess";
 
 // Services & Assets
 import { Icons } from "../assets/icons";
-import { uploadService } from "../services/api";
+import { uploadService } from "../services/api/uploads.api";
 
 
 const UploadCV = () => {
