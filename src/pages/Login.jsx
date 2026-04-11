@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
 import DemoCredentials from "../components/DemoCredential";
+import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets
 import { authService } from "../services/api/auth.api";
@@ -13,6 +14,7 @@ import { Icons } from "../assets/icons";
 const Login = () => {
   const navigate = useNavigate();
 
+  const { login } = useAuth();
   // Estado para los inputs del formulario
   const [inputs, setInputs] = useState({ email: "", password: "" });
 
@@ -46,7 +48,9 @@ const Login = () => {
     // 2. GUARDADO CRÍTICO: Guardamos el objeto de usuario completo
     // Según tu JSON, 'data' debería traer { id, email, ... }
     if (data) {
-      localStorage.setItem("user", JSON.stringify(data));
+        // 4. GUARDADO EN EL CONTEXTO (Esto hace el split del email y persiste la sesión)
+        // Usamos data.email que viene del backend
+        login(data.email);
       
       // Si el backend también manda token (aunque no lo usemos en headers), 
       // es bueno guardarlo por si acaso
