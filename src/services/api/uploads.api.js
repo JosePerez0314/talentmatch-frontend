@@ -8,6 +8,7 @@ export const uploadService = {
 
     // Extract the user from the current session
     const userString = localStorage.getItem("user");
+    console.log(userString);
     const user = userString ? JSON.parse(userString) : null;
     const userId = user?.id || user?._id;
 
