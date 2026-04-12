@@ -1,22 +1,18 @@
 import { apiClient } from "./apiClient";
 
 export const uploadService = {
-  uploadCVs: (files) => {
-    const formData = new FormData();
-    
-    files.forEach(file => formData.append("pdfs", file));
-
-    // Extract the user from the current session
-    const userString = localStorage.getItem("user");
-    console.log(userString);
-    const user = userString ? JSON.parse(userString) : null;
-    const userId = user?.id || user?._id;
-
+  // Received the userId
+  uploadCVs: (files, userId) => {
     if (!userId) {
-      throw new Error("Sesión inválida: No se encontró el ID de usuario para subir el CV.");
+      throw new Error("No se puede subir archivos sin un ID de usuario válido.");
     }
 
-    // Add the userId strictly required by the new endpoint
+    const formData = new FormData();
+    
+    // Attach the files
+    files.forEach(file => formData.append("pdfs", file));
+
+    // Attach the userId that we received from the component
     formData.append("userId", userId);
 
     return apiClient('/uploads', {

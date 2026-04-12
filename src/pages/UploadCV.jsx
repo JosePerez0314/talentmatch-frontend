@@ -4,14 +4,17 @@ import { useNavigate } from "react-router-dom";
 // Components
 import UploadCVSuccess from "../components/Sections/UploadCVSuccess";
 
-// Services & Assets
+// Services, Context & Assets
 import { Icons } from "../assets/icons";
-import { uploadService } from "../services/api/uploads.api";
-
+import { uploadService } from "../services/api/uploads.api"; // Asegúrate de apuntar a la nueva ruta
+import { useAuth } from "../components/context/AuthContext";   // 1. IMPORTAMOS EL CONTEXTO
 
 const UploadCV = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  
+  // 2. EXTRAEMOS EL USUARIO DEL ESTADO GLOBAL
+  const { user } = useAuth();
 
   // Estados de Negocio
   const [files, setFiles] = useState([]);
@@ -73,11 +76,18 @@ const UploadCV = () => {
   const handleUpload = async () => {
     if (files.length === 0) return;
     
+    // 3. PROGRAMACIÓN DEFENSIVA: Verificamos que el usuario exista en el contexto
+    if (!user || !user.id) {
+      setError("Sesión inválida: No se encontró el ID de usuario. Por favor, inicia sesión nuevamente.");
+      return;
+    }
+
     setUiState("uploading");
     setError(null);
 
     try {
-      await uploadService.uploadCVs(files);
+      // 4. PASAMOS EL ID DEL USUARIO A LA API
+      await uploadService.uploadCVs(files, user.id);
       setUiState("success");
     } catch (err) {
       console.error("Fallo al subir:", err);
@@ -131,7 +141,6 @@ const UploadCV = () => {
           <p className="text-gray-400 text-lg mb-10">
             Procesando {files.length} documentos...
           </p>
-          {/* Icono de carga con filtros para hacerlo azul claro (o blanco) como en tu imagen */}
           <img 
             src={Icons.auth.loading} 
             alt="Cargando" 
@@ -145,7 +154,6 @@ const UploadCV = () => {
   // --- Renderizado Normal: Formulario ---
   return (
     <div className="p-10 max-w-3xl mx-auto animate-fade-in relative">
-      {/* Navegación */}
       <button
         onClick={() => navigate("/dashboard")}
         className="bg-[#447ECA] text-white px-6 py-3 rounded-2xl font-black text-sm mb-5 hover:bg-[#356ab0] hover:shadow-lg active:scale-95 transition-all uppercase tracking-wider"
@@ -155,7 +163,6 @@ const UploadCV = () => {
 
       <div className="bg-white rounded-[32px] shadow-sm p-8 border border-gray-100 relative">
         
-        {/* Header de Estado */}
         {files.length > 0 && (
           <div className="flex justify-between items-center mb-10 animate-fade-in">
             <div className="bg-[#E9F7FF] flex items-center gap-5 p-5 rounded-2xl border border-[#D1E9FF]">
@@ -180,7 +187,6 @@ const UploadCV = () => {
           </div>
         )}
 
-        {/* Dropzone Container */}
         <div
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
@@ -227,7 +233,6 @@ const UploadCV = () => {
           )}
         </div>
 
-        {/* Lista de Resultados */}
         {files.length > 0 && (
           <div className="mt-12 animate-slide-up">
             <div className="flex justify-between text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-4 px-2">
@@ -255,7 +260,6 @@ const UploadCV = () => {
           </div>
         )}
 
-        {/* Error Handling */}
         {error && (
           <div className="mt-8 p-5 bg-red-50 border-l-4 border-red-500 rounded-r-2xl flex items-center gap-4 animate-fade-in">
             <div className="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-black">

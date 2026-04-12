@@ -29,32 +29,23 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUiState("loading");
+  e.preventDefault();
+  setUiState("loading");
 
-    try {
-      // 1. LLAMADA AL BACKEND REAL
-      const data = await authService.login(inputs);
-
-      if (data) {
-        // 2. GUARDADO EN EL CONTEXTO 
-        // Persiste la sesión usando el email del backend
-        login(data.email);
-
-        // 3. TOKEN: Guardamos por si se requiere en futuras peticiones
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
-
-        navigate("/dashboard");
-      } else {
-        throw new Error("No se recibieron datos del usuario.");
-      }
-    } catch (error) {
-      console.error("Fallo de Autenticación:", error.message);
-      setUiState("error");
+  try {
+    const data = await authService.login(inputs);
+    
+    if (data) {
+      login(data);
+      navigate("/dashboard");
+    } else {
+      throw new Error("No se recibieron datos del usuario.");
     }
-  };
+  } catch (error) {
+    console.error("Fallo de Autenticación:", error.message);
+    setUiState("error");
+  }
+};
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
