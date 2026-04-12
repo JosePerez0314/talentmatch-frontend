@@ -32,8 +32,7 @@ const Sidebar = () => {
             <button
                 onClick={toggleMenu}
                 aria-label={isOpen ? "Cerrar menú" : "Abrir menú"}
-                className="fixed top-3 left-4 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-md transition-all gap-1.5 md:left-6"
-            >
+                className="fixed top-3 left-4 z-[60] flex flex-col justify-center items-center w-10 h-10 rounded-lg bg-white/80 backdrop-blur-sm hover:bg-white shadow-md transition-all gap-1.5 md:left-6">
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 rotate-45 translate-y-2" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "opacity-0" : "w-6"}`}></span>
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 -rotate-45 -translate-y-2" : "w-6"}`}></span>
@@ -49,8 +48,7 @@ const Sidebar = () => {
 
             <aside
                 className={`fixed top-0 left-0 h-screen bg-white z-50 shadow-2xl transition-transform duration-300 ease-in-out flex flex-col justify-between py-6 
-                ${isOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"}`}
-            >
+                ${isOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"}`}>
                 <div className="mt-16 overflow-y-auto custom-scrollbar">
                     <div className="px-8 mb-10">
                         <Link
@@ -93,8 +91,7 @@ const Sidebar = () => {
                 <div className="mt-auto pb-20 md:pb-5 px-5 border-gray-200">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-transparent hover:border-red-100 rounded-xl"
-                    >
+                        className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-transparent hover:border-red-100 rounded-xl">
                         <img src={Icons.auth.logOut} alt="" className="w-5 h-5 opacity-50" style={{ filter: 'grayscale(1)' }} />
                         <span>Cerrar sesión</span>
                     </button>
