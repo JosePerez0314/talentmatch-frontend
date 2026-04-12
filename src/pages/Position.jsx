@@ -57,14 +57,34 @@ const Position = () => {
   });
 
   // --- Lógica de Negocio ---
+  // --- Lógica de Negocio Blindada ---
   const handlePill = (field, val, action, idx) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: action === 'add'
-        ? [...new Set([...prev[field], val.trim()])]
-        : prev[field].filter((_, i) => i !== idx)
-    }));
-    if (action === 'add') setTempInputs(prev => ({ ...prev, [field]: "" }));
+    // 1. Evitar que el evento se propague si viene de un teclado o clic accidental
+    if (action === 'add') {
+      const cleanValue = val?.trim();
+
+      // Salida temprana si no hay valor real
+      if (!cleanValue) {
+        // Limpiamos el input temporal de todas formas para resetear la UI
+        setTempInputs(prev => ({ ...prev, [field]: "" }));
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [field]: [...new Set([...prev[field], cleanValue])]
+      }));
+
+      // Reset del input temporal después de añadir con éxito
+      setTempInputs(prev => ({ ...prev, [field]: "" }));
+    }
+
+    if (action === 'remove') {
+      setFormData(prev => ({
+        ...prev,
+        [field]: prev[field].filter((_, i) => i !== idx)
+      }));
+    }
   };
 
   const validate = () => {
