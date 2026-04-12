@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, NavLink } from "react-router-dom";
+import { useNavigate, NavLink, Link } from "react-router-dom";
 
 // Assets
 import { Icons } from "../assets/icons";
@@ -53,11 +53,15 @@ const Sidebar = () => {
             >
                 <div className="mt-16 overflow-y-auto custom-scrollbar">
                     <div className="px-8 mb-10">
-                        <img
-                            src={Icons.logos.small}
-                            alt="TalentMatch AI"
-                            className="h-10 w-auto object-contain"
-                        />
+                        <Link
+                            to="/login"
+                            className="hover:opacity-80 transition-opacity block cursor-pointer">
+                            <img
+                                src={Icons.logos.small}
+                                alt="TalentMatch AI"
+                                className="h-10 w-auto object-contain"
+                            />
+                        </Link>
                     </div>
 
                     <nav className="flex flex-col gap-1 px-4">
