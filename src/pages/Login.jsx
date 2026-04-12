@@ -5,22 +5,19 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
 import DemoCredentials from "../components/DemoCredential";
-
-// 1. IMPORTACIÓN DEL CONTEXTO
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets
-import { authService } from "../services/api";
+import { authService } from "../services/api/auth.api";
 import { Icons } from "../assets/icons";
 
 const Login = () => {
   const navigate = useNavigate();
-
-  // 2. EXTRAEMOS LA FUNCIÓN LOGIN DEL CONTEXTO
   const { login } = useAuth();
 
+  // Estados
   const [inputs, setInputs] = useState({ email: "", password: "" });
-  const [uiState, setUiState] = useState("form");
+  const [uiState, setUiState] = useState("form"); // form, loading, error
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -36,22 +33,23 @@ const Login = () => {
     setUiState("loading");
 
     try {
-      // 3. LLAMADA AL BACKEND REAL
+      // 1. LLAMADA AL BACKEND REAL
       const data = await authService.login(inputs);
 
       if (data) {
-        // 4. GUARDADO EN EL CONTEXTO (Esto hace el split del email y persiste la sesión)
-        // Usamos data.email que viene del backend
+        // 2. GUARDADO EN EL CONTEXTO 
+        // Persiste la sesión usando el email del backend
         login(data.email);
 
-        // El localStorage.setItem("token") puedes dejarlo aquí o moverlo al AuthContext
-        if (data.token) localStorage.setItem("token", data.token);
+        // 3. TOKEN: Guardamos por si se requiere en futuras peticiones
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
 
         navigate("/dashboard");
       } else {
         throw new Error("No se recibieron datos del usuario.");
       }
-
     } catch (error) {
       console.error("Fallo de Autenticación:", error.message);
       setUiState("error");
