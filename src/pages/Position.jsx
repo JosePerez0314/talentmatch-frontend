@@ -10,13 +10,13 @@ import { positionService } from "../services/api/positions.api";
 
 // 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
 const INITIAL_STATE = {
-  role: "", 
+  role: "",
   yearsOfExperience: 0, // Se inicializa como Int
-  technicalSkills: [],  // Renombrado
+  technicalSkills: [],  // Renombrados
   optionalTechnicalSkills: [], // Renombrado
-  softSkills: [], 
-  description: "", 
-  education: "", 
+  softSkills: [],
+  description: "",
+  education: "",
   languages: [],
 };
 
@@ -40,17 +40,17 @@ const FormField = ({ label, error, children }) => (
 
 const Position = () => {
   const navigate = useNavigate();
-  
+
   // Estados UI
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
-  
+
   // Estados de Datos
   const [formData, setFormData] = useState(INITIAL_STATE);
-  
+
   // Mapeamos los inputs temporales con las mismas llaves del backend
   const [tempInputs, setTempInputs] = useState({
     technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
@@ -101,7 +101,7 @@ const Position = () => {
 
         await positionService.create(payload);
         setIsSuccess(true);
-        
+
       } catch (error) {
         console.error("Error creando posición:", error);
         setApiError(error.message);

@@ -1,31 +1,36 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import React from 'react';
+
+// Context
+import { AuthProvider } from "./components/context/AuthContext";
+
+// Layout
+import Layout from "./layouts/Layout";
+
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Position from "./pages/Position";
 import UploadCV from "./pages/UploadCV";
 import CVHistory from "./pages/CVHistory";
-import { AuthProvider } from "./components/context/AuthContext";
-
-// Layout
-import Layout from "./layouts/Layout";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public route */}
+          {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* PRIVATE ROUTES (WITH LAYOUT) */}
-          <Route path="/dashboard" element={<Layout> <Dashboard /> </Layout>} />
-          <Route path="/position" element={<Layout> <Position /> </Layout>} />
-          <Route path="/uploadcv" element={<Layout> <UploadCV /> </Layout>} />
-          <Route path="/cv-history" element={<Layout> <CVHistory /> </Layout>} />
+          {/* PRIVATE ROUTES - Optimizadas con Layout como contenedor */}
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/position" element={<Position />} />
+            <Route path="/uploadcv" element={<UploadCV />} />
+            <Route path="/cv-history" element={<CVHistory />} />
+          </Route>
 
-          {/* DEFAULT REDIRECTION */}
+          {/* Default Redirection */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

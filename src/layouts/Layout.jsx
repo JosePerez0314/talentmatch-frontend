@@ -1,17 +1,17 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link, Outlet } from "react-router-dom"; // 1. Agregamos Outlet
 import Sidebar from "./Sidebar";
-import { useAuth } from "../components/context/AuthContext"; // Importamos el cerebro
+import { useAuth } from "../components/context/AuthContext";
 
 // Assets
 import { Icons } from "../assets/icons";
 
-const Layout = ({ children }) => {
+const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
     const navigate = useNavigate();
-    const { user, logout } = useAuth(); // Obtenemos el usuario y la función logout
+    const { user, logout } = useAuth();
 
     const handleLogout = () => {
-        logout(); // Limpia el contexto y localStorage
+        logout();
         navigate("/login");
     };
 
@@ -20,19 +20,17 @@ const Layout = ({ children }) => {
             <Sidebar />
 
             <div className="flex flex-col flex-1 min-w-0">
-                {/* HEADER ACTUALIZADO: Logo + User a la izquierda, Logout a la derecha */}
+                {/* HEADER */}
                 <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 z-20 shadow-sm shrink-0">
-
-                    {/* SECCIÓN IZQUIERDA: Logo + Guion + Username */}
-                    <div className="flex items-center gap-6"> {/* Aumentamos el gap general */}
-
-                        {/* Este div vacío o el logo con margen asegura que la hamburguesa no estorbe */}
-                        <div className="flex items-center gap-4 ml-10"> {/* ml-10 empuja todo a la derecha del botón */}
-                            <img
-                                src={Icons.logos.small}
-                                alt="TalentMatch AI"
-                                className="h-7 w-auto object-contain"
-                            />
+                    <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4 ml-10">
+                            <Link to="/dashboard" className="cursor-pointer hover:opacity-80 transition-opacity">
+                                <img
+                                    src={Icons.logos.small}
+                                    alt="TalentMatch AI"
+                                    className="h-7 w-auto object-contain"
+                                />
+                            </Link>
                             <span className="text-gray-300 text-xl font-light">-</span>
                             <span className="text-[#447ECA] font-bold text-lg capitalize tracking-tight">
                                 {user?.username || "admin"}
@@ -40,7 +38,6 @@ const Layout = ({ children }) => {
                         </div>
                     </div>
 
-                    {/* SECCIÓN DERECHA: Botón de Cerrar Sesión (Se mantiene igual) */}
                     <button
                         onClick={handleLogout}
                         className="group flex items-center gap-3 px-5 py-2 border border-gray-200 rounded-xl text-[11px] font-black text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-[0.15em]"
@@ -54,8 +51,10 @@ const Layout = ({ children }) => {
                     </button>
                 </header>
 
+                {/* MAIN: Aquí es donde ocurre la magia */}
                 <main className="flex-1 overflow-y-auto p-0 relative">
-                    {children}
+                    {/* 3. Outlet renderiza el Dashboard, Position, etc. */}
+                    <Outlet />
                 </main>
             </div>
         </div>
