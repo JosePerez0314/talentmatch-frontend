@@ -88,7 +88,7 @@ const Sidebar = () => {
                     </nav>
                 </div>
 
-                <div className="mt-auto pb-20 md:pb-5 px-5 border-gray-200">
+                <div className="mt-auto pb-10 md:pb-3 px-4 border-gray-200">
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-4 py-3 w-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all text-sm font-bold border border-transparent hover:border-red-100 rounded-xl">
