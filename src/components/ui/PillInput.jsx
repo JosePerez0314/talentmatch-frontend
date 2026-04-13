@@ -5,9 +5,8 @@ const PillInput = ({ label, id, placeholder, pills, tempValue, error, hasAttempt
     <div className="flex flex-col gap-2">
       <label className="text-sm font-bold">{label}</label>
       <div
-        className={`flex flex-wrap gap-2 p-3 bg-[#F8F9FA] border rounded-xl min-h-[60px] focus-within:border-[#447ECA] transition-all ${
-          hasAttemptedSubmit && error ? "border-red-500" : "border-[#D4D4DA]"
-        }`}
+        className={`flex flex-wrap gap-2 p-3 bg-[#F8F9FA] border rounded-xl min-h-[60px] focus-within:border-[#447ECA] transition-all ${hasAttemptedSubmit && error ? "border-red-500" : "border-[#D4D4DA]"
+          }`}
       >
         {pills.map((pill, i) => (
           <span
@@ -33,10 +32,16 @@ const PillInput = ({ label, id, placeholder, pills, tempValue, error, hasAttempt
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              onAddPill(id, e.target.value);
+              if (tempValue.trim()) {
+                onAddPill(id, e.target.value);
+              }
             }
           }}
-          onBlur={(e) => onAddPill(id, e.target.value)}
+          onBlur={(e) => {
+            if (tempValue && tempValue.trim()) {
+              onAddPill(id, tempValue)
+            }
+          }}
         />
       </div>
       {hasAttemptedSubmit && error && (
