@@ -23,7 +23,7 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
                 {/* HEADER */}
                 <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-8 z-20 shadow-sm shrink-0">
                     <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4 ml-30">
+                        <div className="flex items-center gap-4 ml-20">
                             <Link to="/login" className="cursor-pointer hover:opacity-80 transition-opacity">
                                 <img
                                     src={Icons.logos.small}
