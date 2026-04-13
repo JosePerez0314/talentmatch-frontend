@@ -5,31 +5,24 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
-    // Al cargar la app, revisamos si ya había alguien logueado en el navegador
+    // 1. Usamos la llave 'user' de forma estándar
     useEffect(() => {
-        const savedUser = localStorage.getItem('tm_user');
+        const savedUser = localStorage.getItem('user');
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
     }, []);
 
-    const login = (email) => {
-        // Lógica principal: Extraer el nombre antes del '@'
-        const username = email.split('@')[0];
-
-        const userData = {
-            username: username,
-            email: email,
-            loginDate: new Date().toISOString()
-        };
-
+    // 2. Ahora recibimos el objeto 'userData' completo desde el backend
+    const login = (userData) => {
         setUser(userData);
-        localStorage.setItem('tm_user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
     };
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('tm_user');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token'); // Por si acaso guardamos un token
     };
 
     return (
