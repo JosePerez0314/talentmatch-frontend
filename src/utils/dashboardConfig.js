@@ -23,7 +23,7 @@ export const STATS_CONFIG = [
     btn: "Crear Posiciones",
     btnIcon: Icons.stats.createPlus,
     actionPath: "/position",
-    viewPath: ""
+    viewPath: "/position-history"
   },
   {
     id: "cvs",
