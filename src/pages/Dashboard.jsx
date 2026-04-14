@@ -9,50 +9,65 @@ import { dashboardService } from "../services/api/dashboard.api";
 import { Icons } from "../assets/icons";
 
 const Dashboard = () => {
-  // 1. STATE MANAGEMENT
+  // STATE MANAGEMENT
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [lastMovements, setLastMovements] = useState(INITIAL_MOVEMENTS);
-  
-  // ¡Ahora sí le damos uso al isLoading y agregamos manejo de errores!
   const [isLoading, setIsLoading] = useState(true); 
   const [error, setError] = useState(null);
 
-  // 2. DATA FETCHING
+  // DATA FETCHING WITH POLLING (Real-Time)
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      setError(null);
+    // Parameter isInitial to avoid flicker
+    const fetchDashboardData = async (isInitial) => {
+      if (isInitial) {
+        setIsLoading(true);
+      }
       
       try {
         const data = await dashboardService.getSummary();
 
         if (data) {
-          // 1. Mapeo exacto de las tarjetas de arriba
           setMetrics({
             posiciones: data.positionsCount || 0,
             cvs: data.cvsCount || 0,
             vacantes: data.activeVacancies || 0,
           });
 
-          // 2. Mapeo exacto de los movimientos (¡Entrando a .title para evitar el error!)
           setLastMovements({
             posicion: data.lastPosition?.title || "Sin datos",
+            //If backend "" will show "No data"
             cv: data.lastCv?.title || "Sin datos",
             cerradas: data.closedVacancies || 0,
           });
+          
+          // clean errors
+          setError(null);
         }
       } catch (err) {
-        console.error("Critical error fetching dashboard data:", err);
-        setError("No se pudieron cargar las métricas. Por favor, intenta de nuevo.");
+        console.error("Error fetching dashboard data:", err);
+        setError("Problemas de conexión sincronizando métricas en tiempo real.");
       } finally {
-        setIsLoading(false);
+        // loading screen only first time
+        if (isInitial) {
+          setIsLoading(false);
+        }
       }
     };
 
-    fetchDashboardData();
+    // Execute the initial call
+    fetchDashboardData(true);
+
+    // Set the background update interval (every 30 seconds)
+    const POLLING_INTERVAL = 30000;
+    const intervalId = setInterval(() => {
+      fetchDashboardData(false); // isInitial = false prevents flickering
+    }, POLLING_INTERVAL);
+
+    // Cleanup function: Evita memory leaks
+    return () => clearInterval(intervalId);
   }, []);
 
-  // 3. RENDERIZADO CONDICIONAL DE CARGA (Resolviendo el comentario del Lead)
+  // CONDITIONAL RENDERING OF INITIAL LOAD
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] w-full gap-4 animate-fade-in">
@@ -72,7 +87,7 @@ const Dashboard = () => {
           </h1>
         </header>
 
-        {/* Manejo de Error Visual */}
+        {/* Visual Error Handling */}
         {error && (
           <div className="mb-6 mx-2 md:mx-4 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100 animate-fade-in">
             {error}
@@ -101,7 +116,10 @@ const Dashboard = () => {
             title="Última posición creada"
             value={lastMovements.posicion}
           />
-          <MovementCard title="Último CV subido" value={lastMovements.cv} />
+          <MovementCard 
+            title="Último CV subido" 
+            value={lastMovements.cv} 
+          />
           <MovementCard
             title="Vacantes cerradas"
             value={lastMovements.cerradas}
