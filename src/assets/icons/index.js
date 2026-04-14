@@ -29,6 +29,13 @@ import uploadCv from "./icon_upload_cv.svg";
 import vacantCreateBtn from "./icon_vacant_create_buttom.svg";
 import checkBlue from "./icon_check_blue.svg";
 
+// --- Vacancies ---
+import calendOpen from "./calendar_open.svg";
+import calendClose from "./calendar_close.svg";
+import analizCandidates from "./analiz_candidates.svg";
+import warningAlert from "./warning_alert.svg";
+
+
 // --- Layout ---
 import logOut from "./icon_log_out.svg";
 
@@ -65,5 +72,11 @@ export const Icons = {
         vacantCreateBtn,
         eyeHistoryGray,
         checkBlue,
+    },
+    vacancies: {
+        calendOpen,
+        calendClose,
+        analizCandidates,
+        warningAlert
     }
 };
