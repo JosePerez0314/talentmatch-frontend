@@ -5,7 +5,7 @@ import AuthInput from "./AuthInput";
 import { Icons } from "../../assets/icons";
 
 const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
-  // Estado local para mostrar/ocultar contraseña
+  // Local state to show/hide password
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -15,7 +15,7 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
         <p className="text-[#447ECA] font-medium mt-2">TalentMatch AI</p>
       </div>
 
-      {/* Mensaje de Error (Mantenemos el texto genérico por seguridad) */}
+      {/* Error Message */}
       {uiState === "error" && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold text-center animate-fade-in">
           Credenciales incorrectas.
@@ -45,7 +45,7 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
             onChange={onChange}
             required
           />
-          {/* Botón ojo */}
+          {/* Buttom eye*/}
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
@@ -59,7 +59,7 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
           </button>
         </div>
 
-        {/* Botón deshabilitado automáticamente mientras uiState sea 'loading' */}
+        {/* Button automatically disabled while uiState is 'loading' */}
         <button
           type="submit"
           disabled={uiState === "loading"}

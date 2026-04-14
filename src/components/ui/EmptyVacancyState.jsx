@@ -4,7 +4,7 @@ import { Icons } from "../../assets/icons/index";
 const EmptyVacancyState = ({ onCreateClick }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] animate-fade-in text-center">
-      {/* Icono Warning */}
+      {/* Icon Warning */}
       <div className="mb-6">
         <img 
           src={Icons.vacancies.warningAlert} 
@@ -17,7 +17,6 @@ const EmptyVacancyState = ({ onCreateClick }) => {
         ¡Aun no tienes vacantes creadas!
       </h2>
       
-      {/* Botón Gris como en el Mockup */}
       <button 
         onClick={onCreateClick}
         className="bg-[#9E9E9E] text-white px-8 py-3 rounded-md font-medium text-lg hover:bg-gray-500 transition-colors active:scale-95 shadow-sm"

@@ -1,8 +1,8 @@
 import React from "react";
-import { useNavigate, Link, Outlet } from "react-router-dom"; // 1. Agregamos Outlet
+import { useNavigate, Link, Outlet } from "react-router-dom";
+// Components
 import Sidebar from "./Sidebar";
 import { useAuth } from "../components/context/AuthContext";
-
 // Assets
 import { Icons } from "../assets/icons";
 

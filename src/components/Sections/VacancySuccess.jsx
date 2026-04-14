@@ -9,7 +9,7 @@ const VacancySuccess = ({ vacancyCode = "Vac-009", onReset }) => {
 
     return (
         <div className="min-h-[70vh] flex flex-col items-center justify-center animate-fade-in">
-            {/* Cuadro Oscuro de Éxito */}
+            {/* Dark Frame of Success */}
             <div className="bg-[#2D2D2D] w-full max-w-2xl rounded-[32px] p-16 flex flex-col items-center justify-center text-center shadow-2xl mb-8 relative">
                 <div className="flex items-center gap-4 mb-8">
                     <h2 className="text-white text-3xl font-medium tracking-tight">
@@ -25,7 +25,7 @@ const VacancySuccess = ({ vacancyCode = "Vac-009", onReset }) => {
                 </p>
             </div>
 
-            {/* Fila de Botones */}
+            {/* Row of Buttons */}
             <div className="flex w-full max-w-2xl justify-between items-center px-4">
                 <button
                     onClick={() => navigate("/dashboard")}
@@ -36,7 +36,7 @@ const VacancySuccess = ({ vacancyCode = "Vac-009", onReset }) => {
                 </button>
 
                 <button
-                    // Aquí luego pondremos la ruta para ir al análisis de IA
+                    // Here is the route to go to the AI analysis
                     onClick={() => console.log("Ir a análisis de candidatos")} 
                     className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95"
                 >

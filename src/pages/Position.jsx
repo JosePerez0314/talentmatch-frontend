@@ -4,23 +4,21 @@ import { useNavigate } from "react-router-dom";
 // UI imports
 import PillInput from "../components/ui/PillInput";
 import PositionSuccess from "../components/Sections/PositionSuccess";
-
 // Services
 import { positionService } from "../services/api/positions.api";
 
-// 1. Constantes reflejando EXACTAMENTE el esquema de Prisma
 const INITIAL_STATE = {
   role: "",
-  yearsOfExperience: 0, // Se inicializa como Int
-  technicalSkills: [],  // Renombrados
-  optionalTechnicalSkills: [], // Renombrado
+  yearsOfExperience: 0,
+  technicalSkills: [],
+  optionalTechnicalSkills: [],
   softSkills: [],
   description: "",
   education: "",
   languages: [],
 };
 
-// 2. Sub-componentes de UI (Clean Code)
+// Sub-component UI (Clean Code)
 const FormSection = ({ title, children }) => (
   <section className="mb-12 text-left">
     <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.25em] mb-8 pb-3 border-b border-gray-50">
@@ -41,31 +39,30 @@ const FormField = ({ label, error, children }) => (
 const Position = () => {
   const navigate = useNavigate();
 
-  // Estados UI
+  // State UI
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState("");
 
-  // Estados de Datos
+  // State of Data
   const [formData, setFormData] = useState(INITIAL_STATE);
 
-  // Mapeamos los inputs temporales con las mismas llaves del backend
+  // Mapped the temporal inputs
   const [tempInputs, setTempInputs] = useState({
     technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
   });
 
-  // --- Lógica de Negocio ---
-  // --- Lógica de Negocio Blindada ---
+  // --- Business Logic ---
   const handlePill = (field, val, action, idx) => {
-    // 1. Evitar que el evento se propague si viene de un teclado o clic accidental
+    // Prevent the event from propagating if it comes from a keyboard or accidental click
     if (action === 'add') {
       const cleanValue = val?.trim();
 
-      // Salida temprana si no hay valor real
+      // Early exit if there is no real value
       if (!cleanValue) {
-        // Limpiamos el input temporal de todas formas para resetear la UI
+        // Temporary input cleaned in any case to reset the UI
         setTempInputs(prev => ({ ...prev, [field]: "" }));
         return;
       }
@@ -75,7 +72,7 @@ const Position = () => {
         [field]: [...new Set([...prev[field], cleanValue])]
       }));
 
-      // Reset del input temporal después de añadir con éxito
+      // Temporary input reset after successful addition
       setTempInputs(prev => ({ ...prev, [field]: "" }));
     }
 
@@ -90,13 +87,13 @@ const Position = () => {
   const validate = () => {
     const errs = {};
     ["role", "description"].forEach(f => !formData[f].trim() && (errs[f] = "Obligatorio"));
-    // Actualizamos las llaves de validación
+    // Update the validation keys
     ["technicalSkills", "softSkills"].forEach(f => formData[f].length === 0 && (errs[f] = "Obligatorio"));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // --- Conexión al Backend Real ---
+  // --- Backend Connection ---
   const handleContinue = async (e) => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
@@ -113,7 +110,7 @@ const Position = () => {
           throw new Error("No se encontró tu ID de sesión. Por favor, cierra sesión y vuelve a entrar.");
         }
 
-        // Ahora el envío es directo y limpio, formData ya tiene la estructura perfecta
+        // upload is direct and clean, formData has perfect structure
         const payload = {
           ...formData,
           userId: userId
@@ -181,7 +178,7 @@ const Position = () => {
             <select
               className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none appearance-none font-medium cursor-pointer"
               value={formData.yearsOfExperience}
-              // Parseamos a entero en el momento en que cambia para mantener el estado como Int
+              // Parse to integer at the moment it changes to keep the state as Int
               onChange={e => setFormData({ ...formData, yearsOfExperience: parseInt(e.target.value, 10) || 0 })}>
               <option value="0">Ninguno</option>
               {[...Array(10)].map((_, i) => (
@@ -189,14 +186,14 @@ const Position = () => {
                   {i + 1} Año{i > 0 ? 's' : ''}
                 </option>
               ))}
-              <option value="10">10+ Años</option> {/* Cambié "10+" a "10" como value porque debe ser entero */}
+              <option value="10">10+ Años</option>
             </select>
           </FormField>
         </FormSection>
 
         <FormSection title="Habilidades y cualificaciones">
           {[
-            // IDs actualizados a las llaves de Prisma
+            // IDs to the Prisma keys
             { id: "technicalSkills", label: "Habilidades técnicas obligatorias" },
             { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales" },
             { id: "softSkills", label: "Habilidades blandas" }

@@ -11,11 +11,11 @@ import { Icons } from "../assets/icons/index";
 const CreateVacancy = () => {
   const navigate = useNavigate();
   
-  // Referencias para abrir los calendarios nativos
+  // Referencias para abrir los calendarios
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
-  // ESTADOS
+  // State
   const [uiState, setUiState] = useState("form");
   const [formData, setFormData] = useState({
     positionId: "",
@@ -24,7 +24,7 @@ const CreateVacancy = () => {
   });
   const [dateError, setDateError] = useState("");
 
-  // Datos simulados (Mock) para el dropdown
+  // Datos para el dropdown
   const mockPositions = [
     { id: "1", title: "Supervisor de recursos humanos" },
     { id: "2", title: "Desarrollador Frontend Senior" },
@@ -37,7 +37,7 @@ const CreateVacancy = () => {
     const newForm = { ...formData, [name]: value };
     setFormData(newForm);
 
-    // Si ambos campos tienen valor, validamos
+    // Si ambos campos tienen valor pasa
     if (newForm.startDate && newForm.endDate) {
       const start = new Date(newForm.startDate);
       const end = new Date(newForm.endDate);
@@ -54,27 +54,27 @@ const CreateVacancy = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Prevenir envío si hay error o faltan campos
+    // No envio si hay error o falta algo
     if (dateError || !formData.positionId || !formData.startDate || !formData.endDate) {
       return; 
     }
     
-    // Aquí irá la llamada a la API en el futuro
+    // Aquí llamada api
     console.log("Datos listos para enviar:", formData);
     
-    // Cambiamos a la pantalla de éxito
+    // pantalla de exito
     setUiState("success");
   };
 
-  // Renderizado Condicional: Pantalla de Éxito
+  // Condicional Pantalla de Éxito
   if (uiState === "success") {
     return <VacancySuccess onReset={() => setUiState("form")} />;
   }
 
-  // Renderizado Normal: Formulario
+  // Renderizado Normal Formulario
   return (
     <div className="p-10 max-w-4xl mx-auto animate-fade-in relative">
-      {/* Botón Volver (Opcional pero recomendado para UX) */}
+      {/* Buttom back */}
       <div className="flex justify-start mb-6">
         <button
           onClick={() => navigate("/dashboard")}
@@ -84,7 +84,7 @@ const CreateVacancy = () => {
         </button>
       </div>
 
-      {/* Contenedor del Formulario (Centrado estilo Tarjeta) */}
+      {/* Form Container */}
       <div className="flex justify-center">
         <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 w-full max-w-lg">
           <h1 className="text-2xl font-medium text-center text-[#1E293B] mb-8">
@@ -93,7 +93,7 @@ const CreateVacancy = () => {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             
-            {/* Campo: Posición ID */}
+            {/* Field Position ID*/}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-[#475569]">
                 Posición ID <span className="text-red-500">*</span>
@@ -111,7 +111,7 @@ const CreateVacancy = () => {
                     <option key={pos.id} value={pos.id}>{pos.title}</option>
                   ))}
                 </select>
-                {/* Flecha personalizada del select */}
+                {/* Custom arrow of the select input */}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -120,10 +120,10 @@ const CreateVacancy = () => {
               </div>
             </div>
 
-            {/* Fila de Fechas */}
+            {/* Date Row */}
             <div className="grid grid-cols-2 gap-4">
               
-              {/* Fecha Inicio */}
+              {/* Start calendary */}
               <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Inicio <span className="text-red-500">*</span>
@@ -139,7 +139,7 @@ const CreateVacancy = () => {
                     value={formData.startDate}
                     onChange={handleInputChange}
                     required
-                    // Ocultamos el icono de calendario nativo feo con CSS inline / clases
+                    // Hide the native calendar icon
                     className="w-full p-3.5 outline-none text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
                   <img 
@@ -150,7 +150,7 @@ const CreateVacancy = () => {
                 </div>
               </div>
 
-              {/* Fecha Fin */}
+              {/* End Calendary */}
               <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Fin <span className="text-red-500">*</span>
@@ -179,14 +179,14 @@ const CreateVacancy = () => {
               </div>
             </div>
 
-            {/* Mensaje de Error en Rojo */}
+            {/* Error Message in Red */}
             {dateError && (
               <p className="text-red-500 text-xs font-medium -mt-2">
                 {dateError}
               </p>
             )}
 
-            {/* Botón Submit */}
+            {/* Buttom Submit */}
             <div className="flex justify-end mt-4">
               <button
                 type="submit"
