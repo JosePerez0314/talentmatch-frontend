@@ -28,11 +28,11 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
                                 <img
                                     src={Icons.logos.small}
                                     alt="TalentMatch AI"
-                                    className="h-7 w-auto object-contain mt-2"
+                                    className="h-5 w-auto object-contain mt-2"
                                 />
                             </Link>
                             <span className="text-gray-600 text-xl font-light">-</span>
-                            <span className="text-[#447ECA] font-bold text-lg capitalize tracking-tight">
+                            <span className="text-[#447ECA] font-bold text-sm capitalize tracking-tight">
                                 {user?.username || "admin"}
                             </span>
                         </div>
@@ -40,7 +40,7 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
 
                     <button
                         onClick={handleLogout}
-                        className="group flex items-center gap-3 px-5 py-2 border border-gray-200 rounded-xl text-[11px] font-black text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-[0.15em]"
+                        className="group flex items-center gap-3 px-2 py-2 border border-gray-200 rounded-xl text-[11px] font-black text-gray-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-[0.15em]"
                     >
                         <span>Cerrar</span>
                         <img
