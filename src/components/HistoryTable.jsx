@@ -3,7 +3,7 @@ import React from "react";
 import { Icons } from "../assets/icons/index.js";
 
 const HistoryTable = ({ data }) => {
-    // Helper para dar formato a la fecha (ej: 10/03/2026)
+    // Helper to format the date (10/03/2026)
     const formatDate = (dateString) => {
         if (!dateString) return "N/A";
         const date = new Date(dateString);
@@ -14,22 +14,22 @@ const HistoryTable = ({ data }) => {
         });
     };
 
-    // Helper para extraer el nombre del archivo de la URL de Cloudinary
+    // Helper to format the date (e.g., 10/03/2026) ...
     const getFileName = (url) => {
         if (!url) return "Documento.pdf";
-        // Divide por "/" y toma el último elemento
+        // Divide by "/" and take the last element
         return url.split('/').pop(); 
     };
 
     return (
         <div className="flex flex-col w-full">
-            {/* Header de la tabla */}
+            {/* Header of table */}
             <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-white">
                 <span className="text-gray-400 font-black text-[11px] uppercase tracking-[0.2em]">
                     Nombre del documento
                 </span>
                 
-                {/* Badge de cantidad (Según diseño de la imagen) */}
+                {/* Quantity badge*/}
                 <div className="flex items-center gap-2 bg-[#DCF9FF] text-[#447ECA] px-4 py-2 rounded-xl">
                     <img src={Icons.stats.vacantCreateBlue} alt="CVs" className="w-5 h-5 brightness-0" style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }} />
                     <span className="font-bold text-sm tracking-tight">
@@ -38,10 +38,10 @@ const HistoryTable = ({ data }) => {
                 </div>
             </div>
 
-            {/* Filas de la tabla */}
+            {/* Rows of the table */}
             <div className="divide-y divide-gray-50 overflow-y-auto max-h-[60vh] custom-scrollbar">
                 {data.map((cv) => {
-                    // Extraemos la información de forma segura
+                    // Extract the information safely
                     const payload = cv.rawApiPayload || {};
                     const fileName = getFileName(payload.cvUrl);
                     const candidateName = payload.fullName || cv.fullName || "Candidato Desconocido";
@@ -50,7 +50,7 @@ const HistoryTable = ({ data }) => {
                     return (
                         <div key={cv.id} className="px-8 py-5 flex justify-between items-center hover:bg-[#F9FBFF] transition-colors group">
                             <div className="flex items-center gap-5">
-                                {/* Icono Documento */}
+                                {/* Icon Document */}
                                 <img src={Icons.stats.vacantCreateBlue} alt="PDF" className="w-6 h-6 object-contain opacity-70" />
                                 
                                 <div className="flex flex-col">
@@ -67,7 +67,7 @@ const HistoryTable = ({ data }) => {
                                 <span className="text-gray-400 text-sm font-medium">
                                     {formattedDate}
                                 </span>
-                                {/* Botón Ver (Ojo) que abre el PDF en otra pestaña */}
+                                {/* View Button (Eye) that opens the PDF in another tab */}
                                 <a 
                                     href={payload.cvUrl} 
                                     target="_blank" 
@@ -75,7 +75,7 @@ const HistoryTable = ({ data }) => {
                                     className="text-[#447ECA] hover:scale-110 transition-transform p-2"
                                     title="Ver CV"
                                 >
-                                    {/* Usa el icono del ojo de tus assets */}
+                                    {/* Icon eye */}
                                     <img src={Icons.stats.eyeHistoryGray} alt="Ver" className="w-5 h-5 brightness-0" style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }} />
                                 </a>
                             </div>

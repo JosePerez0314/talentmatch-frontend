@@ -1,4 +1,3 @@
-// src/features/layout/EmptyHistory.jsx
 import React from "react";
 
 const EmptyHistory = () => (
