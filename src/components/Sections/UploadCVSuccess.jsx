@@ -27,16 +27,14 @@ const UploadCVSuccess = ({ count, onReset }) => {
             <div className="flex w-full max-w-2xl justify-between items-center px-4">
                 <button
                     onClick={() => navigate("/dashboard")}
-                    className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-                >
+                    className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-gray-50 transition-all active:scale-95">
                     <span className="text-lg">←</span>
                     Volver al menú
                 </button>
 
                 <button
-                    onClick={onReset} 
-                    className="bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95"
-                >
+                    onClick={onReset}
+                    className="bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95">
                     Subir más CVs
                 </button>
             </div>
