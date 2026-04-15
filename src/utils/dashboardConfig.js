@@ -40,7 +40,7 @@ export const STATS_CONFIG = [
     icon: Icons.stats.vacantActiveBlue,
     btn: "Crear Vacantes",
     btnIcon: Icons.stats.vacantCreateBtn,
-    actionPath: "",
+    actionPath: "/vacancy",
     viewPath: ""
   },
 ];
