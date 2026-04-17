@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 // Components
 import StatCard from "../components/cards/StatCard";
 import MovementCard from "../components/cards/MovementCard";
@@ -10,9 +11,10 @@ import { Icons } from "../assets/icons";
 
 const Dashboard = () => {
   // STATE MANAGEMENT
+  const navigate = useNavigate();
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [lastMovements, setLastMovements] = useState(INITIAL_MOVEMENTS);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // DATA FETCHING WITH POLLING (Real-Time)
@@ -22,7 +24,7 @@ const Dashboard = () => {
       if (isInitial) {
         setIsLoading(true);
       }
-      
+
       try {
         const data = await dashboardService.getSummary();
 
@@ -39,7 +41,7 @@ const Dashboard = () => {
             cv: data.lastCv?.title || "Sin datos",
             cerradas: data.closedVacancies || 0,
           });
-          
+
           // clean errors
           setError(null);
         }
@@ -80,7 +82,7 @@ const Dashboard = () => {
   return (
     <div className="p-4 md:p-10 animate-fade-in">
       <div className="max-w-5xl mx-auto">
-        
+
         <header className="mb-8 md:mb-10 px-2 md:px-4 text-left flex flex-col md:flex-row md:justify-between md:items-center">
           <h1 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
             Dashboard - Centro de Control
@@ -116,9 +118,9 @@ const Dashboard = () => {
             title="Última posición creada"
             value={lastMovements.posicion}
           />
-          <MovementCard 
-            title="Último CV subido" 
-            value={lastMovements.cv} 
+          <MovementCard
+            title="Último CV subido"
+            value={lastMovements.cv}
           />
           <MovementCard
             title="Vacantes cerradas"
@@ -133,7 +135,9 @@ const Dashboard = () => {
               ¿Listo para encontrar tu próximo talento? Crea una vacante y deja
               que la IA haga el trabajo.
             </p>
-            <button className="w-full md:w-auto bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
+            <button
+              oneClick={() => navigate("/vacancy")}
+              className="w-full md:w-auto bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
               Crear Vacante ahora
             </button>
           </div>
