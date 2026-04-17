@@ -10,7 +10,7 @@ const MENU_ITEMS = [
     { name: "Subir CVs", icon: Icons.sidebar.uploadCv, path: "/uploadcv" },
     { name: "Crear Vacante", icon: Icons.sidebar.vacant, path: "/vacancy" },
     { name: "Historial de CVs", icon: Icons.sidebar.history, path: "/cv-history" },
-    { name: "Historial de anuncios", icon: Icons.sidebar.historyVacant, path: "/ads-history" },
+    { name: "Historial de Vacantes", icon: Icons.sidebar.historyVacant, path: "/vacancy-history" },
     { name: "Historial de Posiciones", icon: Icons.sidebar.historyPosition, path: "/position-history" },
     { name: "Resultados", icon: Icons.sidebar.trophy, path: "/results" },
 ];

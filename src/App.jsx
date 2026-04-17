@@ -13,9 +13,9 @@ import Dashboard from "./pages/Dashboard";
 import Position from "./pages/Position";
 import UploadCV from "./pages/UploadCV";
 import CVHistory from "./pages/CVHistory";
-
 import PositionHistory from "./pages/PositionHistory";
 import Vacancy from "./pages/Vacancy";
+import VacacyHistory from "./pages/VacancyHistory";
 
 function App() {
   return (
@@ -33,6 +33,7 @@ function App() {
             <Route path="/cv-history" element={<CVHistory />} />
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
+            <Route path="/vacancy-history" element={<VacacyHistory />} />
           </Route>
 
           {/* Default Redirection */}

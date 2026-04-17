@@ -10,7 +10,7 @@ import { Icons } from "../assets/icons/index";
 
 const CreateVacancy = () => {
   const navigate = useNavigate();
-  
+
   // Referencias para abrir los calendarios
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -55,13 +55,27 @@ const CreateVacancy = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     // No envio si hay error o falta algo
+    // Validación de seguridad
     if (dateError || !formData.positionId || !formData.startDate || !formData.endDate) {
-      return; 
+      return;
     }
-    
-    // Aquí llamada api
-    console.log("Datos listos para enviar:", formData);
-    
+
+    // Buscamos el título de la posición (para no guardar solo el ID "1" o "2")
+    const positionName = mockPositions.find(p => p.id === formData.positionId)?.title || "Posicion Desconocida";
+
+    // 2. Estructuramos el objeto fiel a lo que necesita el Historial
+    const newVacancy = {
+      id: `VAC-00${Math.floor(Math.random() * 1000)}`,
+      position: positionName,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      status: "Abierta"
+    };
+
+    // 3. Persistencia local
+    const existingVacancies = JSON.parse(localStorage.getItem("talentmatch_vacancies") || "[]");
+    localStorage.setItem("talentmatch_vacancies", JSON.stringify([...existingVacancies, newVacancy]));
+
     // pantalla de exito
     setUiState("success");
   };
@@ -92,7 +106,7 @@ const CreateVacancy = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            
+
             {/* Field Position ID*/}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-[#475569]">
@@ -122,13 +136,13 @@ const CreateVacancy = () => {
 
             {/* Date Row */}
             <div className="grid grid-cols-2 gap-4">
-              
+
               {/* Start calendary */}
               <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Inicio <span className="text-red-500">*</span>
                 </label>
-                <div 
+                <div
                   className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] transition-colors cursor-text"
                   onClick={() => startDateRef.current?.showPicker()}
                 >
@@ -142,10 +156,10 @@ const CreateVacancy = () => {
                     // Hide the native calendar icon
                     className="w-full p-3.5 outline-none text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
-                  <img 
-                    src={Icons.vacancies.calendOpen} 
-                    alt="Calendario" 
-                    className="absolute right-4 w-5 h-5 opacity-40 cursor-pointer pointer-events-none" 
+                  <img
+                    src={Icons.vacancies.calendOpen}
+                    alt="Calendario"
+                    className="absolute right-4 w-5 h-5 opacity-40 cursor-pointer pointer-events-none"
                   />
                 </div>
               </div>
@@ -155,10 +169,9 @@ const CreateVacancy = () => {
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Fin <span className="text-red-500">*</span>
                 </label>
-                <div 
-                  className={`relative flex items-center border rounded-xl overflow-hidden transition-colors cursor-text ${
-                    dateError ? "border-red-400 bg-red-50" : "border-gray-200 focus-within:border-[#447ECA]"
-                  }`}
+                <div
+                  className={`relative flex items-center border rounded-xl overflow-hidden transition-colors cursor-text ${dateError ? "border-red-400 bg-red-50" : "border-gray-200 focus-within:border-[#447ECA]"
+                    }`}
                   onClick={() => endDateRef.current?.showPicker()}
                 >
                   <input
@@ -170,10 +183,10 @@ const CreateVacancy = () => {
                     required
                     className="w-full p-3.5 outline-none text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
-                  <img 
-                    src={Icons.vacancies.calendClose} 
-                    alt="Calendario" 
-                    className={`absolute right-4 w-5 h-5 cursor-pointer pointer-events-none ${dateError ? "opacity-60" : "opacity-40"}`} 
+                  <img
+                    src={Icons.vacancies.calendClose}
+                    alt="Calendario"
+                    className={`absolute right-4 w-5 h-5 cursor-pointer pointer-events-none ${dateError ? "opacity-60" : "opacity-40"}`}
                   />
                 </div>
               </div>

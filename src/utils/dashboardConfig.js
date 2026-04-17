@@ -41,6 +41,6 @@ export const STATS_CONFIG = [
     btn: "Crear Vacantes",
     btnIcon: Icons.stats.vacantCreateBtn,
     actionPath: "/vacancy",
-    viewPath: ""
+    viewPath: "/vacancy-history"
   },
 ];
