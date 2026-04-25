@@ -16,6 +16,7 @@ import CVHistory from "./pages/CVHistory";
 import PositionHistory from "./pages/PositionHistory";
 import Vacancy from "./pages/Vacancy";
 import VacacyHistory from "./pages/VacancyHistory";
+import Resultados from "./pages/Resultados"
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
+            <Route path="/resultados" element={<Resultados />} />
           </Route>
 
           {/* Default Redirection */}
