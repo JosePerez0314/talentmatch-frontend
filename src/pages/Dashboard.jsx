@@ -136,7 +136,7 @@ const Dashboard = () => {
               que la IA haga el trabajo.
             </p>
             <button
-              oneClick={() => navigate("/vacancy")}
+              onClick={() => navigate("/vacancy")}
               className="w-full md:w-auto bg-[#447ECA] text-white px-12 py-4 rounded-xl font-bold shadow-lg hover:bg-[#3669ab] transition-all active:scale-95">
               Crear Vacante ahora
             </button>
