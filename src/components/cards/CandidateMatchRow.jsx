@@ -2,7 +2,8 @@ import React from "react";
 import { Icons } from "../../assets/icons";
 import StatusDropdown from "../ui/StatusDropdown";
 
-const CandidateMatchRow = ({ candidate, index, onStatusChange }) => {
+// 1. Recibimos onViewClick como prop
+const CandidateMatchRow = ({ candidate, index, onStatusChange, onViewClick }) => {
     const getMatchBg = (score) => {
         if (score <= 49) return "bg-[#EF5050]";
         if (score <= 79) return "bg-[#F8C807]";
@@ -10,7 +11,6 @@ const CandidateMatchRow = ({ candidate, index, onStatusChange }) => {
     };
 
     return (
-        /* Mantenemos el grid de 4 columnas */
         <div className="grid grid-cols-[50px_100px_1fr_280px] gap-4 px-6 py-4 items-center border-b border-gray-50 last:border-0 hover:bg-gray-50/40 transition-all group">
 
             {/* 1. INDEX */}
@@ -36,16 +36,18 @@ const CandidateMatchRow = ({ candidate, index, onStatusChange }) => {
                 </div>
             </div>
 
-            {/* 4. ACCIONES (Separadas y alineadas) */}
+            {/* 4. ACCIONES */}
             <div className="flex items-center justify-end gap-4">
-                {/* Dropdown de estado */}
                 <StatusDropdown
                     currentStatus={candidate.status}
                     onStatusChange={(newStatus) => onStatusChange(candidate.id, newStatus)}
                 />
 
-                {/* Botón Ver - Independiente */}
-                <button className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl transition-all group/icon border border-white">
+                {/* 2. Conectamos el botón Ver con onViewClick */}
+                <button
+                    onClick={onViewClick}
+                    className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl transition-all group/icon border border-white"
+                >
                     <img
                         src={Icons.stats.eyeHistoryGray}
                         className="w-5 h-5 group-hover/icon:opacity-100 transition-opacity"
@@ -54,8 +56,14 @@ const CandidateMatchRow = ({ candidate, index, onStatusChange }) => {
                     />
                 </button>
 
-                {/* Botón Descargar - Independiente */}
-                <button className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl transition-all group/icon border border-white">
+                {/* Botón Descargar */}
+                <button
+                    className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl transition-all group/icon border border-white"
+                    onClick={() => {
+                        // Lógica simple para simular descarga
+                        alert(`Descargando el CV de ${candidate.name}: ${candidate.fileName}`);
+                    }}
+                >
                     <img
                         src={Icons.auth.loading}
                         className="w-5 h-5 group-hover/icon:opacity-100 transition-opacity"

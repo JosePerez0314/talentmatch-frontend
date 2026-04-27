@@ -3,11 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { Icons } from "../assets/icons";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
+// 1. IMPORTAR EL MODAL
+import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
 
 const Resultados = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [candidates, setCandidates] = useState([]);
+
+    // 2. ESTADOS PARA CONTROLAR EL MODAL
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedCandidate, setSelectedCandidate] = useState(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -21,11 +27,16 @@ const Resultados = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    // 3. FUNCIONES DE MANEJO
+    const handleViewCandidate = (candidate) => {
+        setSelectedCandidate(candidate);
+        setIsModalOpen(true);
+    };
+
     if (loading) return <ProcessingModal />;
 
     return (
         <div className="min-h-screen bg-[#F2F4F7] p-6 md:p-12 animate-fade-in">
-            {/* max-w-4xl mantiene el cuadro compacto como pediste */}
             <div className="max-w-4xl mx-auto">
                 <header className="mb-8 flex flex-col gap-6">
                     <button
@@ -52,12 +63,21 @@ const Resultados = () => {
                                     onStatusChange={(id, status) => {
                                         setCandidates(prev => prev.map(cand => cand.id === id ? { ...cand, status } : cand));
                                     }}
+                                    // 4. PASAMOS LA FUNCIÓN AL BOTÓN DEL OJO
+                                    onViewClick={() => handleViewCandidate(c)}
                                 />
                             </div>
                         ))}
                     </div>
                 </div>
             </div>
+
+            {/* 5. EL COMPONENTE MODAL AL FINAL (Fuera del flujo principal) */}
+            <CandidateDetailsModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                candidate={selectedCandidate}
+            />
         </div>
     );
 };
