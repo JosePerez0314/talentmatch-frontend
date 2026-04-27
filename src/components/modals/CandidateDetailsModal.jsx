@@ -4,16 +4,16 @@ import { Icons } from "../../assets/icons";
 const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
     if (!isOpen || !candidate) return null;
 
-    // Función para determinar el color semántico según el score
+    // Colores originales del score
     const getScoreColor = (score) => {
-        if (score >= 80) return "#00FA15"; // Verde (Excelente)
-        if (score >= 50) return "#F8C807"; // Amarillo (Promedio)
-        return "#FF4D4D"; // Rojo (Bajo)
+        if (score >= 80) return "#00FA15";
+        if (score >= 50) return "#F8C807";
+        return "#FF4D4D";
     };
 
     const dynamicColor = getScoreColor(candidate.matchScore);
 
-    // Filtro estándar para iconos en azul corporativo #447ECA
+    // Tu filtro original para iconos en azul corporativo #447ECA
     const blueFilter = {
         filter: "invert(46%) sepia(48%) saturate(545%) hue-rotate(174deg) brightness(92%) contrast(90%)"
     };
@@ -21,7 +21,7 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
     const ProgressBar = ({ label, current, max, color }) => (
         <div className="grid grid-cols-[130px_1fr_40px] gap-6 items-center">
             <span className="text-gray-500 text-[13px] font-medium">{label}</span>
-            <div className="h-2.5 w-full bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-2.5 w-full bg-gray-300 rounded-full overflow-hidden">
                 <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{ width: `${(current / max) * 100}%`, backgroundColor: color }}
@@ -33,10 +33,11 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white w-full max-w-3xl max-h-[95vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden">
+            {/* Contenedor principal con el Gris 200 solicitado */}
+            <div className="bg-gray-200 w-full max-w-3xl max-h-[95vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden">
 
-                {/* Header / Nav */}
-                <div className="px-8 py-6 flex justify-between items-center border-b border-gray-50 bg-white">
+                {/* Header / Nav - Sincronizado con Gris 200 */}
+                <div className="px-8 py-6 flex justify-between items-center border-b border-gray-300 bg-gray-200">
                     <button
                         onClick={onClose}
                         className="px-6 py-2.5 bg-[#447ECA] text-white text-sm font-bold rounded-full shadow-lg shadow-blue-100 hover:bg-[#3669ab] transition-all active:scale-95 flex items-center gap-2">
@@ -48,10 +49,10 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-10">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-8">
 
-                    {/* 1. PERFIL CARD - Colores dinámicos integrados */}
-                    <div className="bg-gray-50/50 rounded-[24px] p-8 flex justify-between items-start mb-10 border border-gray-100">
+                    {/* 1. PERFIL CARD - Resaltado en Blanco */}
+                    <div className="bg-white rounded-[24px] p-8 flex justify-between items-start border border-gray-300 shadow-sm">
                         <div className="flex gap-6">
                             <div
                                 className="w-20 h-20 rounded-[22px] flex flex-col items-center justify-center shadow-lg transition-colors duration-500"
@@ -80,60 +81,63 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
                         </span>
                     </div>
 
-                    {/* 2. DESGLOSE DEL SCORE */}
-                    <section className="mb-12 px-2">
-                        <div className="flex items-center gap-3 mb-8">
-                            <img src={Icons.sidebar.history} className="w-4 h-4" alt="score" style={blueFilter} />
-                            <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Desglose del score</h3>
-                        </div>
-                        <div className="space-y-4">
-                            <ProgressBar label="Hard Skills" current={28} max={30} color="#00FA15" />
-                            <ProgressBar label="Experiencia" current={16} max={20} color="#00FA15" />
-                            <ProgressBar label="Rol" current={13} max={15} color="#00FA15" />
-                            <ProgressBar label="Idiomas" current={12} max={15} color="#00FA15" />
-                            <ProgressBar label="Educación" current={9} max={10} color="#00FA15" />
-                            <ProgressBar label="Soft Skills" current={7} max={10} color="#F8C807" />
-                        </div>
-                    </section>
+                    {/* SECCIÓN DETALLES TÉCNICOS - En Tarjeta Blanca */}
+                    <div className="bg-white rounded-[24px] p-10 border border-gray-300 shadow-sm space-y-12">
+                        {/* 2. DESGLOSE DEL SCORE */}
+                        <section className="px-2">
+                            <div className="flex items-center gap-3 mb-8">
+                                <img src={Icons.sidebar.history} className="w-4 h-4" alt="score" style={blueFilter} />
+                                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Desglose del score</h3>
+                            </div>
+                            <div className="space-y-4">
+                                <ProgressBar label="Hard Skills" current={28} max={30} color="#00FA15" />
+                                <ProgressBar label="Experiencia" current={16} max={20} color="#00FA15" />
+                                <ProgressBar label="Rol" current={13} max={15} color="#00FA15" />
+                                <ProgressBar label="Idiomas" current={12} max={15} color="#00FA15" />
+                                <ProgressBar label="Educación" current={9} max={10} color="#00FA15" />
+                                <ProgressBar label="Soft Skills" current={7} max={10} color="#F8C807" />
+                            </div>
+                        </section>
 
-                    {/* 3. HABILIDADES TÉCNICAS */}
-                    <section className="mb-10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <img src={Icons.stats.posCreatedBlue} className="w-4 h-4" alt="tech" style={blueFilter} />
-                            <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Habilidades técnicas</h3>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            {["Figma", "Adobe XD", "Sketch", "Prototyping", "User Research"].map(skill => (
-                                <span key={skill} className="px-5 py-2.5 bg-[#96FFC1] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
-                            ))}
-                        </div>
-                    </section>
+                        {/* 3. HABILIDADES TÉCNICAS - Recuperamos tu bg-[#96FFC1] */}
+                        <section>
+                            <div className="flex items-center gap-3 mb-6">
+                                <img src={Icons.stats.posCreatedBlue} className="w-4 h-4" alt="tech" style={blueFilter} />
+                                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Habilidades técnicas</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                {["Figma", "Adobe XD", "Sketch", "Prototyping", "User Research"].map(skill => (
+                                    <span key={skill} className="px-5 py-2.5 bg-[#96FFC1] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
+                                ))}
+                            </div>
+                        </section>
 
-                    {/* 4. TÉCNICAS OPCIONALES */}
-                    <section className="mb-10">
-                        <h4 className="text-gray-400 text-[11px] font-bold uppercase tracking-[3px] mb-5 pl-1">Habilidades técnicas opcionales</h4>
-                        <div className="flex flex-wrap gap-3">
-                            {["Adobe Photoshop", "Illustrator", "HTML/CSS"].map(skill => (
-                                <span key={skill} className="px-5 py-2.5 bg-[#96FFC1] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
-                            ))}
-                        </div>
-                    </section>
+                        {/* 4. TÉCNICAS OPCIONALES - Recuperamos tu bg-[#96FFC1] */}
+                        <section>
+                            <h4 className="text-gray-400 text-[11px] font-bold uppercase tracking-[3px] mb-5 pl-1">Habilidades técnicas opcionales</h4>
+                            <div className="flex flex-wrap gap-3">
+                                {["Adobe Photoshop", "Illustrator", "HTML/CSS"].map(skill => (
+                                    <span key={skill} className="px-5 py-2.5 bg-[#96FFC1] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
+                                ))}
+                            </div>
+                        </section>
 
-                    {/* 5. HABILIDADES BLANDAS */}
-                    <section className="mb-10">
-                        <div className="flex items-center gap-3 mb-6">
-                            <img src={Icons.stats.checkBlue} className="w-4 h-4" alt="soft" style={blueFilter} />
-                            <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Habilidades blandas</h3>
-                        </div>
-                        <div className="flex flex-wrap gap-3">
-                            {["Creatividad", "Empatía", "Comunicación"].map(skill => (
-                                <span key={skill} className="px-5 py-2.5 bg-[#DCF9FF] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
-                            ))}
-                        </div>
-                    </section>
+                        {/* 5. HABILIDADES BLANDAS - Recuperamos tu bg-[#DCF9FF] */}
+                        <section>
+                            <div className="flex items-center gap-3 mb-6">
+                                <img src={Icons.stats.checkBlue} className="w-4 h-4" alt="soft" style={blueFilter} />
+                                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Habilidades blandas</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-3">
+                                {["Creatividad", "Empatía", "Comunicación"].map(skill => (
+                                    <span key={skill} className="px-5 py-2.5 bg-[#DCF9FF] text-gray-900 text-[13px] font-bold rounded-full border border-black/5 shadow-sm">{skill}</span>
+                                ))}
+                            </div>
+                        </section>
+                    </div>
 
                     {/* 6. EDUCACIÓN E IDIOMAS */}
-                    <section className="grid grid-cols-2 gap-10 mb-12 border-t border-gray-100 pt-10">
+                    <section className="bg-white rounded-[24px] p-10 border border-gray-300 shadow-sm grid grid-cols-2 gap-10">
                         <div>
                             <div className="flex items-center gap-3 mb-5">
                                 <img src={Icons.sidebar.trophy} className="w-4 h-4" alt="edu" style={blueFilter} />
@@ -153,8 +157,8 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
                         </div>
                     </section>
 
-                    {/* 7. ANÁLISIS DE IA */}
-                    <section className="bg-gray-100 rounded-[32px] p-8 border border-gray-100">
+                    {/* 7. ANÁLISIS DE IA - Fondo Gris 100 para contraste interno */}
+                    <section className="bg-gray-100 rounded-[32px] p-8 border border-gray-300">
                         <div className="flex items-center gap-4 mb-6">
                             <img src={Icons.vacancies.analizCandidates} className="w-6 h-6" alt="ai-analysis" style={blueFilter} />
                             <h3 className="text-gray-400 text-xs font-bold uppercase tracking-[3px]">Análisis de IA</h3>
@@ -183,8 +187,8 @@ const CandidateDetailsModal = ({ isOpen, onClose, candidate }) => {
                     </section>
                 </div>
 
-                {/* Footer */}
-                <div className="p-8 border-t border-gray-50 flex justify-end items-center gap-6 bg-white">
+                {/* Footer - Sincronizado con Gris 200 */}
+                <div className="p-8 border-t border-gray-300 flex justify-end items-center gap-6 bg-gray-200">
                     <button
                         onClick={onClose}
                         className="px-10 py-3.5 bg-[#447ECA] text-white text-[11px] font-black uppercase tracking-[2px] rounded-xl shadow-lg shadow-blue-100 hover:bg-[#3669ab] transition-all active:scale-95">
