@@ -41,10 +41,11 @@ const HistoryTable = ({ data }) => {
             {/* Rows of the table */}
             <div className="divide-y divide-gray-50 overflow-y-auto max-h-[60vh] custom-scrollbar">
                 {data.map((cv) => {
-                    // Extract the information safely
-                    const payload = cv.rawApiPayload || {};
-                    const fileName = getFileName(payload.cvUrl);
-                    const candidateName = payload.fullName || cv.fullName || "Candidato Desconocido";
+                    const fileUrl = cv.fileUrl || (cv.rawApiPayload && cv.rawApiPayload.cvUrl); 
+                    const fileName = getFileName(fileUrl);
+                    
+                    // Prefer the fullName directly from the root of the object
+                    const candidateName = cv.fullName || (cv.rawApiPayload && cv.rawApiPayload.fullName) || "Candidato Desconocido";
                     const formattedDate = formatDate(cv.createdAt);
 
                     return (
@@ -69,11 +70,11 @@ const HistoryTable = ({ data }) => {
                                 </span>
                                 {/* View Button (Eye) that opens the PDF in another tab */}
                                 <a 
-                                    href={payload.cvUrl} 
+                                    href={fileUrl}
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-[#447ECA] hover:scale-110 transition-transform p-2"
-                                    title="Ver CV"
+                                    className={`text-[#447ECA] hover:scale-110 transition-transform p-2 ${!fileUrl ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                                    title={fileUrl ? "Ver CV" : "Documento no disponible"}
                                 >
                                     {/* Icon eye */}
                                     <img src={Icons.stats.eyeHistoryGray} alt="Ver" className="w-5 h-5 brightness-0" style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }} />
