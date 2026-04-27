@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Icons } from "../../assets/icons/index.js";
+import { Icons } from "../../assets/icons";
 
 const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -21,30 +21,39 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
         <div className="relative inline-block text-left" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-36 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 transition-all"
+                className="flex items-center justify-between w-40 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-[#DCF9FF] transition-all active:scale-95"
             >
                 <span className="truncate">{currentStatus}</span>
                 <img
-                    src={Icons.auth.arrow}
-                    className={`w-2.5 ml-2 opacity-40 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                    src={Icons.auth.arrow || Icons.stats.createPlus}
+                    className={`w-3 ml-2 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                     alt="arrow"
+                    style={{
+                        /* Filtro específico para convertir cualquier color base al azul #447ECA */
+                        filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)"
+                    }}
                 />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-30 mt-2 w-40 bg-white rounded-2xl shadow-[0px_10px_30px_rgba(0,0,0,0.1)] border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200">
-                    {options.map((option) => (
-                        <button
-                            key={option}
-                            onClick={() => {
-                                onStatusChange?.(option);
-                                setIsOpen(false);
-                            }}
-                            className="w-full text-left px-4 py-3 text-xs text-gray-600 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
-                        >
-                            {option}
-                        </button>
-                    ))}
+                <div className="absolute right-0 z-50 mt-2 w-44 bg-white rounded-2xl shadow-[0px_10px_40px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200">
+                    <div className="py-1">
+                        {options.map((option) => (
+                            <button
+                                key={option}
+                                onClick={() => {
+                                    onStatusChange?.(option);
+                                    setIsOpen(false);
+                                }}
+                                className={`w-full text-left px-4 py-3 text-[11px] font-bold uppercase tracking-tight transition-colors border-b border-gray-50 last:border-0 ${currentStatus === option
+                                    ? "text-[#447ECA] bg-blue-50/50"
+                                    : "text-gray-600 hover:bg-gray-50"
+                                    }`}
+                            >
+                                {option}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

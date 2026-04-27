@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Icons } from "../../assets/icons/index.js";
 
 const ProcessingModal = () => {
     const [step, setStep] = useState(0);
