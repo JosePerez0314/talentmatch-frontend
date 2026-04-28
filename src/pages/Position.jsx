@@ -182,7 +182,7 @@ const Position = () => {
 
         <FormSection title="Habilidades y cualificaciones">
           {[
-            // IDs to the Prisma keys
+            // IDs to the Prisma keys.
             { id: "technicalSkills", label: "Habilidades técnicas obligatorias" },
             { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales" },
             { id: "softSkills", label: "Habilidades blandas" }
