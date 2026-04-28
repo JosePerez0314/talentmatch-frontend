@@ -1,8 +1,8 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet} from "react-router-dom";
 
 // Context
-import { AuthProvider } from "./components/context/AuthContext";
+import { AuthProvider, useAuth} from "./components/context/AuthContext";
 
 // Layout
 import Layout from "./layouts/Layout";
@@ -18,6 +18,18 @@ import Vacancy from "./pages/Vacancy";
 import VacacyHistory from "./pages/VacancyHistory";
 import Resultados from "./pages/Resultados"
 
+// --- PROTECTED ROUTE ---
+const ProtectedRoute = () => {
+  const { user } = useAuth();
+  
+  // No token = return to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  //if everything is fine = continue Layout
+  return <Layout />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -26,8 +38,8 @@ function App() {
           {/* Public Route */}
           <Route path="/login" element={<Login />} />
 
-          {/* PRIVATE ROUTES - Optimizadas con Layout como contenedor */}
-          <Route element={<Layout />}>
+          {/* PRIVATE ROUTES */}
+          <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
             <Route path="/uploadcv" element={<UploadCV />} />
@@ -35,7 +47,7 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
-            <Route path="/resultados" element={<Resultados />} />
+            <Route path="/resultados/:id" element={<Resultados />} />
           </Route>
 
           {/* Default Redirection */}

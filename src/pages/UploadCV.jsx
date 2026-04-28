@@ -13,7 +13,7 @@ const UploadCV = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   
-  // 2. EXTRAEMOS EL USUARIO DEL ESTADO GLOBAL
+  // EXTRAEMOS EL USUARIO DEL ESTADO GLOBAL
   const { user } = useAuth();
 
   // Estados de Negocio
@@ -76,9 +76,8 @@ const UploadCV = () => {
   const handleUpload = async () => {
     if (files.length === 0) return;
     
-    // 3. PROGRAMACIÓN DEFENSIVA: Verificamos que el usuario exista en el contexto
-    if (!user || !user.id) {
-      setError("Sesión inválida: No se encontró el ID de usuario. Por favor, inicia sesión nuevamente.");
+    if (!user) {
+      setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
       return;
     }
 
@@ -86,15 +85,14 @@ const UploadCV = () => {
     setError(null);
 
     try {
-      // 4. PASAMOS EL ID DEL USUARIO A LA API
-      await uploadService.uploadCVs(files, user.id);
+      await uploadService.uploadCVs(files);
       setUiState("success");
     } catch (err) {
       console.error("Fallo al subir:", err);
       setError(err.message);
       setUiState("idle");
     }
-  };
+};
 
   const handleReset = () => {
     setFiles([]);

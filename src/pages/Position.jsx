@@ -102,21 +102,10 @@ const Position = () => {
     if (validate()) {
       setIsLoading(true);
       try {
-        const userString = localStorage.getItem("user");
-        const user = userString ? JSON.parse(userString) : null;
-        const userId = user?.id;
-
-        if (!userId) {
-          throw new Error("No se encontró tu ID de sesión. Por favor, cierra sesión y vuelve a entrar.");
-        }
-
-        // upload is direct and clean, formData has perfect structure
-        const payload = {
-          ...formData,
-          userId: userId
-        };
-
-        await positionService.create(payload);
+        // Nuestro apiClient.js interceptará esta llamada y le inyectará el Token JWT.
+        
+        await positionService.create(formData);
+        
         setIsSuccess(true);
 
       } catch (error) {
