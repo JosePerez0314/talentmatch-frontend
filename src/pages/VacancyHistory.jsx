@@ -115,11 +115,15 @@ const VacancyHistory = () => {
                                         </span>
                                     </td>
                                     <td className="px-8 py-5 text-center">
-                                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                                        <button 
+                                            onClick={() => navigate(`/resultados/${vac.id}`)} 
+                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                            title="Ver Resultados IA"
+                                        >
                                             <img
-                                                src={Icons.vacancies.eyeIcon || Icons.vacancies.analizCandidates}
-                                                alt="Ver"
-                                                className="w-5 h-5 opacity-50"
+                                                src={Icons.vacancies.eyeIcon || Icons.stats.eyeHistoryGray}
+                                                alt="Ver Resultados"
+                                                className="w-5 h-5 opacity-50 hover:opacity-100 transition-opacity"
                                             />
                                         </button>
                                     </td>
