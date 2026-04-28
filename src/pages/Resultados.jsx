@@ -6,10 +6,13 @@ import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
 
+// 1. Cambiamos el import al servicio de vacantes
+import { vacanciesApi } from "../services/api/vacancies.api";
 // Assets and Services
 import { vacanciesApi } from "../services/api/vacancies.api.js";
 import { candidateService } from "../services/api/candidates.api.js";
 import { Icons } from "../assets/icons";
+
 
 const Resultados = () => {
     const navigate = useNavigate();
@@ -25,6 +28,18 @@ const Resultados = () => {
         const fetchResultsAndEnrich = async () => {
             setLoading(true);
             try {
+
+                setLoading(true);
+
+                // 2. Usamos el método getAll de vacanciesApi
+                const response = await vacanciesApi.getAll();
+
+                // Nota: Si el backend devuelve los candidatos dentro de la vacante, 
+                // asegúrate de mapear la respuesta correctamente (ej: response.candidates)
+                setCandidates(response || []);
+
+            } catch (error) {
+                console.error("Error conectando con la API de vacantes:", error);
                 const [resultsData, allCandidates] = await Promise.all([
                     vacanciesApi.getResults(id),
                     candidateService.getAll()
@@ -49,6 +64,7 @@ const Resultados = () => {
             } catch (err) {
                 console.error("Error al cargar resultados e hidratar datos:", err);
                 setError(err.message);
+
                 setCandidates([]);
             } finally {
                 setLoading(false);
@@ -79,9 +95,14 @@ const Resultados = () => {
                         <h1 className="text-3xl font-black text-gray-900 tracking-tight">
                             Resultados: <span className="text-[#447ECA] font-light">Mejores candidatos</span>
                         </h1>
+
+                        <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[2px]">
+                            Análisis de Vacantes • TalentMatch AI
+
                         
                         <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[2px]">
                             Vacante: Vac-{id} • Análisis en tiempo real
+
                         </p>
                     </div>
                 </header>
@@ -106,14 +127,17 @@ const Resultados = () => {
                             ))}
                         </div>
                     ) : (
+
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+
                         
                         <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
+
                             <div className="bg-gray-50 p-6 rounded-full mb-6">
                                 <img src={Icons.sidebar.history} alt="No data" className="w-12 h-12 opacity-20" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800 tracking-tight">Base de datos limpia</h2>
+                            <h2 className="text-xl font-bold text-gray-800 tracking-tight">Sin resultados disponibles</h2>
                             <p className="text-gray-400 text-sm max-w-xs mt-2 font-medium">
-                                No se encontraron registros o candidatos procesados para esta vacante en específico.
                             </p>
                         </div>
                     )}
