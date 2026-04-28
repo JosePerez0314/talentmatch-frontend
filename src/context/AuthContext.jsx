@@ -4,17 +4,19 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true); // 👈 NUEVO
 
-    // Al cargar la app, revisamos si ya había alguien logueado en el navegador
     useEffect(() => {
         const savedUser = localStorage.getItem('tm_user');
+
         if (savedUser) {
             setUser(JSON.parse(savedUser));
         }
+
+        setLoading(false); // 👈 IMPORTANTE
     }, []);
 
     const login = (email) => {
-        // Lógica principal: Extraer el nombre antes del '@'
         const username = email.split('@')[0];
 
         const userData = {
@@ -33,11 +35,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-// Hook personalizado para usar el contexto fácilmente
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);
