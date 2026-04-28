@@ -38,7 +38,7 @@ const Sidebar = () => {
                 <span className={`h-0.5 bg-gray-600 rounded-full transition-all duration-300 ${isOpen ? "w-6 -rotate-45 -translate-y-2" : "w-6"}`}></span>
             </button>
 
-            {/* OVERLAY */}
+            { /* OVERLAY */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/15 backdrop-blur-[2px] z-40 transition-opacity animate-fade-in"
