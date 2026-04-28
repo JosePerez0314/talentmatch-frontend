@@ -47,7 +47,7 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
-            <Route path="/resultados" element={<Resultados />} />
+            <Route path="/resultados/:id" element={<Resultados />} />
           </Route>
 
           {/* Default Redirection */}
