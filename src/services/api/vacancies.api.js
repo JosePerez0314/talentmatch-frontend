@@ -10,4 +10,15 @@ export const vacanciesApi = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   }),
+  // Get results for a vacancy
+  getResults: (vacancyId) => apiClient(`/vacancies/${vacancyId}/results`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  }),
+  // Trigger AI analysis (manually)
+  calculateMatch: (vacancyId, candidateId) => apiClient(`/vacancies/${vacancyId}/results`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ vacancyId, candidateId }),
+  })
 };

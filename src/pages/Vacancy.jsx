@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 
 //Components
@@ -7,40 +7,49 @@ import EmptyVacancyState from "../components/ui/EmptyVacancyState";
 
 //Assets and Services
 import { Icons } from "../assets/icons/index";
+import { vacanciesApi } from "../services/api/vacancies.api";
+import { positionService } from "../services/api/positions.api";
 
 const CreateVacancy = () => {
   const navigate = useNavigate();
-
-  // Referencias para abrir los calendarios
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
-  // State
+  // Estados
   const [uiState, setUiState] = useState("form");
-  const [formData, setFormData] = useState({
-    positionId: "",
-    startDate: "",
-    endDate: ""
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [positionsList, setPositionsList] = useState([]);
   const [dateError, setDateError] = useState("");
 
-  // Datos para el dropdown
-  const mockPositions = [
-    { id: "1", title: "Supervisor de recursos humanos" },
-    { id: "2", title: "Desarrollador Frontend Senior" },
-    { id: "3", title: "Analista de Datos" }
-  ];
+  const [formData, setFormData] = useState({
+    positionId: "",
+    openDate: "",
+    closeDate: "" 
+  });
 
-  // VALIDACIÓN DE FECHAS EN TIEMPO REAL
+  // LOAD REAL POSITIONS WHEN MOUNTING
+  useEffect(() => {
+    const fetchPositions = async () => {
+      try {
+        const data = await positionService.getAll();
+        setPositionsList(data || []);
+      } catch (error) {
+        console.error("Error cargando posiciones:", error);
+      }
+    };
+    fetchPositions();
+  }, []);
+
+  // DATE VALIDATION
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const newForm = { ...formData, [name]: value };
     setFormData(newForm);
 
-    // Si ambos campos tienen valor pasa
-    if (newForm.startDate && newForm.endDate) {
-      const start = new Date(newForm.startDate);
-      const end = new Date(newForm.endDate);
+    if (newForm.openDate && newForm.closeDate) {
+      const start = new Date(newForm.openDate);
+      const end = new Date(newForm.closeDate);
 
       if (end <= start) {
         setDateError("La fecha fin debe ser posterior a la fecha de inicio");
@@ -52,43 +61,45 @@ const CreateVacancy = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // No envio si hay error o falta algo
-    // Validación de seguridad
-    if (dateError || !formData.positionId || !formData.startDate || !formData.endDate) {
+    if (dateError || !formData.positionId || !formData.openDate || !formData.closeDate) {
       return;
     }
 
-    // Buscamos el título de la posición (para no guardar solo el ID "1" o "2")
-    const positionName = mockPositions.find(p => p.id === formData.positionId)?.title || "Posicion Desconocida";
+    setIsLoading(true);
+    setApiError("");
 
-    // 2. Estructuramos el objeto fiel a lo que necesita el Historial
-    const newVacancy = {
-      id: `VAC-00${Math.floor(Math.random() * 1000)}`,
-      position: positionName,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      status: "Abierta"
-    };
+    try {
+      // Role of the position for the vacancy title
+      const positionObj = positionsList.find(p => p.id === parseInt(formData.positionId));
+      const vacancyTitle = positionObj ? `Vacante para ${positionObj.role}` : "Nueva Vacante";
 
-    // 3. Persistencia local
-    const existingVacancies = JSON.parse(localStorage.getItem("talentmatch_vacancies") || "[]");
-    localStorage.setItem("talentmatch_vacancies", JSON.stringify([...existingVacancies, newVacancy]));
+      const payload = {
+        title: vacancyTitle,
+        positionId: parseInt(formData.positionId, 10),
+        openDate: formData.openDate,
+        closeDate: formData.closeDate
+      };
 
-    // pantalla de exito
-    setUiState("success");
+      // POST request
+      await vacanciesApi.create(payload);
+      
+      setUiState("success");
+    } catch (error) {
+      console.error("Error al crear vacante:", error);
+      setApiError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Condicional Pantalla de Éxito
   if (uiState === "success") {
     return <VacancySuccess onReset={() => setUiState("form")} />;
   }
 
-  // Renderizado Normal Formulario
   return (
     <div className="p-10 max-w-4xl mx-auto animate-fade-in relative">
-      {/* Buttom back */}
       <div className="flex justify-start mb-6">
         <button
           onClick={() => navigate("/dashboard")}
@@ -98,16 +109,20 @@ const CreateVacancy = () => {
         </button>
       </div>
 
-      {/* Form Container */}
       <div className="flex justify-center">
-        <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 w-full max-w-lg">
+        <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 w-full max-w-lg relative">
+          
+          {apiError && (
+            <div className="mb-6 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-sm font-bold text-center">
+              {apiError}
+            </div>
+          )}
+
           <h1 className="text-2xl font-medium text-center text-[#1E293B] mb-8">
             Crear Vacantes
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-            {/* Field Position ID*/}
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-[#475569]">
                 Posición ID <span className="text-red-500">*</span>
@@ -121,11 +136,12 @@ const CreateVacancy = () => {
                   className="w-full p-3.5 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] appearance-none text-[#334155] cursor-pointer"
                 >
                   <option value="" disabled>Seleccionar posición...</option>
-                  {mockPositions.map(pos => (
-                    <option key={pos.id} value={pos.id}>{pos.title}</option>
+                  {positionsList.map(pos => (
+                    <option key={pos.id} value={pos.id}>
+                      {pos.role}
+                    </option>
                   ))}
                 </select>
-                {/* Custom arrow of the select input */}
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -134,82 +150,55 @@ const CreateVacancy = () => {
               </div>
             </div>
 
-            {/* Date Row */}
             <div className="grid grid-cols-2 gap-4">
-
-              {/* Start calendary */}
               <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Inicio <span className="text-red-500">*</span>
                 </label>
-                <div
-                  className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] transition-colors cursor-text"
-                  onClick={() => startDateRef.current?.showPicker()}
-                >
+                <div className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] transition-colors cursor-text" onClick={() => startDateRef.current?.showPicker()}>
                   <input
                     type="date"
-                    name="startDate"
+                    name="openDate"
                     ref={startDateRef}
-                    value={formData.startDate}
+                    value={formData.openDate}
                     onChange={handleInputChange}
                     required
-                    // Hide the native calendar icon
                     className="w-full p-3.5 outline-none text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
-                  <img
-                    src={Icons.vacancies.calendOpen}
-                    alt="Calendario"
-                    className="absolute right-4 w-5 h-5 opacity-40 cursor-pointer pointer-events-none"
-                  />
+                  <img src={Icons.vacancies.calendOpen} alt="Calendario" className="absolute right-4 w-5 h-5 opacity-40 cursor-pointer pointer-events-none" />
                 </div>
               </div>
 
-              {/* End Calendary */}
               <div className="flex flex-col gap-2 relative">
                 <label className="text-sm font-medium text-[#475569]">
                   Fecha Fin <span className="text-red-500">*</span>
                 </label>
-                <div
-                  className={`relative flex items-center border rounded-xl overflow-hidden transition-colors cursor-text ${dateError ? "border-red-400 bg-red-50" : "border-gray-200 focus-within:border-[#447ECA]"
-                    }`}
-                  onClick={() => endDateRef.current?.showPicker()}
-                >
+                <div className={`relative flex items-center border rounded-xl overflow-hidden transition-colors cursor-text ${dateError ? "border-red-400 bg-red-50" : "border-gray-200 focus-within:border-[#447ECA]"}`} onClick={() => endDateRef.current?.showPicker()}>
                   <input
                     type="date"
-                    name="endDate"
+                    name="closeDate"
                     ref={endDateRef}
-                    value={formData.endDate}
+                    value={formData.closeDate}
                     onChange={handleInputChange}
                     required
                     className="w-full p-3.5 outline-none text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
-                  <img
-                    src={Icons.vacancies.calendClose}
-                    alt="Calendario"
-                    className={`absolute right-4 w-5 h-5 cursor-pointer pointer-events-none ${dateError ? "opacity-60" : "opacity-40"}`}
-                  />
+                  <img src={Icons.vacancies.calendClose} alt="Calendario" className={`absolute right-4 w-5 h-5 cursor-pointer pointer-events-none ${dateError ? "opacity-60" : "opacity-40"}`} />
                 </div>
               </div>
             </div>
 
-            {/* Error Message in Red */}
-            {dateError && (
-              <p className="text-red-500 text-xs font-medium -mt-2">
-                {dateError}
-              </p>
-            )}
+            {dateError && <p className="text-red-500 text-xs font-medium -mt-2">{dateError}</p>}
 
-            {/* Buttom Submit */}
             <div className="flex justify-end mt-4">
               <button
                 type="submit"
-                disabled={!!dateError || !formData.positionId || !formData.startDate || !formData.endDate}
+                disabled={isLoading || !!dateError || !formData.positionId || !formData.openDate || !formData.closeDate}
                 className="bg-[#447ECA] text-white px-10 py-3 rounded-xl font-medium shadow-md hover:bg-[#3669ab] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Crear
+                {isLoading ? "Creando..." : "Crear"}
               </button>
             </div>
-
           </form>
         </div>
       </div>
