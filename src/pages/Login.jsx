@@ -29,23 +29,36 @@ const Login = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setUiState("loading");
+    e.preventDefault();
+    setUiState("loading");
 
-  try {
-    const data = await authService.login(inputs);
-    
-    if (data) {
-      login(data);
-      navigate("/dashboard");
-    } else {
-      throw new Error("No se recibieron datos del usuario.");
+    try {
+      const data = await authService.login(inputs);
+
+      // 🔍 LÓGICA DE EXTRACCIÓN ROBUSTA
+      if (data) {
+        // Buscamos el token y el email en la raíz o dentro de .data
+        const token = data.token || data.data?.token;
+        const email = data.user?.email || data.data?.user?.email || inputs.email;
+
+        if (!token) {
+          throw new Error("El servidor no devolvió un token de acceso.");
+        }
+
+        // 🚀 SINCRONIZACIÓN CON AUTHCONTEXT
+        // Pasamos email y token como parámetros independientes
+        login(email, token);
+
+        // Redirección al éxito
+        navigate("/dashboard");
+      } else {
+        throw new Error("No se recibieron datos del servidor.");
+      }
+    } catch (error) {
+      console.error("Fallo de Autenticación:", error.message);
+      setUiState("error");
     }
-  } catch (error) {
-    console.error("Fallo de Autenticación:", error.message);
-    setUiState("error");
-  }
-};
+  };
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
@@ -85,7 +98,7 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Login;;
 
 {
   /* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)

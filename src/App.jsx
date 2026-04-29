@@ -1,8 +1,8 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Context
-import { AuthProvider, useAuth} from "./components/context/AuthContext";
+import { AuthProvider, useAuth } from "./components/context/AuthContext";
 
 // Layout
 import Layout from "./layouts/Layout";
@@ -16,17 +16,28 @@ import CVHistory from "./pages/CVHistory";
 import PositionHistory from "./pages/PositionHistory";
 import Vacancy from "./pages/Vacancy";
 import VacacyHistory from "./pages/VacancyHistory";
-import Resultados from "./pages/Resultados"
+import Resultados from "./pages/Resultados";
 
-// --- PROTECTED ROUTE ---
+// --- PROTECTED ROUTE CORREGIDA ---
 const ProtectedRoute = () => {
-  const { user } = useAuth();
-  
-  // No token = return to login
+  const { user, loading } = useAuth();
+
+  // 1. ESPERA ACTIVA: Si el Contexto aún está leyendo el localStorage, no hacemos nada.
+  // Esto evita que el sistema crea que no hay usuario cuando en realidad solo está cargando.
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
+        <div className="animate-pulse text-gray-400 font-medium">Verificando sesión...</div>
+      </div>
+    );
+  }
+
+  // 2. VALIDACIÓN: Si terminó de cargar y realmente no hay usuario, al login.
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  //if everything is fine = continue Layout
+
+  // 3. ÉXITO: Si hay usuario, renderizamos el Layout con las rutas hijas (Outlet).
   return <Layout />;
 };
 
@@ -35,10 +46,10 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Route */}
+          {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* PRIVATE ROUTES */}
+          {/* RUTAS PRIVADAS (Protegidas por el estado 'loading' y 'user') */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
@@ -47,10 +58,16 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
+
+            {/* Rutas de Resultados:
+               Añadimos ambas para que si navegas desde el sidebar (/resultados) 
+               o desde un botón específico (/resultados/123) no te de error 404.
+            */}
+            <Route path="/resultados" element={<Resultados />} />
             <Route path="/resultados/:id" element={<Resultados />} />
           </Route>
 
-          {/* Default Redirection */}
+          {/* Redirección por defecto para rutas inexistentes */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
