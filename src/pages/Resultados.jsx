@@ -5,7 +5,7 @@ import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
 
-// 1. Cambiamos el import al servicio de vacantes
+// 1. Servicio de vacantes
 import { vacanciesApi } from "../services/api/vacancies.api";
 
 const Resultados = () => {
@@ -20,15 +20,26 @@ const Resultados = () => {
             try {
                 setLoading(true);
 
-                // 2. Usamos el método getAll de vacanciesApi
+                // Llamada al servicio
                 const response = await vacanciesApi.getAll();
 
-                // Nota: Si el backend devuelve los candidatos dentro de la vacante, 
-                // asegúrate de mapear la respuesta correctamente (ej: response.candidates)
-                setCandidates(response || []);
+                // 🔍 LÓGICA DE MAPEO ROBUSTA:
+                // El backend puede enviar un array directo, o un objeto con .data o .candidates
+                let candidatesData = [];
+
+                if (Array.isArray(response)) {
+                    candidatesData = response;
+                } else if (response?.data && Array.isArray(response.data)) {
+                    candidatesData = response.data;
+                } else if (response?.candidates && Array.isArray(response.candidates)) {
+                    candidatesData = response.candidates;
+                }
+
+                setCandidates(candidatesData);
 
             } catch (error) {
                 console.error("Error conectando con la API de vacantes:", error);
+                // Si el error es 401, el apiClient ya debería manejar la redirección o el mensaje
                 setCandidates([]);
             } finally {
                 setLoading(false);
@@ -50,7 +61,7 @@ const Resultados = () => {
             <div className="max-w-4xl mx-auto">
                 <header className="mb-10 flex flex-col gap-6">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={() => navigate("/dashboard")} // 👈 Cambiado a ruta fija para evitar bucles de navegación
                         className="self-start flex items-center px-6 py-2.5 bg-[#447ECA] text-white rounded-xl shadow-lg font-bold text-xs hover:bg-[#3669ab] transition-all"
                     >
                         Volver al inicio
@@ -66,7 +77,7 @@ const Resultados = () => {
                 </header>
 
                 <div className="bg-white rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-200/60 p-8 pb-12 transition-all">
-                    {candidates.length > 0 ? (
+                    {candidates && candidates.length > 0 ? (
                         <div className="w-full flex flex-col gap-2">
                             {candidates.map((c, idx) => (
                                 <div key={c.id || idx} className="relative">
