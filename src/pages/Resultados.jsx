@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Icons } from "../assets/icons";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
-
-// 1. Servicio de vacantes
 import { vacanciesApi } from "../services/api/vacancies.api";
 
 const Resultados = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
     const [loading, setLoading] = useState(true);
     const [candidates, setCandidates] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -17,29 +16,27 @@ const Resultados = () => {
 
     useEffect(() => {
         const fetchResults = async () => {
+            if (!id) {
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
+                const response = await vacanciesApi.getResults(id);
 
-                // Llamada al servicio
-                const response = await vacanciesApi.getAll();
-
-                // 🔍 LÓGICA DE MAPEO ROBUSTA:
-                // El backend puede enviar un array directo, o un objeto con .data o .candidates
                 let candidatesData = [];
-
-                if (Array.isArray(response)) {
-                    candidatesData = response;
-                } else if (response?.data && Array.isArray(response.data)) {
+                if (response && response.status === "success") {
                     candidatesData = response.data;
-                } else if (response?.candidates && Array.isArray(response.candidates)) {
+                } else if (Array.isArray(response)) {
+                    candidatesData = response;
+                } else if (response?.candidates) {
                     candidatesData = response.candidates;
                 }
 
                 setCandidates(candidatesData);
-
             } catch (error) {
-                console.error("Error conectando con la API de vacantes:", error);
-                // Si el error es 401, el apiClient ya debería manejar la redirección o el mensaje
+                console.error("Error al obtener candidatos:", error);
                 setCandidates([]);
             } finally {
                 setLoading(false);
@@ -47,7 +44,7 @@ const Resultados = () => {
         };
 
         fetchResults();
-    }, []);
+    }, [id]);
 
     const handleViewCandidate = (candidate) => {
         setSelectedCandidate(candidate);
@@ -56,12 +53,34 @@ const Resultados = () => {
 
     if (loading) return <ProcessingModal />;
 
+    if (!id) {
+        return (
+            <div className="min-h-screen bg-[#F2F4F7] flex items-center justify-center p-6 animate-fade-in">
+                <div className="bg-white p-12 rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-200/60 text-center max-w-md">
+                    <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <img src={Icons.sidebar.historyVacant} className="w-10 h-10 opacity-40" alt="vacantes" />
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Selecciona una vacante</h2>
+                    <p className="text-gray-400 mt-4 text-sm font-medium leading-relaxed">
+                        Para visualizar el análisis de TalentMatch AI, primero debes elegir una vacante activa desde el panel principal.
+                    </p>
+                    <button
+                        onClick={() => navigate("/dashboard")}
+                        className="mt-8 w-full py-4 bg-[#447ECA] text-white rounded-2xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#3669ab] transition-all transform hover:-translate-y-1"
+                    >
+                        Volver al Dashboard
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#F2F4F7] p-6 md:p-12 animate-fade-in">
             <div className="max-w-4xl mx-auto">
                 <header className="mb-10 flex flex-col gap-6">
                     <button
-                        onClick={() => navigate("/dashboard")} // 👈 Cambiado a ruta fija para evitar bucles de navegación
+                        onClick={() => navigate("/dashboard")}
                         className="self-start flex items-center px-6 py-2.5 bg-[#447ECA] text-white rounded-xl shadow-lg font-bold text-xs hover:bg-[#3669ab] transition-all"
                     >
                         Volver al inicio
@@ -83,10 +102,7 @@ const Resultados = () => {
                                 <div key={c.id || idx} className="relative">
                                     <CandidateMatchRow
                                         index={idx}
-                                        candidate={c}
-                                        onStatusChange={(id, status) => {
-                                            setCandidates(prev => prev.map(cand => cand.id === id ? { ...cand, status } : cand));
-                                        }}
+                                        resultData={c}
                                         onViewClick={() => handleViewCandidate(c)}
                                     />
                                 </div>
@@ -97,9 +113,9 @@ const Resultados = () => {
                             <div className="bg-gray-50 p-6 rounded-full mb-6">
                                 <img src={Icons.sidebar.history} alt="No data" className="w-12 h-12 opacity-20" />
                             </div>
-                            <h2 className="text-xl font-bold text-gray-800 tracking-tight">Sin resultados disponibles</h2>
+                            <h2 className="text-xl font-bold text-gray-800 tracking-tight">Sin candidatos analizados</h2>
                             <p className="text-gray-400 text-sm max-w-xs mt-2 font-medium">
-                                No se encontraron datos en el módulo de vacantes. Por favor, verifica la configuración del backend.
+                                No se encontraron registros para esta vacante específica.
                             </p>
                         </div>
                     )}
@@ -109,7 +125,7 @@ const Resultados = () => {
             <CandidateDetailsModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                candidate={selectedCandidate}
+                data={selectedCandidate}
             />
         </div>
     );
