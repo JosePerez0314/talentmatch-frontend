@@ -3,6 +3,8 @@ import { Icons } from "../../assets/icons";
 
 const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => {
     const [isOpen, setIsOpen] = useState(false);
+    // Estado local para que la UI cambie al seleccionar una opción
+    const [selectedStatus, setSelectedStatus] = useState(currentStatus);
     const dropdownRef = useRef(null);
 
     const options = ["No contratado", "Contratado", "Contactar"];
@@ -17,19 +19,30 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const handleToggle = (e) => {
+        e.stopPropagation(); // Evita que el clic abra el modal de la fila
+        setIsOpen(!isOpen);
+    };
+
+    const handleSelect = (option, e) => {
+        e.stopPropagation(); // Evita que el clic abra el modal de la fila
+        setSelectedStatus(option);
+        onStatusChange?.(option);
+        setIsOpen(false);
+    };
+
     return (
         <div className="relative inline-block text-left" ref={dropdownRef}>
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggle}
                 className="flex items-center justify-between w-40 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-[#DCF9FF] transition-all active:scale-95"
             >
-                <span className="truncate">{currentStatus}</span>
+                <span className="truncate">{selectedStatus}</span>
                 <img
                     src={Icons.auth.arrow || Icons.stats.createPlus}
                     className={`w-3 ml-2 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                     alt="arrow"
                     style={{
-                        /* Filtro específico para convertir cualquier color base al azul #447ECA */
                         filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)"
                     }}
                 />
@@ -41,11 +54,8 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
                         {options.map((option) => (
                             <button
                                 key={option}
-                                onClick={() => {
-                                    onStatusChange?.(option);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full text-left px-4 py-3 text-[11px] font-bold uppercase tracking-tight transition-colors border-b border-gray-50 last:border-0 ${currentStatus === option
+                                onClick={(e) => handleSelect(option, e)}
+                                className={`w-full text-left px-4 py-3 text-[11px] font-bold uppercase tracking-tight transition-colors border-b border-gray-50 last:border-0 ${selectedStatus === option
                                     ? "text-[#447ECA] bg-blue-50/50"
                                     : "text-gray-600 hover:bg-gray-50"
                                     }`}

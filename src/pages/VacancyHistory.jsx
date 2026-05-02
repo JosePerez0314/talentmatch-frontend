@@ -115,15 +115,19 @@ const VacancyHistory = () => {
                                         </span>
                                     </td>
                                     <td className="px-8 py-5 text-center">
-                                        <button 
-                                            onClick={() => navigate(`/resultados/${vac.id}`)} 
-                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                        <button
+                                            onClick={() => navigate(`/resultados/${vac.id}`)}
+                                            className="p-2 hover:bg-blue-50 rounded-lg transition-all group"
                                             title="Ver Resultados IA"
                                         >
                                             <img
                                                 src={Icons.vacancies.eyeIcon || Icons.stats.eyeHistoryGray}
                                                 alt="Ver Resultados"
-                                                className="w-5 h-5 opacity-50 hover:opacity-100 transition-opacity"
+                                                className="w-5 h-5 transition-all"
+                                                style={{
+                                                    // Este filtro convierte el icono al azul #447ECA de tus botones
+                                                    filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)"
+                                                }}
                                             />
                                         </button>
                                     </td>
