@@ -26,7 +26,7 @@ const StatCard = ({ title, icon, count, btnText, btnIcon, actionPath, viewPath }
       <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
         <button
           onClick={() => navigate(viewPath)}
-          className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-50 transition-all w-full md:w-auto"
+          className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-100 rounded-xl text-sm font-bold text-gray-400 hover:bg-gray-200 transition-all w-full md:w-auto"
         >
           <img src={Icons.stats.eyeHistoryGray} alt="Ver historial" className="w-4 h-4 opacity-70" />
           <span>Ver</span>
