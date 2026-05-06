@@ -3,8 +3,12 @@ import { Icons } from "../../assets/icons";
 import StatusDropdown from "../ui/StatusDropdown";
 
 const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
-    const person = resultData.candidate || resultData || {};
-    const score = resultData.matchScore || resultData.overallScore || person.score || 0;
+    // REFERENCIAS CORREGIDAS SEGÚN JSON DE POSTMAN
+    const person = resultData.candidate || {};
+    // El backend usa matchScore para el porcentaje
+    const score = resultData.matchScore || 0;
+    // Las habilidades están en normalizedCandidate.technicalSkills
+    const skills = resultData.normalizedCandidate?.technicalSkills || [];
     const fileName = person.fileUrl ? person.fileUrl.split('/').pop() : "CV.pdf";
 
     const getMatchStyles = (s) => {
@@ -34,16 +38,24 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
                 </div>
             </div>
 
-            {/* Info del candidato: Se añadió min-w-0 para evitar que el contenido empuje el grid */}
+            {/* Info del candidato */}
             <div className="flex flex-col items-center md:items-start text-center md:text-left md:pl-4 min-w-0 overflow-hidden">
                 <span className="w-full text-gray-800 font-bold text-[15px] group-hover:text-[#447ECA] truncate">
-                    {person.fullName || person.name || "Candidato"}
-                </span>
-                <span className="w-full text-gray-400 text-xs mb-2 truncate">
-                    {person.email || "Sin contacto"}
+                    {person.fullName || "Candidato"}
                 </span>
 
-                {/* Contenedor del CV con límite de ancho */}
+                {/* Mapeo de Skills (technicalSkills del JSON) */}
+                <div className="flex flex-wrap gap-1 mt-1 mb-2">
+                    {skills.slice(0, 3).map((skill, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-blue-50 text-[#447ECA] text-[9px] font-bold rounded-md uppercase border border-blue-100">
+                            {skill}
+                        </span>
+                    ))}
+                    {skills.length > 3 && (
+                        <span className="text-[9px] text-gray-400 font-bold">+{skills.length - 3}</span>
+                    )}
+                </div>
+
                 <div className="inline-flex items-center gap-2 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 max-w-full overflow-hidden">
                     <img src={Icons.stats.uploadCv} className="w-3 h-3 opacity-60 flex-shrink-0" alt="cv" />
                     <span className="text-gray-500 text-[10px] truncate italic">
@@ -57,7 +69,8 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
                 className="flex flex-wrap items-center justify-center md:justify-end gap-3 md:gap-4 mt-2 md:mt-0 flex-shrink-0"
                 onClick={(e) => e.stopPropagation()}
             >
-                <StatusDropdown currentStatus={"OPEN"} onStatusChange={() => { }} />
+                {/* Cambiado "OPEN" por "No contratado" para activar tus nuevos colores */}
+                <StatusDropdown currentStatus={"No contratado"} onStatusChange={() => { }} />
 
                 <div className="flex gap-2">
                     <button
@@ -67,8 +80,8 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
                         <img
                             src={Icons.stats.eyeHistoryGray}
                             className="w-5 h-5"
-                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
                             alt="ver"
+                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
                         />
                     </button>
                     <a
@@ -80,8 +93,8 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
                         <img
                             src={Icons.stats.uploadCv}
                             className="w-5 h-5"
-                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
                             alt="doc"
+                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
                         />
                     </a>
                 </div>
