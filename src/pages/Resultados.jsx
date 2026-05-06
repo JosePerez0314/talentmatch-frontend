@@ -8,7 +8,7 @@ import { vacanciesApi } from "../services/api/vacancies.api";
 
 const Resultados = () => {
     const navigate = useNavigate();
-    const { id } = useParams();
+    const { id } = useParams(); // Este es el vacancyId
     const [loading, setLoading] = useState(true);
     const [candidates, setCandidates] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +26,6 @@ const Resultados = () => {
                 const response = await vacanciesApi.getResults(id);
 
                 let candidatesData = [];
-                // CORRECCIÓN: Asegurar que extraemos la data correcta según endpoint 7.4.1
                 if (response && response.status === "success") {
                     candidatesData = response.data.results || response.data;
                 } else if (Array.isArray(response)) {
@@ -46,6 +45,31 @@ const Resultados = () => {
 
         fetchResults();
     }, [id]);
+
+    // NUEVA FUNCIÓN: Maneja el cambio de estado y cierra la vacante según lo dicho por José
+    const handleStatusChange = async (matchId, newStatus) => {
+        try {
+            // 1. Actualizamos localmente para feedback inmediato
+            setCandidates(prev => prev.map(c =>
+                (c.id === matchId)
+                    ? { ...c, candidate: { ...c.candidate, status: newStatus } }
+                    : c
+            ));
+
+            // 2. Si el estado es "Contratado", disparamos la ruta que confirmó José
+            if (newStatus === "Contratado") {
+                console.log("Cerrando vacante por contratación...");
+                // CORRECCIÓN: Se cambia "closed" por "FILLED" según la respuesta del backend
+                await vacanciesApi.updateStatus(id, "FILLED");
+            }
+
+            // Nota: Si luego José te da una ruta para actualizar el estado específico 
+            // del candidato (el match), se añadiría aquí.
+
+        } catch (error) {
+            console.error("Error al actualizar estados:", error);
+        }
+    };
 
     const handleViewCandidate = (candidate) => {
         setSelectedCandidate(candidate);
@@ -105,6 +129,7 @@ const Resultados = () => {
                                         index={idx}
                                         resultData={c}
                                         onViewClick={() => handleViewCandidate(c)}
+                                        onStatusChange={handleStatusChange} // PASAMOS LA FUNCIÓN AQUÍ
                                     />
                                 </div>
                             ))}

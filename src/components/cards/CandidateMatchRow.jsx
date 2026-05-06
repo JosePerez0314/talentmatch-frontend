@@ -2,7 +2,8 @@ import React from "react";
 import { Icons } from "../../assets/icons";
 import StatusDropdown from "../ui/StatusDropdown";
 
-const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
+// CORRECCIÓN: Se cambia onStatusUpdate por onStatusChange para que coincida con la llamada interna
+const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) => {
     // REFERENCIAS CORREGIDAS SEGÚN JSON DE POSTMAN
     const person = resultData.candidate || {};
     // El backend usa matchScore para el porcentaje
@@ -10,6 +11,10 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
     // Las habilidades están en normalizedCandidate.technicalSkills
     const skills = resultData.normalizedCandidate?.technicalSkills || [];
     const fileName = person.fileUrl ? person.fileUrl.split('/').pop() : "CV.pdf";
+
+    // Extraemos el ID del candidato y su estado actual para la persistencia
+    const candidateId = person.id || person._id;
+    const currentStatus = person.status || "No contratado";
 
     const getMatchStyles = (s) => {
         if (s <= 49) return { bg: "bg-[#EF5050]", text: "text-white" };
@@ -69,8 +74,11 @@ const CandidateMatchRow = ({ resultData, index, onViewClick }) => {
                 className="flex flex-wrap items-center justify-center md:justify-end gap-3 md:gap-4 mt-2 md:mt-0 flex-shrink-0"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Cambiado "OPEN" por "No contratado" para activar tus nuevos colores */}
-                <StatusDropdown currentStatus={"No contratado"} onStatusChange={() => { }} />
+                {/* Ahora onStatusChange está correctamente definido en las props */}
+                <StatusDropdown
+                    currentStatus={currentStatus}
+                    onStatusChange={(newStatus) => onStatusChange?.(candidateId, newStatus)}
+                />
 
                 <div className="flex gap-2">
                     <button

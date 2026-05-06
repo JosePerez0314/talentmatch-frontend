@@ -19,5 +19,14 @@ export const vacanciesApi = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ vacancyId, candidateId }),
-  })
+  }),
+  updateStatus: (vacancyId, newStatus) => {
+    return apiClient(`/vacancies/${vacancyId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: String(newStatus).trim()
+      }),
+    });
+  },
 };
