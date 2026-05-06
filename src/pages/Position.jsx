@@ -56,26 +56,18 @@ const Position = () => {
 
   // --- Business Logic ---
   const handlePill = (field, val, action, idx) => {
-    // Prevent the event from propagating if it comes from a keyboard or accidental click
     if (action === 'add') {
       const cleanValue = val?.trim();
-
-      // Early exit if there is no real value
       if (!cleanValue) {
-        // Temporary input cleaned in any case to reset the UI
         setTempInputs(prev => ({ ...prev, [field]: "" }));
         return;
       }
-
       setFormData(prev => ({
         ...prev,
         [field]: [...new Set([...prev[field], cleanValue])]
       }));
-
-      // Temporary input reset after successful addition
       setTempInputs(prev => ({ ...prev, [field]: "" }));
     }
-
     if (action === 'remove') {
       setFormData(prev => ({
         ...prev,
@@ -87,13 +79,11 @@ const Position = () => {
   const validate = () => {
     const errs = {};
     ["role", "description"].forEach(f => !formData[f].trim() && (errs[f] = "Obligatorio"));
-    // Update the validation keys
     ["technicalSkills", "softSkills"].forEach(f => formData[f].length === 0 && (errs[f] = "Obligatorio"));
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  // --- Backend Connection ---
   const handleContinue = async (e) => {
     e.preventDefault();
     setHasAttemptedSubmit(true);
@@ -102,12 +92,8 @@ const Position = () => {
     if (validate()) {
       setIsLoading(true);
       try {
-        // Nuestro apiClient.js interceptará esta llamada y le inyectará el Token JWT.
-        
         await positionService.create(formData);
-        
         setIsSuccess(true);
-
       } catch (error) {
         console.error("Error creando posición:", error);
         setApiError(error.message);
@@ -167,7 +153,6 @@ const Position = () => {
             <select
               className="w-full p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none appearance-none font-medium cursor-pointer"
               value={formData.yearsOfExperience}
-              // Parse to integer at the moment it changes to keep the state as Int
               onChange={e => setFormData({ ...formData, yearsOfExperience: parseInt(e.target.value, 10) || 0 })}>
               <option value="0">Ninguno</option>
               {[...Array(10)].map((_, i) => (
@@ -182,16 +167,16 @@ const Position = () => {
 
         <FormSection title="Habilidades y cualificaciones">
           {[
-            // IDs to the Prisma keys.
-            { id: "technicalSkills", label: "Habilidades técnicas obligatorias" },
-            { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales" },
-            { id: "softSkills", label: "Habilidades blandas" }
+            { id: "technicalSkills", label: "Habilidades técnicas obligatorias", placeholder: "Escribe y presiona Enter para agregar..." },
+            { id: "optionalTechnicalSkills", label: "Habilidades técnicas opcionales", placeholder: "Escribe y presiona Enter para agregar..." },
+            { id: "softSkills", label: "Habilidades blandas", placeholder: "Ej: Liderazgo..." }
           ].map(c => (
             <PillInput
               key={c.id} {...c}
               pills={formData[c.id]}
               tempValue={tempInputs[c.id]}
               error={errors[c.id]}
+              placeholder={c.placeholder}
               hasAttemptedSubmit={hasAttemptedSubmit}
               onAddPill={(id, v) => handlePill(id, v, 'add')}
               onRemovePill={(id, i) => handlePill(id, null, 'remove', i)}
@@ -203,6 +188,7 @@ const Position = () => {
             <textarea
               maxLength={3000}
               rows={4}
+              placeholder="Descripción del puesto..."
               className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl outline-none focus:border-[#447ECA] resize-none font-medium"
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}
@@ -217,6 +203,7 @@ const Position = () => {
           <FormField label="Educación necesaria">
             <input
               type="text"
+              placeholder="Ej: Ingeniería en Sistemas"
               className="p-4 bg-[#F8F9FA] border border-[#D4D4DA] rounded-xl font-medium"
               value={formData.education}
               onChange={e => setFormData({ ...formData, education: e.target.value })}
@@ -226,6 +213,7 @@ const Position = () => {
             label="Idiomas" id="languages"
             pills={formData.languages}
             tempValue={tempInputs.languages}
+            placeholder="Ej: Español, Inglés..."
             onAddPill={(id, v) => handlePill(id, v, 'add')}
             onRemovePill={(id, i) => handlePill(id, null, 'remove', i)}
             onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })}

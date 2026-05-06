@@ -52,7 +52,7 @@ const Sidebar = () => {
                 <div className="mt-16 overflow-y-auto custom-scrollbar">
                     <div className="px-8 mb-10">
                         <Link
-                            to="/login"
+                            to="/dashboard"
                             className="hover:opacity-80 transition-opacity block cursor-pointer">
                             <img
                                 src={Icons.logos.small}

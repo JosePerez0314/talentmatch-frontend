@@ -26,8 +26,9 @@ const Resultados = () => {
                 const response = await vacanciesApi.getResults(id);
 
                 let candidatesData = [];
+                // CORRECCIÓN: Asegurar que extraemos la data correcta según endpoint 7.4.1
                 if (response && response.status === "success") {
-                    candidatesData = response.data;
+                    candidatesData = response.data.results || response.data;
                 } else if (Array.isArray(response)) {
                     candidatesData = response;
                 } else if (response?.candidates) {
