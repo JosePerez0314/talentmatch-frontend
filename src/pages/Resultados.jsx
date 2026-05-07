@@ -13,6 +13,7 @@ const Resultados = () => {
     const [candidates, setCandidates] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCandidate, setSelectedCandidate] = useState(null);
+    const [notification, setNotification] = useState({ show: false, message: "", type: "" });
 
     useEffect(() => {
         const fetchResults = async () => {
@@ -49,25 +50,25 @@ const Resultados = () => {
     // NUEVA FUNCIÓN: Maneja el cambio de estado y cierra la vacante según lo dicho por José
     const handleStatusChange = async (matchId, newStatus) => {
         try {
-            // 1. Actualizamos localmente para feedback inmediato
+            // 1. Feedback visual inmediato
             setCandidates(prev => prev.map(c =>
                 (c.id === matchId)
                     ? { ...c, candidate: { ...c.candidate, status: newStatus } }
                     : c
             ));
 
-            // 2. Si el estado es "Contratado", disparamos la ruta que confirmó José
             if (newStatus === "Contratado") {
-                console.log("Cerrando vacante por contratación...");
-                // CORRECCIÓN: Se cambia "closed" por "FILLED" según la respuesta del backend
+                console.log("Cerrando vacante...");
                 await vacanciesApi.updateStatus(id, "FILLED");
+                // Mostrar alerta nativa estándar mientras integramos el componente visual
+                alert("¡Candidato contratado y vacante cerrada con éxito!");
+            } else {
+                alert(`Estado actualizado a: ${newStatus}`);
             }
-
-            // Nota: Si luego José te da una ruta para actualizar el estado específico 
-            // del candidato (el match), se añadiría aquí.
 
         } catch (error) {
             console.error("Error al actualizar estados:", error);
+            alert("No se pudo guardar el cambio en el servidor.");
         }
     };
 
@@ -81,6 +82,20 @@ const Resultados = () => {
     if (!id) {
         return (
             <div className="min-h-screen bg-[#F2F4F7] flex items-center justify-center p-6 animate-fade-in">
+                {/* NUEVO: Contenedor flotante de la notificación */}
+                {notification.show && (
+                    <div className={`fixed bottom-6 right-6 p-4 rounded-2xl shadow-xl z-50 text-white font-medium text-sm flex items-center gap-3 transition-all transform duration-300 ${notification.type === 'success' ? 'bg-green-600' :
+                        notification.type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+                        }`}>
+                        <span>{notification.message}</span>
+                        <button
+                            onClick={() => setNotification({ show: false, message: "", type: "" })}
+                            className="text-white hover:text-gray-200 text-xs font-bold"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                )}
                 <div className="bg-white p-12 rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-200/60 text-center max-w-md">
                     <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <img src={Icons.sidebar.historyVacant} className="w-10 h-10 opacity-40" alt="vacantes" />
