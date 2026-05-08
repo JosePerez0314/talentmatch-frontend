@@ -28,6 +28,12 @@ const VacancyHistory = () => {
         fetchVacancies();
     }, []);
 
+    // FUNCIÓN ACTUALIZADA: Guarda el ID antes de navegar
+    const handleViewResults = (id) => {
+        localStorage.setItem("lastVacancyId", id);
+        navigate(`/resultados/${id}`);
+    };
+
     // Helper to format API dates into a readable format
     const formatDate = (isoString) => {
         if (!isoString) return "N/A";
@@ -116,7 +122,7 @@ const VacancyHistory = () => {
                                     </td>
                                     <td className="px-8 py-5 text-center">
                                         <button
-                                            onClick={() => navigate(`/resultados/${vac.id}`)}
+                                            onClick={() => handleViewResults(vac.id)}
                                             className="p-2 hover:bg-blue-50 rounded-lg transition-all group"
                                             title="Ver Resultados IA"
                                         >
@@ -125,7 +131,6 @@ const VacancyHistory = () => {
                                                 alt="Ver Resultados"
                                                 className="w-5 h-5 transition-all"
                                                 style={{
-                                                    // Este filtro convierte el icono al azul #447ECA de tus botones
                                                     filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)"
                                                 }}
                                             />
