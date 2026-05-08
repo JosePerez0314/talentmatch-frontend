@@ -8,22 +8,27 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
 
     const options = ["No contratado", "Contratado", "Contactar"];
 
+    // Sincronizar el estado interno cuando la prop currentStatus cambie (Persistencia)
+    useEffect(() => {
+        setSelectedStatus(currentStatus);
+    }, [currentStatus]);
+
     // Configuración de colores dinámica
     const statusConfigs = {
         "Contratado": {
-            text: "text-[#2D7A4D]", // Verde más oscuro para legibilidad
+            text: "text-[#2D7A4D]",
             border: "border-[#96FFC1]",
-            bgHover: "hover:bg-[#96FFC1]/20", // Opacidad baja
+            bgHover: "hover:bg-[#96FFC1]/20",
             dot: "bg-[#96FFC1]"
         },
         "Contactar": {
-            text: "text-[#A18500]", // Amarillo/Dorado oscuro
+            text: "text-[#A18500]",
             border: "border-[#FFE566]",
             bgHover: "hover:bg-[#FFE566]/20",
             dot: "bg-[#FFE566]"
         },
         "No contratado": {
-            text: "text-gray-400", // Gris 400 (el 200 es muy claro para leer)
+            text: "text-gray-400",
             border: "border-gray-200",
             bgHover: "hover:bg-gray-50",
             dot: "bg-gray-300"
@@ -62,7 +67,6 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
                 ${currentConfig.text} ${currentConfig.border} ${currentConfig.bgHover}`}
             >
                 <div className="flex items-center gap-2 truncate">
-                    {/* Un pequeño círculo indicador opcional para darle más estilo */}
                     <span className={`w-2 h-2 rounded-full ${currentConfig.dot}`}></span>
                     <span className="truncate">{selectedStatus}</span>
                 </div>
@@ -86,8 +90,8 @@ const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => 
                                 key={option}
                                 onClick={(e) => handleSelect(option, e)}
                                 className={`w-full text-left px-4 py-3 text-[11px] font-bold uppercase tracking-tight transition-colors border-b border-gray-50 last:border-0 ${selectedStatus === option
-                                        ? "text-blue-600 bg-blue-50/50"
-                                        : "text-gray-600 hover:bg-gray-50"
+                                    ? "text-blue-600 bg-blue-50/50"
+                                    : "text-gray-600 hover:bg-gray-50"
                                     }`}
                             >
                                 {option}

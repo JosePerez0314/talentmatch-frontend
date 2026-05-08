@@ -19,6 +19,9 @@ const Sidebar = () => {
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
 
+    // Obtener el último ID visitado para dinamizar el botón de Resultados
+    const lastVacancyId = localStorage.getItem("lastVacancyId");
+
     const handleLogout = () => {
         localStorage.removeItem("token");
         navigate("/login");
@@ -63,28 +66,35 @@ const Sidebar = () => {
                     </div>
 
                     <nav className="flex flex-col gap-1 px-4">
-                        {MENU_ITEMS.map((item) => (
-                            <NavLink
-                                key={item.path}
-                                to={item.path}
-                                onClick={() => setIsOpen(false)}
-                                className={({ isActive }) => `
-                                    flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap
-                                    ${isActive ? "bg-[#DCF9FF] text-[#447ECA] shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}
-                                `}>
-                                {({ isActive }) => (
-                                    <>
-                                        <img
-                                            src={item.icon}
-                                            alt=""
-                                            className={`h-5 w-5 object-contain transition-all
-                                                ${isActive ? "opacity-100" : "opacity-60 grayscale-[0.5]"}`}
-                                        />
-                                        <span>{item.name}</span>
-                                    </>
-                                )}
-                            </NavLink>
-                        ))}
+                        {MENU_ITEMS.map((item) => {
+                            // Lógica dinámica para el path de Resultados
+                            const finalPath = (item.name === "Resultados" && lastVacancyId)
+                                ? `${item.path}/${lastVacancyId}`
+                                : item.path;
+
+                            return (
+                                <NavLink
+                                    key={item.name}
+                                    to={finalPath}
+                                    onClick={() => setIsOpen(false)}
+                                    className={({ isActive }) => `
+                                        flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap
+                                        ${isActive ? "bg-[#DCF9FF] text-[#447ECA] shadow-sm" : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"}
+                                    `}>
+                                    {({ isActive }) => (
+                                        <>
+                                            <img
+                                                src={item.icon}
+                                                alt=""
+                                                className={`h-5 w-5 object-contain transition-all
+                                                    ${isActive ? "opacity-100" : "opacity-60 grayscale-[0.5]"}`}
+                                            />
+                                            <span>{item.name}</span>
+                                        </>
+                                    )}
+                                </NavLink>
+                            );
+                        })}
                     </nav>
                 </div>
 
