@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 // Components
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
-import DemoCredentials from "../components/DemoCredential";
 import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets
@@ -88,7 +87,7 @@ const Login = () => {
               onSubmit={handleSubmit}
               uiState={uiState}
             />
-            <DemoCredentials />
+
           </div>
         )}
       </main>
