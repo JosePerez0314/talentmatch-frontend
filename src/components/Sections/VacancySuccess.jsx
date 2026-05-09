@@ -29,14 +29,14 @@ const VacancySuccess = ({ vacancyCode = "Vac-009", onReset }) => {
             <div className="flex w-full max-w-2xl justify-between items-center px-4">
                 <button
                     onClick={() => navigate("/dashboard")}
-                    className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-gray-50 transition-all active:scale-95">
-                    <span className="text-lg">←</span>
+                    className="flex items-center gap-2 bg-[#447ECA] text-white px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-[#356BB0] transition-all active:scale-95">
+                    <span className="text-lg"></span>
                     Volver al menú
                 </button>
 
                 <button
                     // Here is the route to go to the AI analysis
-                    onClick={() => console.log("Ir a análisis de candidatos")}
+                    onClick={() => navigate("/vacancy-history")}
                     className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95">
                     <img src={Icons.vacancies.analizCandidates} alt="Analizar" className="w-5 h-5 brightness-0 invert" />
                     Analizar candidatos
