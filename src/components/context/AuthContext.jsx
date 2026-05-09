@@ -23,11 +23,11 @@ export const AuthProvider = ({ children }) => {
     try {
       // Extrae el nombre antes del '@' (ej. admin@mail.com -> admin)
       const username = email.split('@')[0];
-      
-      const userData = { 
-        username, 
+
+      const userData = {
+        username,
         email,
-        loginDate: new Date().toISOString() 
+        loginDate: new Date().toISOString()
       };
 
       setUser(userData);
