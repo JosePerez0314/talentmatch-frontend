@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Components
 import Footer from "../layouts/Footer";
@@ -13,10 +13,16 @@ import { Icons } from "../assets/icons";
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const location = useLocation();
 
-  // Estados
+  // States
   const [inputs, setInputs] = useState({ email: "", password: "" });
   const [uiState, setUiState] = useState("form"); // form, loading, error
+
+  // Message if we come ban from the Timeout Guard
+  const timeoutMessage = location.state?.sessionExpired 
+        ? "Tu sesión ha sido cerrada por inactividad por motivos de seguridad." 
+        : null;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -70,6 +76,12 @@ const Login = () => {
       </header>
 
       <main className="flex flex-col items-center justify-center pb-12 w-full px-6">
+        {/* INACTIVITY CLOSURE ALERT */}
+        {timeoutMessage && (
+            <div className="mb-6 max-w-md w-full bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in shadow-sm">
+                <p className="text-red-700 text-sm font-bold">{timeoutMessage}</p>
+            </div>
+        )}
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
             <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>

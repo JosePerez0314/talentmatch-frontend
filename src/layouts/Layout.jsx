@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, Link, Outlet } from "react-router-dom";
 // Components
 import Sidebar from "./Sidebar";
+import SessionTimeoutGuard from "../components/ui/SessionTimeoutGuard";
 import { useAuth } from "../components/context/AuthContext";
 // Assets
 import { Icons } from "../assets/icons";
@@ -17,6 +18,7 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
 
     return (
         <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left">
+            <SessionTimeoutGuard />
             <Sidebar />
 
             <div className="flex flex-col flex-1 min-w-0">
@@ -33,7 +35,7 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
                             </Link>
                             <span className="text-gray-600 text-xl font-light">-</span>
                             <span className="text-[#447ECA] font-bold text-sm capitalize tracking-tight">
-                                {user?.username || "admin"}
+                                {user?.email?.split('@')[0] || "admin"}
                             </span>
                         </div>
                     </div>
