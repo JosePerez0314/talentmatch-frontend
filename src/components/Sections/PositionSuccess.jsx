@@ -41,17 +41,15 @@ const PositionSuccess = ({ positionName = "Desarrollador React" }) => {
                 {/* Back to Menu Button */}
                 <button
                     onClick={() => navigate("/dashboard")}
-                    className="flex items-center gap-2 bg-white text-gray-600 px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-                >
-                    <span className="text-lg">←</span>
+                    className="flex items-center gap-2 bg-[#447ECA] text-white px-6 py-3 rounded-xl font-bold border border-gray-100 shadow-sm hover:bg-[#356BB0] transition-all active:scale-95">
+                    <span className="text-lg"></span>
                     Volver al menú
                 </button>
 
                 {/* Create Another Button */}
                 <button
-                    onClick={() => window.location.reload()} // Simply resets the state
-                    className="bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95"
-                >
+                    onClick={() => navigate("/position", { replace: true })}
+                    className="bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-[#356BB0] transition-all active:scale-95">
                     Crear otra posición
                 </button>
 
