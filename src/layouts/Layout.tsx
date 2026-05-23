@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate, Link, Outlet } from "react-router-dom";
 // Components
 import Sidebar from "./Sidebar";
@@ -7,11 +6,12 @@ import { useAuth } from "../components/context/AuthContext";
 // Assets
 import { Icons } from "../assets/icons";
 
-const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
+// Tipamos explícitamente como Functional Component (React.FC) libre de props
+const Layout: React.FC = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
 
-    const handleLogout = () => {
+    const handleLogout = (): void => {
         logout();
         navigate("/login");
     };
@@ -35,7 +35,7 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
                             </Link>
                             <span className="text-gray-600 text-xl font-light">-</span>
                             <span className="text-[#447ECA] font-bold text-sm capitalize tracking-tight">
-                                {user?.email?.split('@')[0] || "admin"}
+                                {user?.username || "admin"}
                             </span>
                         </div>
                     </div>
@@ -53,9 +53,8 @@ const Layout = () => { // 2. Ya no necesita { children } si usamos Outlet
                     </button>
                 </header>
 
-                {/* MAIN: Aquí es donde ocurre la magia */}
+                {/* MAIN: Renderizado dinámico seguro */}
                 <main className="flex-1 overflow-y-auto p-0 relative">
-                    {/* 3. Outlet renderiza el Dashboard, Position, etc. */}
                     <Outlet />
                 </main>
             </div>

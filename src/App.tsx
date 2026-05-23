@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 // Context
@@ -23,7 +22,6 @@ const ProtectedRoute = () => {
   const { user, loading } = useAuth();
 
   // 1. ESPERA ACTIVA: Si el Contexto aún está leyendo el localStorage, no hacemos nada.
-  // Esto evita que el sistema crea que no hay usuario cuando en realidad solo está cargando.
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
@@ -58,11 +56,6 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
-
-            {/* Rutas de Resultados:
-               Añadimos ambas para que si navegas desde el sidebar (/resultados) 
-               o desde un botón específico (/resultados/123) no te de error 404.
-            */}
             <Route path="/resultados" element={<Resultados />} />
             <Route path="/resultados/:id" element={<Resultados />} />
           </Route>
