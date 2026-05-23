@@ -35,6 +35,12 @@ import calendClose from "./calendar_close.svg";
 import analizCandidates from "./analiz_candidates.svg";
 import warningAlert from "./warning_alert.svg";
 
+// --- Departaments ---
+import pencilEdit from "./pencil_edit.svg";
+import deleteTrash from "./delete_trash.svg";
+import folderPlus from "./folder_plus.svg";
+import layers from "./layers.svg";
+import warningDepart from "./warning_depart.svg";
 
 // --- Layout ---
 import logOut from "./icon_log_out.svg";
@@ -78,5 +84,12 @@ export const Icons = {
         calendClose,
         analizCandidates,
         warningAlert
+    },
+    departaments: {
+        pencilEdit,
+        deleteTrash,
+        folderPlus,
+        layers,
+        warningDepart
     }
 };
