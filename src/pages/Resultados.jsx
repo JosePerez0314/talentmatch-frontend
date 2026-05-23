@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Icons } from "../assets/icons";
+import { Icons } from "../assets/icons/index";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";

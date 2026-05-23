@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 import SessionTimeoutGuard from "../components/ui/SessionTimeoutGuard";
 import { useAuth } from "../components/context/AuthContext";
 // Assets
-import { Icons } from "../assets/icons";
+import { Icons } from "../assets/icons/index";
 
 // Tipamos explícitamente como Functional Component (React.FC) libre de props
 const Layout: React.FC = () => {

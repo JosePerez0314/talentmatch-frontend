@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Icons } from "../../assets/icons/index.js";
+import { Icons } from "../../assets/icons/index";
 
 const PositionHistoryTable = ({ data = [] }) => {
 

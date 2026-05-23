@@ -1,5 +1,5 @@
 import React from "react";
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 
 const ProgressBar = ({ label, current = 0, maxWeight, color }) => {
     const percentage = maxWeight > 0 ? (current / maxWeight) * 100 : 0;

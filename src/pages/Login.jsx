@@ -8,7 +8,7 @@ import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets
 import { authService } from "../services/api/auth.api";
-import { Icons } from "../assets/icons";
+import { Icons } from "../assets/icons/index";
 
 const Login = () => {
   const navigate = useNavigate();

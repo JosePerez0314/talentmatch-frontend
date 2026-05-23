@@ -6,7 +6,7 @@ import EmptyState from "../components/EmptyState";
 import HistoryTable from "../components/HistoryTable";
 
 //Assets and Services
-import { Icons } from "../assets/icons/index.js";
+import { Icons } from "../assets/icons/index";
 import { candidateService } from "../services/api/candidates.api.js";
 
 const CVHistory = () => {
