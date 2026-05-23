@@ -6,7 +6,7 @@ import EmptyState from "../components/EmptyState";
 import HistoryTable from "../components/Sections/PositionHistoryTable";
 
 // Assets and Services
-import { Icons } from "../assets/icons/index.js";
+import { Icons } from "../assets/icons/index";
 import { positionService } from "../services/api/positions.api.js";
 
 const PositionHistory = () => {

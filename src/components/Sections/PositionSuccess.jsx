@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 
 /**
  * PositionSuccess Component

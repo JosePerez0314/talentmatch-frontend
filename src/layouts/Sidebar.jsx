@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, NavLink, Link } from "react-router-dom";
 
 // Assets
-import { Icons } from "../assets/icons";
+import { Icons } from "../assets/icons/index";
 
 const MENU_ITEMS = [
     { name: "Dashboard", icon: Icons.sidebar.dashboard, path: "/dashboard" },

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 
 const TimeoutWarningModal = ({ onContinue }) => {
     const [timeLeft, setTimeLeft] = useState(60);

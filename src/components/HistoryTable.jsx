@@ -1,6 +1,6 @@
 import React from "react";
 //Assets
-import { Icons } from "../assets/icons/index.js";
+import { Icons } from "../assets/icons/index";
 
 const HistoryTable = ({ data }) => {
     // Helper to format the date (10/03/2026)

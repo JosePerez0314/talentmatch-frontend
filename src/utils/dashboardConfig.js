@@ -1,5 +1,5 @@
 //Assets
-import { Icons } from "../assets/icons";
+import { Icons } from "../assets/icons/index";
 
 // Default values for metrics when the page loads
 export const INITIAL_METRICS = {

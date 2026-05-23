@@ -1,5 +1,5 @@
 import React from "react";
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 import StatusDropdown from "../ui/StatusDropdown";
 
 // CORRECCIÓN: Se cambia onStatusUpdate por onStatusChange para que coincida con la llamada interna

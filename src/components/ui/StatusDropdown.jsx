@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 
 const StatusDropdown = ({ currentStatus = "No contratado", onStatusChange }) => {
     const [isOpen, setIsOpen] = useState(false);
