@@ -16,6 +16,9 @@ import PositionHistory from "./pages/PositionHistory";
 import Vacancy from "./pages/Vacancy";
 import VacacyHistory from "./pages/VacancyHistory";
 import Resultados from "./pages/Resultados";
+import CreateDepartment from "./pages/CreateDepartment"
+import DepartmentHistory from "./pages/DepartmentHistory"
+
 
 // --- PROTECTED ROUTE CORREGIDA ---
 const ProtectedRoute = () => {
@@ -56,6 +59,8 @@ function App() {
             <Route path="/position-history" element={<PositionHistory />} />
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
+            <Route path="/department" element={<CreateDepartment />} />
+            <Route path="/department-history" element={<DepartmentHistory />} />
             <Route path="/resultados" element={<Resultados />} />
             <Route path="/resultados/:id" element={<Resultados />} />
           </Route>
