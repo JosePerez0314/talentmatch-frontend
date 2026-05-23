@@ -18,6 +18,12 @@ import eyeHistory from "./icon_eye_history.svg";
 import historyVacant from "./icon_history_vacant.svg";
 import historyPosition from "./icon_history_position.svg";
 import resultsTrophy from "./icon_results_trophy.svg";
+import layersHisDepart from "./layers_sidebar.svg";
+import folderDepartment from "./folder_department.svg";
+import panelOpen from "./panel_open.svg";
+import panelClose from "./panel_close.svg";
+import candidates from "./users.svg";
+
 
 // --- DASHBOARD & STAT CARDS ---
 import eyeHistoryGray from "./icon_eye_history.svg";
@@ -60,14 +66,14 @@ export const Icons = {
         logOut
     },
     sidebar: {
-        dashboard,
+        dashboard: dashboard, panelClose, panelOpen,
         positionCreate: positionCreateSlide,
         uploadCv: uploadCvSlide,
         vacant: vacantCreate,
-        history: eyeHistory,
-        historyVacant,
-        historyPosition,
+        history: eyeHistory, historyVacant, historyPosition,
         trophy: resultsTrophy,
+        departament: folderDepartment, layersHisDepart,
+        candidates: candidates
     },
     stats: {
         posCreatedBlue,
