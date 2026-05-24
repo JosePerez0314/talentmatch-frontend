@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 //Components
@@ -25,7 +25,7 @@ const CreateVacancy = () => {
   const [formData, setFormData] = useState({
     positionId: "",
     openDate: "",
-    closeDate: "" 
+    closeDate: ""
   });
 
   // LOAD REAL POSITIONS WHEN MOUNTING
@@ -84,7 +84,7 @@ const CreateVacancy = () => {
 
       // POST request
       await vacanciesApi.create(payload);
-      
+
       setUiState("success");
     } catch (error) {
       console.error("Error al crear vacante:", error);
@@ -111,7 +111,7 @@ const CreateVacancy = () => {
 
       <div className="flex justify-center">
         <div className="bg-white rounded-3xl p-10 shadow-sm border border-gray-100 w-full max-w-lg relative">
-          
+
           {apiError && (
             <div className="mb-6 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-sm font-bold text-center">
               {apiError}

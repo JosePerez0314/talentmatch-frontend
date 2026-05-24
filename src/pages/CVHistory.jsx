@@ -7,7 +7,7 @@ import HistoryTable from "../components/HistoryTable";
 
 //Assets and Services
 import { Icons } from "../assets/icons/index";
-import { candidateService } from "../services/api/candidates.api.js";
+import { candidateService } from "../services/api/candidates.api";
 
 const CVHistory = () => {
     const navigate = useNavigate();

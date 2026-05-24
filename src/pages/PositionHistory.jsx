@@ -7,7 +7,7 @@ import HistoryTable from "../components/Sections/PositionHistoryTable";
 
 // Assets and Services
 import { Icons } from "../assets/icons/index";
-import { positionService } from "../services/api/positions.api.js";
+import { positionService } from "../services/api/positions.api";
 
 const PositionHistory = () => {
     const navigate = useNavigate();
