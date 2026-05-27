@@ -6,25 +6,40 @@ import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
 import { useAuth } from "../components/context/AuthContext";
 
-// Services & Assets
+// Services & Assets & Types
 import { authService } from "../services/api/auth.api";
 import { Icons } from "../assets/icons/index";
+import { AuthResponse } from "../types/api.types";
 
-const Login = () => {
+// 1. Tipado de Estados e Interfaces de Localización
+interface LoginInputs {
+  email: string;
+  password: string;
+}
+
+type UiState = "form" | "loading" | "error";
+
+interface LocationState {
+  sessionExpired?: boolean;
+}
+
+const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const location = useLocation();
 
-  // States
-  const [inputs, setInputs] = useState({ email: "", password: "" });
-  const [uiState, setUiState] = useState("form"); // form, loading, error
+  // 2. Aplicación de Tipos Genéricos en Hooks de Estado
+  const [inputs, setInputs] = useState<LoginInputs>({ email: "", password: "" });
+  const [uiState, setUiState] = useState<UiState>("form");
 
-  // Message if we come ban from the Timeout Guard
-  const timeoutMessage = location.state?.sessionExpired 
-        ? "Tu sesión ha sido cerrada por inactividad por motivos de seguridad." 
-        : null;
+  // 3. Conversión de Tipo segura para el estado de ubicación de React Router v6
+  const state = location.state as LocationState | null;
+  const timeoutMessage = state?.sessionExpired
+    ? "Tu sesión ha sido cerrada por inactividad por motivos de seguridad."
+    : null;
 
-  const handleInputChange = (e) => {
+  // 4. Tipado estricto del manejador de cambios en inputs HTML
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
 
@@ -33,14 +48,16 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // 5. Tipado del manejador del envío del formulario (Asíncrono)
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setUiState("loading");
 
     try {
-      const data = await authService.login(inputs);
+      // Aplicación del contrato de respuesta de la API
+      const data: AuthResponse = await authService.login(inputs);
 
-      // 🔍 LÓGICA DE EXTRACCIÓN ROBUSTA
+      // 🔍 LÓGICA DE EXTRACCIÓN ROBUSTA (Preservada exactamente)
       if (data) {
         // Buscamos el token y el email en la raíz o dentro de .data
         const token = data.token || data.data?.token;
@@ -51,7 +68,6 @@ const Login = () => {
         }
 
         // 🚀 SINCRONIZACIÓN CON AUTHCONTEXT
-        // Pasamos email y token como parámetros independientes
         login(email, token);
 
         // Redirección al éxito
@@ -59,7 +75,7 @@ const Login = () => {
       } else {
         throw new Error("No se recibieron datos del servidor.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fallo de Autenticación:", error.message);
       setUiState("error");
     }
@@ -78,9 +94,9 @@ const Login = () => {
       <main className="flex flex-col items-center justify-center pb-12 w-full px-6">
         {/* INACTIVITY CLOSURE ALERT */}
         {timeoutMessage && (
-            <div className="mb-6 max-w-md w-full bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in shadow-sm">
-                <p className="text-red-700 text-sm font-bold">{timeoutMessage}</p>
-            </div>
+          <div className="mb-6 max-w-md w-full bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in shadow-sm">
+            <p className="text-red-700 text-sm font-bold">{timeoutMessage}</p>
+          </div>
         )}
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
@@ -99,7 +115,6 @@ const Login = () => {
               onSubmit={handleSubmit}
               uiState={uiState}
             />
-
           </div>
         )}
       </main>
@@ -109,7 +124,7 @@ const Login = () => {
   );
 };
 
-export default Login;;
+export default Login;
 
 {
   /* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)

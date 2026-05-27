@@ -5,7 +5,7 @@ import { ApiResponse } from "../../types/api.types";
 // 1. Interfaz estricta para los parámetros de entrada (Credenciales)
 export interface LoginCredentials {
   email: string;
-  token: string; // Basado en tu AuthContext que recibe email y token
+  password: string; // ¡Cambiado de token a password!
 }
 
 // 2. Interfaz para la respuesta específica del login
