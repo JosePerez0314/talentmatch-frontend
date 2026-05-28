@@ -28,23 +28,24 @@ const MOCK_DATA: DashboardStats = {
 };
 
 const Dashboard: React.FC = () => {
-  // Estado para el Tooltip interactivo
+  //Estado para el Tooltip interactivo
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // --- LÓGICA MATEMÁTICA DEL GRÁFICO ---
+  //Logica de metrica
   const MAX_Y_VALUE = 14; 
-  // Convierte un valor (0-14) en coordenadas SVG (0-100 invertido)
+  
+  //Convierte valor (0-14) en coordenadas SVG
   const getY = (val: number) => 100 - (val / MAX_Y_VALUE) * 100;
-  // Convierte el índice del mes (0-4) en porcentaje a lo ancho (0%, 25%, 50%, 75%, 100%)
+  
+  //Convierte el índice del mes  en porcentaje
   const getX = (index: number) => (index / (MOCK_DATA.monthlyData.length - 1)) * 100;
 
-  // Generamos los puntos (points="x,y x,y...") para las líneas SVG
+  //puntos para las líneas SVG
   const ptsPosiciones = MOCK_DATA.monthlyData.map((d, i) => `${getX(i)},${getY(d.posiciones)}`).join(" ");
   const ptsCVs = MOCK_DATA.monthlyData.map((d, i) => `${getX(i)},${getY(d.cvs)}`).join(" ");
   const ptsVacantes = MOCK_DATA.monthlyData.map((d, i) => `${getX(i)},${getY(d.vacantes)}`).join(" ");
 
   return (
-    // FIX: Eliminamos fondos y alturas (bg-[#F8F9FB] min-h-screen) para heredar del Layout principal
     <div className="p-6 md:p-10 animate-fade-in w-full h-full">
       <div className="max-w-7xl mx-auto">
         
@@ -58,7 +59,7 @@ const Dashboard: React.FC = () => {
           </p>
         </header>
 
-        {/* TOP GRID: Métricas */}
+        {/* TOP GRID: Metricas */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {MOCK_DATA.metrics.map((metric) => (
             <MetricCard
@@ -71,10 +72,10 @@ const Dashboard: React.FC = () => {
           ))}
         </section>
 
-        {/* BOTTOM GRID: Gráficos y Estados */}
+        {/* BOTTOM GRID: Graficos Estados */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* GRÁFICO INTERACTIVO (Actividad Mensual) */}
+          {/* GRAFICO INTERACTIVO */}
           <div className="lg:col-span-2 bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 flex flex-col min-h-[350px] relative">
             <div className="flex items-center gap-3 mb-6">
               <TrendingUp className="text-[#447ECA]" size={20} strokeWidth={2.5} />
@@ -88,9 +89,9 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-400"></div> Vacantes</div>
             </div>
 
-            {/* ZONA DE DIBUJO DEL GRÁFICO */}
+            {/* ZONA DIBUJO DEL GRAFICO */}
             <div className="relative flex-1 w-full mt-4 group">
-               {/* Líneas Horizontales de Fondo */}
+               {/* Lineas de Fondo */}
                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                   <div className="border-t border-gray-100 w-full h-0 relative"><span className="absolute -left-5 -top-2 text-[10px] text-gray-300 font-medium">14</span></div>
                   <div className="border-t border-gray-100 w-full h-0 relative"><span className="absolute -left-5 -top-2 text-[10px] text-gray-300 font-medium">7</span></div>
@@ -103,7 +104,7 @@ const Dashboard: React.FC = () => {
                   <polyline points={ptsVacantes} fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeDasharray="2 2" />
                   <polyline points={ptsPosiciones} fill="none" stroke="#447ECA" strokeWidth="2" />
                   
-                  {/* Punto Dinámico: Círculo en la línea azul cuando se hace hover */}
+                  {/* Punto Dinámico Círculo en la línea azul cuando se hace hover    */}
                   {hoveredIndex !== null && (
                     <circle 
                       cx={getX(hoveredIndex)} 
@@ -116,10 +117,10 @@ const Dashboard: React.FC = () => {
                   )}
                </svg>
 
-               {/* TOOLTIP INTERACTIVO & LÍNEA GUÍA */}
+               {/* TOOLTIP INTERACTIVO y LiNEA guia */}
                {hoveredIndex !== null && (
                  <>
-                    {/* Línea vertical punteada */}
+                    {/* Linea vertical punteada */}
                     <div 
                       className="absolute top-0 bottom-0 border-l border-dashed border-gray-300 pointer-events-none transition-all duration-200"
                       style={{ left: `${getX(hoveredIndex)}%` }}
@@ -127,7 +128,7 @@ const Dashboard: React.FC = () => {
                     {/* Caja del Tooltip */}
                     <div 
                       className="absolute z-20 bg-white p-3 rounded-xl shadow-xl border border-gray-100 pointer-events-none transition-all duration-200 flex flex-col gap-1 w-[120px]"
-                      // Posicionamos el tooltip arriba del cursor, centrado en el eje X
+                      //el tooltip arriba del cursor, centrado en el eje X
                       style={{ 
                         left: `${getX(hoveredIndex)}%`, 
                         top: `${getY(MOCK_DATA.monthlyData[hoveredIndex].cvs)}%`,
@@ -144,7 +145,7 @@ const Dashboard: React.FC = () => {
                  </>
                )}
 
-               {/* ZONAS INVISIBLES DE HOVER (Columnas) */}
+               {/* ZONAS INVISIBLES DE HOVER     */}
                <div className="absolute inset-0 flex">
                  {MOCK_DATA.monthlyData.map((_, i) => (
                    <div 
@@ -157,20 +158,20 @@ const Dashboard: React.FC = () => {
                </div>
             </div>
             
-            {/* X-Axis */}
+            {/* X Axis */}
             <div className="flex justify-between text-[10px] font-bold text-gray-300 uppercase mt-4 px-1">
               {MOCK_DATA.monthlyData.map(d => <span key={d.month}>{d.month}</span>)}
             </div>
           </div>
 
-          {/* STATUS BARS (Estado de Vacantes) */}
+          {/* STATUS BARS  */}
           <div className="lg:col-span-1 bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 flex flex-col">
             <div className="flex items-center gap-3 mb-8">
               <BarChart3 className="text-[#447ECA]" size={20} strokeWidth={2.5} />
               <h2 className="text-[#1E293B] font-medium text-base">Estado de Vacantes</h2>
             </div>
 
-            {/* Barra Combinada Top (FIX: Separación reducida a gap-[2px]) */}
+            {/* Barra Combinada Top  */}
             <div className="w-full h-3.5 flex rounded-full overflow-hidden mb-10 gap-[2px] bg-white">
                {MOCK_DATA.vacancyStatuses.map(status => (
                  <div key={`top-${status.id}`} className={`h-full ${status.bgClass}`} style={{ width: `${status.percentage}%` }}></div>
@@ -198,7 +199,7 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
 
-            {/* Footer Total */}
+            {/* Footer  */}
             <div className="mt-8 text-center text-gray-400 text-xs font-medium border-t border-gray-50 pt-6">
               {MOCK_DATA.metrics.find(m => m.id === "4")?.count} vacantes en total
             </div>
