@@ -19,6 +19,7 @@ import Resultados from "./pages/Resultados";
 import CreateDepartment from "./pages/CreateDepartment"
 import DepartmentHistory from "./pages/DepartmentHistory"
 import CandidatesHistory from "./pages/CandidatesHistory";
+import EvaluationsHistory from "./pages/EvaluationsHistory";
 
 
 // --- PROTECTED ROUTE CORREGIDA ---
@@ -65,6 +66,7 @@ function App() {
             <Route path="/resultados" element={<Resultados />} />
             <Route path="/resultados/:id" element={<Resultados />} />
             <Route path="/candidates-history" element={<CandidatesHistory />} />
+            <Route path="/evaluations-history" element={<EvaluationsHistory />} />
           </Route>
 
           {/* Redirección por defecto para rutas inexistentes */}
