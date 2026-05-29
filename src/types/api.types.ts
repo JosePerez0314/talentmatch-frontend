@@ -62,3 +62,13 @@ export interface ApiResponse<T> {
     data: T;
     message?: string;
 }
+
+// ====== CONTRATOS DE AUTENTICACIÓN AÑADIDOS ======
+export interface AuthResponse {
+    token?: string;
+    user?: { email: string };
+    data?: {
+        token?: string;
+        user?: { email: string };
+    };
+}
