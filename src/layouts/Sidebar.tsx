@@ -20,7 +20,7 @@ interface MenuSection {
 }
 
 //CONFIGURACIÓN DEL MENÚ
-const  MENU_GROUPS: MenuSection[] = [
+const MENU_GROUPS: MenuSection[] = [
     {
         title: null,
         items: [
@@ -40,12 +40,12 @@ const  MENU_GROUPS: MenuSection[] = [
         title: "REGISTROS",
         items: [
             { name: "Posiciones", icon: Icons.sidebar.historyPosition, path: "/position-history" },
-            { name: "Candidatos", icon: Icons.sidebar.candidates, path: "/cv-history" },
+            { name: "Candidatos", icon: Icons.sidebar.candidates, path: "/candidates-history" },
             { name: "Vacantes", icon: Icons.sidebar.historyVacant, path: "/vacancy-history" },
             { name: "Departamentos", icon: Icons.sidebar.layersHisDepart, path: "/department-history" },
         ],
     },
-    { 
+    {
         title: "ANÁLISIS",
         items: [
             { name: "Evaluaciones", icon: Icons.sidebar.trophy, path: "/resultados", isDynamic: true },
@@ -58,16 +58,16 @@ const Sidebar: React.FC = () => {
     const { user, logout } = useAuth();
     // Defecto abierto
     const [isExpanded, setIsExpanded] = useState<boolean>(true);
-    
+
     const lastVacancyId = localStorage.getItem("lastVacancyId");
 
     const handleLogout = () => {
         logout();
         navigate("/login");
     };
-    
+
     const toggleSidebar = () => setIsExpanded(!isExpanded);
-    
+
     // Extrae user e inicial 
     const displayName = user?.username || "admin";
     const initialLetter = displayName.charAt(0).toUpperCase();
@@ -80,7 +80,7 @@ const Sidebar: React.FC = () => {
             {/* TOP HEADER Logo y Botón  */}
             <div className={`h-16 flex items-center border-b border-transparent shrink-0 px-5 
                 ${isExpanded ? "justify-between" : "justify-center"}`}>
-                
+
                 {isExpanded && (
                     <Link to="/dashboard" className="hover:opacity-80 transition-opacity">
                         <img
@@ -91,15 +91,15 @@ const Sidebar: React.FC = () => {
                     </Link>
                 )}
 
-                <button 
+                <button
                     onClick={toggleSidebar}
                     className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 focus:outline-none"
                     title={isExpanded ? "Colapsar menú" : "Expandir menú"}
                 >
-                    <img 
-                        src={isExpanded ? Icons.sidebar.panelClose : Icons.sidebar.panelOpen} 
-                        alt="Toggle Sidebar" 
-                        className="w-5 h-5 opacity-60" 
+                    <img
+                        src={isExpanded ? Icons.sidebar.panelClose : Icons.sidebar.panelOpen}
+                        alt="Toggle Sidebar"
+                        className="w-5 h-5 opacity-60"
                     />
                 </button>
             </div>
@@ -108,7 +108,7 @@ const Sidebar: React.FC = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-8">
                 {MENU_GROUPS.map((group, groupIndex) => (
                     <div key={groupIndex} className="flex flex-col gap-1">
-                        
+
                         {/* HEADER */}
                         {group.title && isExpanded && (
                             <h3 className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
@@ -133,8 +133,8 @@ const Sidebar: React.FC = () => {
                                     className={({ isActive }) => `
                                         relative flex items-center rounded-xl font-medium transition-all group
                                         ${isExpanded ? "px-3 py-2.5 gap-3 text-sm" : "justify-center p-3 w-12 h-12 mx-auto"}
-                                        ${isActive 
-                                            ? "bg-[#EAF7FF] text-[#447ECA]" 
+                                        ${isActive
+                                            ? "bg-[#EAF7FF] text-[#447ECA]"
                                             : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                                         }
                                     `}
@@ -150,7 +150,7 @@ const Sidebar: React.FC = () => {
                                                     ${isActive ? "opacity-100" : "opacity-50 grayscale"}`}
                                                 style={isActive && !item.icon.includes('blue') ? { filter: 'invert(46%) sepia(48%) saturate(545%) hue-rotate(174deg) brightness(92%) contrast(90%)' } : {}}
                                             />
-                                            
+
                                             {isExpanded && (
                                                 <span className="whitespace-nowrap transition-opacity duration-300">
                                                     {item.name}
@@ -183,32 +183,32 @@ const Sidebar: React.FC = () => {
                                 {displayName}
                             </span>
                         </div>
-                        
+
                         {/* Row Log Out */}
-                        <button 
-                            onClick={handleLogout} 
+                        <button
+                            onClick={handleLogout}
                             className="flex items-center gap-3 w-full text-gray-500 hover:text-gray-800 hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors group"
                             title="Cerrar sesión"
                         >
-                            <img 
-                                src={Icons.auth.logOut} 
-                                alt="Logout" 
-                                className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-all" 
+                            <img
+                                src={Icons.auth.logOut}
+                                alt="Logout"
+                                className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-all"
                             />
                             <span className="text-sm font-medium">Cerrar sesión</span>
                         </button>
                     </div>
                 ) : (
-                    <button 
-                        onClick={handleLogout} 
-                        className="w-12 h-12 mx-auto flex items-center justify-center rounded-xl bg-gray-50 hover:bg-red-50 group transition-colors" 
+                    <button
+                        onClick={handleLogout}
+                        className="w-12 h-12 mx-auto flex items-center justify-center rounded-xl bg-gray-50 hover:bg-red-50 group transition-colors"
                         title="Cerrar sesión"
                     >
-                        <img 
-                            src={Icons.auth.logOut} 
-                            alt="Logout" 
-                            className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all" 
-                            style={{ filter: 'grayscale(1)' }} 
+                        <img
+                            src={Icons.auth.logOut}
+                            alt="Logout"
+                            className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all"
+                            style={{ filter: 'grayscale(1)' }}
                         />
                     </button>
                 )}
