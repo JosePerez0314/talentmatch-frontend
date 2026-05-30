@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Department } from "../../types/department.types";
-import { Icons } from "../../assets/icons";
+import { FiAlertTriangle, FiTrash2 } from "react-icons/fi";
 
 interface DeleteDepartmentModalProps {
     isOpen: boolean;
@@ -23,10 +23,10 @@ const DeleteDepartmentModal: React.FC<DeleteDepartmentModalProps> = ({ isOpen, o
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-fade-in p-4">
             <div className="bg-white w-full max-w-lg rounded-[24px] shadow-2xl flex flex-col overflow-hidden">
-                
+
                 <div className="p-8 pb-6 flex items-start gap-4">
-                    <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center shrink-0">
-                        <img src={Icons.departaments.warningDepart} alt="Warning" className="w-6 h-6 object-contain" />
+                    <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center shrink-0 text-red-500">
+                        <FiAlertTriangle className="text-xl" />
                     </div>
                     <div>
                         <h2 className="text-[#1E293B] font-medium text-lg leading-tight">¿Estás seguro de que deseas eliminar este departamento?</h2>
@@ -57,12 +57,12 @@ const DeleteDepartmentModal: React.FC<DeleteDepartmentModalProps> = ({ isOpen, o
                     <button onClick={onClose} className="px-6 py-3 border border-gray-200 bg-white rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all">
                         Cancelar
                     </button>
-                    <button 
+                    <button
                         onClick={() => onConfirm(department.id)}
                         disabled={!isMatch}
                         className="px-6 py-3 bg-[#FCA5A5] text-white rounded-xl text-sm font-bold shadow-sm transition-all hover:bg-red-500 disabled:opacity-50 flex items-center gap-2"
                     >
-                        <img src={Icons.departaments.deleteTrash} alt="trash" className="w-4 h-4 brightness-0 invert" />
+                        <FiTrash2 className="text-base" />
                         Sí, Eliminar
                     </button>
                 </div>
