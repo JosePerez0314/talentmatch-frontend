@@ -48,7 +48,7 @@ const MENU_GROUPS: MenuSection[] = [
     {
         title: "ANÁLISIS",
         items: [
-            { name: "Evaluaciones", icon: Icons.sidebar.trophy, path: "/resultados", isDynamic: true },
+            { name: "Evaluaciones", icon: Icons.sidebar.trophy, path: "/evaluations-history", isDynamic: true },
         ],
     }
 ];
