@@ -57,7 +57,7 @@ const PillInput: React.FC<PillInputProps> = ({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              if (tempValue.trim()) onAddPill(id, e.target.value);
+              if (tempValue.trim()) onAddPill(id, tempValue);
             }
           }}
           onBlur={() => {
