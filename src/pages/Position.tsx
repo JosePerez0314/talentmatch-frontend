@@ -148,38 +148,53 @@ const Position: React.FC = () => {
 
   // RENDERIZADORES DE UI
 
-const renderStepperHeader = () => {
+  const renderStepperHeader = () => {
     const steps = ["Método de Entrada", "Detalles del Rol", "Habilidades", "Educación e Idiomas"];
+    
     return (
       <div className="mb-10 w-full">
-        {/* Círculos del Stepper */}
-        <div className="flex items-center justify-between relative mb-6">
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-gray-100 -z-10"></div>
-          {steps.map((_, i) => { // <-- Cambiamos 'label' por '_'
+        {/* Contenedor Flex principal para Círculos y Líneas */}
+        <div className="flex items-center w-full mb-6">
+          {steps.map((_, i) => {
             const stepNum = i + 1;
             const isActive = currentStep === stepNum;
             const isCompleted = currentStep > stepNum;
+
             return (
-              <div key={stepNum} className="flex flex-col items-center bg-white px-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
-                  isActive ? "bg-white border-[3px] border-[#447ECA] text-[#447ECA]" : 
-                  isCompleted ? "bg-[#447ECA] text-white" : "bg-gray-100 text-gray-400"
-                }`}>
-                  {isCompleted ? <Check size={16} strokeWidth={3} /> : stepNum}
+              <React.Fragment key={stepNum}>
+                {/* 1. EL CÍRCULO */}
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${
+                    isCompleted 
+                      ? "bg-[#447ECA] text-white border-[2px] border-[#447ECA]" // Pasos completados (Azul sólido)
+                      : isActive 
+                      ? "bg-white border-[2px] border-[#447ECA] text-[#447ECA]" // Paso actual (Aro azul)
+                      : "bg-white border-[2px] border-gray-200 text-gray-300"   // Pasos futuros (Aro gris)
+                  }`}
+                >
+                  {isCompleted ? <Check size={18} strokeWidth={3} /> : stepNum}
                 </div>
-              </div>
+
+                {/* 2. LA LÍNEA CONECTORA (Se omite después del último círculo) */}
+                {stepNum < steps.length && (
+                  <div 
+                    className={`flex-1 h-[2px] mx-3 transition-all duration-300 rounded-full ${
+                      isCompleted ? "bg-[#447ECA]" : "bg-gray-200"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
             );
           })}
         </div>
         
-        {/* NUEVO: Subtítulo dinámico estilo Figma (Resuelve el error del label) */}
+        {/* 3. SUBTÍTULO DINÁMICO */}
         <p className="text-[13px] text-gray-400 font-medium">
           Paso {currentStep} de 4: <span className="text-[#447ECA] ml-1">{steps[currentStep - 1]}</span>
         </p>
       </div>
     );
   };
-
   const renderAiBanner = () => {
     if (!isAiMode) return null;
     return (
