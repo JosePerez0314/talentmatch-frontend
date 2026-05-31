@@ -1,10 +1,10 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
 interface MetricCardProps {
   count: number;
   title: string;
   subtext: string;
-  icon: string;
+  icon: ReactNode;
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ count, title, subtext, icon }) => {
@@ -13,8 +13,9 @@ const MetricCard: React.FC<MetricCardProps> = ({ count, title, subtext, icon }) 
       
       {/* Top Row: Icon & Arrow */}
       <div className="flex justify-between items-start mb-4">
-        <div className="w-12 h-12 bg-[#EAF7FF] rounded-full flex items-center justify-center">
-          <img src={icon} alt={title} className="w-5 h-5 object-contain opacity-70" />
+        <div className="w-12 h-12 bg-[#EAF7FF] text-[#447ECA] rounded-full flex items-center justify-center">
+          {/* El icon Lucide */}
+          {icon}
         </div>
         <div className="text-gray-300 group-hover:text-gray-400 transition-colors">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -36,7 +37,6 @@ const MetricCard: React.FC<MetricCardProps> = ({ count, title, subtext, icon }) 
           {subtext}
         </span>
       </div>
-
     </div>
   );
 };

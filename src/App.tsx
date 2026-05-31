@@ -1,10 +1,12 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
 
 // Context
 import { AuthProvider, useAuth } from "./components/context/AuthContext";
 
-// Layout
-import Layout from "./layouts/Layout";
+// Context
+import Sidebar from "./layouts/Sidebar";
+import SessionTimeoutGuard from "./components/ui/SessionTimeoutGuard";
+
 
 // Pages
 import Login from "./pages/Login";
@@ -41,7 +43,23 @@ const ProtectedRoute = () => {
   }
 
   // 3. ÉXITO: Si hay usuario, renderizamos el Layout con las rutas hijas (Outlet).
-  return <Layout />;
+  // 3. ÉXITO: Absorbe la responsabilidad estructural de Layout.tsx de forma limpia.
+  // Cumplimos con el background universal #F0F0F5 solicitado por el Lead.
+  return (
+    <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left w-full">
+      {/* Centinela de inactividad global */}
+      <SessionTimeoutGuard />
+      
+      {/* Navegación lateral Enterprise colapsable */}
+      <Sidebar />
+
+      {/* PANEL PRINCIPAL: El Outlet renderiza dinámicamente el Dashboard, Positions, etc. */}
+      {/* Al remover el wrapper del dashboard viejo, este scroll viewport maneja todo con el scrollbar personalizado */}
+      <main className="flex-1 overflow-y-auto p-0 relative">
+        <Outlet />
+      </main>
+    </div>
+  );
 };
 
 function App() {

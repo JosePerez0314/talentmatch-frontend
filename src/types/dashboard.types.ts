@@ -1,9 +1,11 @@
+import { ReactNode } from "react";
+
 export interface DashboardMetric {
   id: string;
   count: number;
   title: string;
   subtext: string;
-  icon: string;
+  icon: ReactNode; // Aceptamos componentes (Iconos de Lucide)
 }
 
 export interface VacancyStatus {
@@ -15,8 +17,15 @@ export interface VacancyStatus {
   bgClass: string;
 }
 
+export interface MonthlyData {
+  month: string;
+  posiciones: number;
+  cvs: number;
+  vacantes: number;
+}
+
 export interface DashboardStats {
   metrics: DashboardMetric[];
   vacancyStatuses: VacancyStatus[];
-  totalVacancies: number;
+  monthlyData: MonthlyData[];
 }
