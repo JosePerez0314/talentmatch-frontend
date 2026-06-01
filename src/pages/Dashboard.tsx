@@ -46,11 +46,11 @@ const Dashboard: React.FC = () => {
   const ptsVacantes = MOCK_DATA.monthlyData.map((d, i) => `${getX(i)},${getY(d.vacantes)}`).join(" ");
 
   return (
-    <div className="p-6 md:p-10 animate-fade-in w-full h-full">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-5 md:p-8 2xl:p-10 animate-fade-in w-full h-full flex justify-center">
+      <div className="w-full max-w-6xl">
         
         {/* HEADER */}
-        <header className="mb-8 text-left flex flex-col">
+        <header className="mb-6 md:mb-8 text-left flex flex-col">
           <h1 className="text-[22px] md:text-2xl font-medium text-gray-800 tracking-tight">
             Centro de Control
           </h1>
@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
         </header>
 
         {/* TOP GRID: Metricas */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-6 md:mb-8">
           {MOCK_DATA.metrics.map((metric) => (
             <MetricCard
               key={metric.id}
@@ -73,17 +73,17 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* BOTTOM GRID: Graficos Estados */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 pb-8">
           
           {/* GRAFICO INTERACTIVO */}
-          <div className="lg:col-span-2 bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 flex flex-col min-h-[350px] relative">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="lg:col-span-2 bg-white rounded-[24px] p-6 md:p-7 shadow-sm border border-gray-100 flex flex-col min-h-[320px] relative">
+            <div className="flex items-center gap-3 mb-5">
               <TrendingUp className="text-[#447ECA]" size={20} strokeWidth={2.5} />
               <h2 className="text-[#1E293B] font-medium text-base">Actividad Mensual</h2>
             </div>
             
             {/* Leyenda */}
-            <div className="flex items-center gap-6 mb-8 text-xs font-medium text-gray-400">
+            <div className="flex items-center gap-6 mb-6 text-xs font-medium text-gray-400">
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#447ECA]"></div> Posiciones</div>
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#96FFC1]"></div> CVs</div>
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-400"></div> Vacantes</div>
@@ -165,21 +165,21 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* STATUS BARS  */}
-          <div className="lg:col-span-1 bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 flex flex-col">
-            <div className="flex items-center gap-3 mb-8">
+          <div className="lg:col-span-1 bg-white rounded-[24px] p-6 md:p-7 shadow-sm border border-gray-100 flex flex-col">
+            <div className="flex items-center gap-3 mb-6">
               <BarChart3 className="text-[#447ECA]" size={20} strokeWidth={2.5} />
               <h2 className="text-[#1E293B] font-medium text-base">Estado de Vacantes</h2>
             </div>
 
             {/* Barra Combinada Top  */}
-            <div className="w-full h-3.5 flex rounded-full overflow-hidden mb-10 gap-[2px] bg-white">
+            <div className="w-full h-3.5 flex rounded-full overflow-hidden mb-8 gap-[2px] bg-white">
                {MOCK_DATA.vacancyStatuses.map(status => (
                  <div key={`top-${status.id}`} className={`h-full ${status.bgClass}`} style={{ width: `${status.percentage}%` }}></div>
                ))}
             </div>
 
             {/* Lista Desglosada */}
-            <div className="flex flex-col gap-6 flex-1">
+            <div className="flex flex-col gap-5 flex-1">
               {MOCK_DATA.vacancyStatuses.map(status => (
                 <div key={`list-${status.id}`} className="flex flex-col gap-2">
                   <div className="flex justify-between items-center text-sm font-medium">
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Footer  */}
-            <div className="mt-8 text-center text-gray-400 text-xs font-medium border-t border-gray-50 pt-6">
+            <div className="mt-6 text-center text-gray-400 text-xs font-medium border-t border-gray-50 pt-5">
               {MOCK_DATA.metrics.find(m => m.id === "4")?.count} vacantes en total
             </div>
           </div>
