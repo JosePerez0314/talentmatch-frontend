@@ -46,21 +46,21 @@ const Dashboard: React.FC = () => {
   const ptsVacantes = MOCK_DATA.monthlyData.map((d, i) => `${getX(i)},${getY(d.vacantes)}`).join(" ");
 
   return (
-    <div className="p-5 md:p-8 2xl:p-10 animate-fade-in w-full h-full flex justify-center">
-      <div className="w-full max-w-6xl">
+    <div className="p-4 md:p-8 xl:p-10 animate-fade-in w-full h-full flex justify-center">
+      <div className="w-full max-w-[1600px]">
         
         {/* HEADER */}
-        <header className="mb-6 md:mb-8 text-left flex flex-col">
-          <h1 className="text-[22px] md:text-2xl font-medium text-gray-800 tracking-tight">
+        <header className="mb-6 xl:mb-8 text-left flex flex-col">
+          <h1 className="text-[22px] md:text-2xl xl:text-3xl font-medium text-gray-800 tracking-tight">
             Centro de Control
           </h1>
-          <p className="text-gray-400 text-sm font-medium mt-1">
+          <p className="text-gray-400 text-sm xl:text-base font-medium mt-1">
             Resumen en tiempo real de tu pipeline de talento
           </p>
         </header>
 
         {/* TOP GRID: Metricas */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-6 md:mb-8">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 xl:gap-6 mb-6 xl:mb-8">
           {MOCK_DATA.metrics.map((metric) => (
             <MetricCard
               key={metric.id}
@@ -73,17 +73,17 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* BOTTOM GRID: Graficos Estados */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 pb-8">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 xl:gap-6">
           
           {/* GRAFICO INTERACTIVO */}
-          <div className="lg:col-span-2 bg-white rounded-[24px] p-6 md:p-7 shadow-sm border border-gray-100 flex flex-col min-h-[320px] relative">
-            <div className="flex items-center gap-3 mb-5">
+          <div className="lg:col-span-2 bg-white rounded-[24px] p-6 xl:p-8 shadow-sm border border-gray-100 flex flex-col min-h-[350px] xl:min-h-[450px] relative">
+            <div className="flex items-center gap-3 mb-4 xl:mb-6">
               <TrendingUp className="text-[#447ECA]" size={20} strokeWidth={2.5} />
-              <h2 className="text-[#1E293B] font-medium text-base">Actividad Mensual</h2>
+              <h2 className="text-[#1E293B] font-medium text-base xl:text-lg">Actividad Mensual</h2>
             </div>
             
             {/* Leyenda */}
-            <div className="flex items-center gap-6 mb-6 text-xs font-medium text-gray-400">
+            <div className="flex items-center gap-6 mb-6 xl:mb-8 text-xs xl:text-sm font-medium text-gray-400">
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#447ECA]"></div> Posiciones</div>
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#96FFC1]"></div> CVs</div>
               <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-gray-400"></div> Vacantes</div>
@@ -109,10 +109,10 @@ const Dashboard: React.FC = () => {
                     <circle 
                       cx={getX(hoveredIndex)} 
                       cy={getY(MOCK_DATA.monthlyData[hoveredIndex].posiciones)} 
-                      r="2" 
+                      r="3" 
                       fill="white" 
                       stroke="#447ECA" 
-                      strokeWidth="1.5" 
+                      strokeWidth="2" 
                     />
                   )}
                </svg>
@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
                     />
                     {/* Caja del Tooltip */}
                     <div 
-                      className="absolute z-20 bg-white p-3 rounded-xl shadow-xl border border-gray-100 pointer-events-none transition-all duration-200 flex flex-col gap-1 w-[120px]"
+                      className="absolute z-20 bg-white p-3 xl:p-4 rounded-xl shadow-xl border border-gray-100 pointer-events-none transition-all duration-200 flex flex-col gap-1 w-[120px] xl:w-[140px]"
                       //el tooltip arriba del cursor, centrado en el eje X
                       style={{ 
                         left: `${getX(hoveredIndex)}%`, 
@@ -135,12 +135,12 @@ const Dashboard: React.FC = () => {
                         transform: 'translate(-50%, -120%)'
                       }}
                     >
-                      <span className="text-xs font-bold text-gray-600 border-b border-gray-100 pb-1 mb-1">
+                      <span className="text-xs xl:text-sm font-bold text-gray-600 border-b border-gray-100 pb-1 mb-1">
                         {MOCK_DATA.monthlyData[hoveredIndex].month}
                       </span>
-                      <span className="text-[11px] text-[#447ECA] font-medium">posiciones: {MOCK_DATA.monthlyData[hoveredIndex].posiciones}</span>
-                      <span className="text-[11px] text-[#4ADE80] font-medium">cvs: {MOCK_DATA.monthlyData[hoveredIndex].cvs}</span>
-                      <span className="text-[11px] text-gray-500 font-medium">vacantes: {MOCK_DATA.monthlyData[hoveredIndex].vacantes}</span>
+                      <span className="text-[11px] xl:text-xs text-[#447ECA] font-medium">posiciones: {MOCK_DATA.monthlyData[hoveredIndex].posiciones}</span>
+                      <span className="text-[11px] xl:text-xs text-[#4ADE80] font-medium">cvs: {MOCK_DATA.monthlyData[hoveredIndex].cvs}</span>
+                      <span className="text-[11px] xl:text-xs text-gray-500 font-medium">vacantes: {MOCK_DATA.monthlyData[hoveredIndex].vacantes}</span>
                     </div>
                  </>
                )}
@@ -159,40 +159,40 @@ const Dashboard: React.FC = () => {
             </div>
             
             {/* X Axis */}
-            <div className="flex justify-between text-[10px] font-bold text-gray-300 uppercase mt-4 px-1">
+            <div className="flex justify-between text-[10px] xl:text-xs font-bold text-gray-300 uppercase mt-4 px-1">
               {MOCK_DATA.monthlyData.map(d => <span key={d.month}>{d.month}</span>)}
             </div>
           </div>
 
           {/* STATUS BARS  */}
-          <div className="lg:col-span-1 bg-white rounded-[24px] p-6 md:p-7 shadow-sm border border-gray-100 flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
+          <div className="lg:col-span-1 bg-white rounded-[24px] p-6 xl:p-8 shadow-sm border border-gray-100 flex flex-col">
+            <div className="flex items-center gap-3 mb-6 xl:mb-8">
               <BarChart3 className="text-[#447ECA]" size={20} strokeWidth={2.5} />
-              <h2 className="text-[#1E293B] font-medium text-base">Estado de Vacantes</h2>
+              <h2 className="text-[#1E293B] font-medium text-base xl:text-lg">Estado de Vacantes</h2>
             </div>
 
             {/* Barra Combinada Top  */}
-            <div className="w-full h-3.5 flex rounded-full overflow-hidden mb-8 gap-[2px] bg-white">
+            <div className="w-full h-3.5 xl:h-4 flex rounded-full overflow-hidden mb-8 xl:mb-10 gap-[2px] bg-white">
                {MOCK_DATA.vacancyStatuses.map(status => (
                  <div key={`top-${status.id}`} className={`h-full ${status.bgClass}`} style={{ width: `${status.percentage}%` }}></div>
                ))}
             </div>
 
             {/* Lista Desglosada */}
-            <div className="flex flex-col gap-5 flex-1">
+            <div className="flex flex-col gap-5 xl:gap-6 flex-1">
               {MOCK_DATA.vacancyStatuses.map(status => (
                 <div key={`list-${status.id}`} className="flex flex-col gap-2">
-                  <div className="flex justify-between items-center text-sm font-medium">
+                  <div className="flex justify-between items-center text-sm xl:text-base font-medium">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2.5 h-2.5 rounded-full ${status.bgClass}`}></div>
+                      <div className={`w-2.5 h-2.5 xl:w-3 xl:h-3 rounded-full ${status.bgClass}`}></div>
                       <span className="text-gray-600">{status.label}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-400 text-xs">{status.percentage}%</span>
-                      <span className="bg-[#F0F7FF] text-[#447ECA] px-2 py-0.5 rounded text-xs font-bold">{status.count}</span>
+                      <span className="text-gray-400 text-xs xl:text-sm">{status.percentage}%</span>
+                      <span className="bg-[#F0F7FF] text-[#447ECA] px-2 py-0.5 rounded text-xs xl:text-sm font-bold">{status.count}</span>
                     </div>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 xl:h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div className={`h-full ${status.bgClass} rounded-full`} style={{ width: `${status.percentage}%` }}></div>
                   </div>
                 </div>
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Footer  */}
-            <div className="mt-6 text-center text-gray-400 text-xs font-medium border-t border-gray-50 pt-5">
+            <div className="mt-6 xl:mt-8 text-center text-gray-400 text-xs xl:text-sm font-medium border-t border-gray-50 pt-5 xl:pt-6">
               {MOCK_DATA.metrics.find(m => m.id === "4")?.count} vacantes en total
             </div>
           </div>
