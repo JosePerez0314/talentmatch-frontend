@@ -1,106 +1,286 @@
-# TalentMatch AI - Frontend Experience & Recruitment Dashboard
+# 🚀 TalentMatch AI — Frontend Experience & Recruitment Dashboard
 
-## 🚀 Resumen
-Esta es la interfaz de usuario oficial de **TalentMatch AI**, una plataforma SaaS diseñada para transformar la experiencia de reclutamiento técnico. Mientras el motor de IA procesa los datos en las sombras, este Frontend proporciona a los reclutadores un panel de control intuitivo, rápido y potente para visualizar el talento.
+<div align="center">
 
-Nuestra interfaz no es solo un formulario de carga; es una herramienta de toma de decisiones que presenta un "Top 10" de candidatos mediante visualizaciones claras, permitiendo que el reclutador pase del "papel" a la "contratación" en segundos.
+### Intelligent Recruitment Platform powered by AI
 
----
+Transforming technical recruitment through data-driven candidate evaluation, vacancy management, and intelligent talent matching.
 
-## ✨ Características Principales
-* **Smart Dashboard:** Visualización en tiempo real de métricas críticas (Vacantes activas, CVs procesados, candidatos destacados).
-* **Pipeline de Carga Interactiva:** Interfaz de *drag-and-drop* para currículums con feedback inmediato sobre el estado del procesamiento.
-* **Leaderboard de Candidatos:** Visualización matemática del "Match Score", desglosando por qué un candidato es apto (Hard Skills, Experiencia, Educación).
-* **Gestión de Vacantes:** CRUD completo de posiciones con un sistema de etiquetado para definir los pesos del algoritmo de IA.
-* **Diseño Responsivo:** Optimizado para flujos de trabajo en escritorio y consultas rápidas desde dispositivos móviles.
+![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript)
+![Vite](https://img.shields.io/badge/Vite-Latest-646CFF?logo=vite)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4+-06B6D4?logo=tailwindcss)
+![Axios](https://img.shields.io/badge/Axios-API-5A29E4?logo=axios)
 
----
-
-## 🛠️ Tech Stack
-Hemos seleccionado herramientas que priorizan el rendimiento y la mantenibilidad:
-
-* **Core:** React.js (v18+)
-* **Build Tool:** Vite (para un desarrollo ultrarrápido)
-* **Estado Global:** React Context API o Redux Toolkit (según escala)
-* **Estilos:** CSS3 Moderno con Metodología BEM y Variables de CSS (Custom Properties) para consistencia de diseño.
-* **Networking:** Axios (con interceptores para manejo de JWT).
-* **Validación:** Zod / React Hook Form.
+</div>
 
 ---
 
-## 📁 Estructura de Carpetas (Clean Architecture)
-<pre>
+## 📖 Overview
+
+**TalentMatch AI** is a modern SaaS recruitment platform designed to streamline the hiring process through intelligent candidate analysis and data visualization.
+
+The frontend serves as the primary workspace for recruiters, providing a clean and responsive dashboard where they can:
+
+* Create and manage vacancies
+* Upload and process candidate CVs
+* Analyze AI-generated candidate rankings
+* Manage departments and positions
+* Monitor recruitment metrics through dashboards
+* Access historical records and reports
+
+Rather than acting as a simple file uploader, TalentMatch AI provides recruiters with actionable insights that accelerate hiring decisions.
+
+---
+
+## ✨ Core Features
+
+### 📊 Analytics Dashboard
+
+* Real-time recruitment metrics
+* Candidate activity monitoring
+* Vacancy tracking
+* Executive KPI visualization
+
+### 📄 CV Management
+
+* Drag & Drop CV uploads
+* Upload status tracking
+* Historical CV records
+* Candidate profile management
+
+### 🎯 AI Candidate Ranking
+
+* Match Score visualization
+* Candidate leaderboard
+* Skills evaluation
+* Position compatibility analysis
+
+### 💼 Vacancy Management
+
+* Vacancy creation workflow
+* Position configuration
+* Department assignment
+* Historical vacancy records
+
+### 🏢 Department Management
+
+* Department creation
+* Department history
+* Edit and delete workflows
+* Position association tracking
+
+### 🔐 Authentication & Security
+
+* JWT Authentication
+* Protected Routes
+* Session persistence
+* Idle session management
+
+### 📱 Responsive Design
+
+* Desktop-first experience
+* Large-screen optimization
+* Mobile compatibility
+* Modern SaaS interface
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
+
+| Technology   | Purpose           |
+| ------------ | ----------------- |
+| React 18     | UI Library        |
+| TypeScript   | Static Typing     |
+| Vite         | Build Tool        |
+| React Router | Routing           |
+| Axios        | API Communication |
+| Tailwind CSS | Styling           |
+| Context API  | Global State      |
+| JWT          | Authentication    |
+
+---
+
+# 📂 Project Structure
+
+```bash
 src/
-├── assets/     # Imágenes, SVGs y fuentes.
-├── components/ # Componentes reutilizables (Botones, Inputs, Cards).
-├── hooks/      # Custom hooks para lógica desacoplada (useAuth, useCandidates).
-├── layouts/    # Wrappers de estructura (AuthLayout, DashboardLayout).
-├── pages/      # Componentes de página de nivel superior.
-├── services/   # Abstracción de llamadas a la API (Axios instances).
-├── styles/     # Variables globales y reset (main.css, variables.css).
-└── utils/      # Funciones puras de ayuda (formateadores de fecha, scores).
-</pre>
-
-## 💻Ejemplo de Implementación: Componente de Match Score
-Siguiendo las directrices de Código Limpio y ES6+, así es como estructuramos un componente clave:
-
-```
-import React from 'react';
-import './MatchScore.css'; // Implementando BEM
-
-/**
- * Componente que muestra el puntaje matemático de un candidato.
- * @param {number} score - Valor de 0 a 100.
- */
-const MatchScore = ({ score = 0 }) => {
-  // Desestructuración y lógica limpia
-  const getStatusClass = (val) => {
-    if (val >= 80) return 'match-score--high';
-    if (val >= 50) return 'match-score--medium';
-    return 'match-score--low';
-  };
-
-  return (
-    <div className={`match-score ${getStatusClass(score)}`}>
-      <svg className="match-score__svg" viewBox="0 0 60 60">
-        <circle 
-          className="match-score__circle" 
-          strokeDasharray={`${score} 100`} 
-          cx="30" 
-          cy="30" 
-          r="25" 
-        />
-      </svg>
-      <span className="match-score__text">{score}%</span>
-    </div>
-  );
-};
-
-export default MatchScore;
+│
+├── assets/              # Images, icons, logos
+├── components/          # Reusable UI components
+├── contexts/            # React Context providers
+├── pages/               # Application pages
+├── services/            # API services
+│   ├── auth.api.ts
+│   ├── uploads.api.ts
+│   ├── vacancies.api.ts
+│   └── ...
+│
+├── types/               # TypeScript interfaces
+├── utils/               # Utility functions
+├── routes/              # Route definitions
+├── hooks/               # Custom React hooks
+└── styles/              # Global styles
 ```
 
-## ⚙️Configuración e Instalación
-Requisitos previos: Node.js (v18+) y el Backend de TalentMatch AI en ejecución.
+---
 
-### Clonar el repositorio:
-```
-git clone https://github.com/tu-usuario/talentmatch-frontend.git
+# 🎨 Design Principles
+
+The project follows modern frontend development practices:
+
+* Component-based architecture
+* TypeScript-first development
+* DRY (Don't Repeat Yourself)
+* Responsive UI design
+* Reusable design system
+* Separation of concerns
+* Clean code principles
+
+---
+
+# 🔐 Authentication Flow
+
+```text
+User Login
+     │
+     ▼
+ JWT Token Received
+     │
+     ▼
+ Stored in AuthContext
+     │
+     ▼
+ API Client Interceptor
+     │
+     ▼
+ Protected Requests
 ```
 
+---
 
-### Instalar dependencias:
-```
-npm install
-```
+# ⚙️ Environment Variables
 
-### Variables de Entorno:
-Crea un archivo .env en la raíz del proyecto e incluye la ruta de la API:
+Create a `.env` file at the project root:
 
-```
+```env
 VITE_API_URL=http://localhost:3000/api
 ```
 
-### Ejecutar en desarrollo:
+Example:
+
+```env
+VITE_API_URL=https://api.talentmatchai.com/api
 ```
+
+---
+
+# 🚀 Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/your-organization/talentmatch-frontend.git
+cd talentmatch-frontend
+```
+
+## Install Dependencies
+
+```bash
+npm install
+```
+
+## Run Development Server
+
+```bash
 npm run dev
 ```
+
+Application available at:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# 🏗 Build for Production
+
+```bash
+npm run build
+```
+
+Preview production build:
+
+```bash
+npm run preview
+```
+
+---
+
+# 🧪 Development Guidelines
+
+### Commit Convention
+
+```bash
+feat(scope): add new feature
+fix(scope): resolve issue
+refactor(scope): improve structure
+docs(scope): update documentation
+chore(scope): maintenance tasks
+```
+
+Examples:
+
+```bash
+feat(auth): implement JWT authentication
+fix(upload-cv): resolve file upload issue
+refactor(dashboard): migrate to TypeScript
+```
+
+---
+
+# 📸 Main Modules
+
+* Dashboard
+* Positions
+* Vacancies
+* Candidates
+* Departments
+* Results
+* Authentication
+* Records & History
+
+---
+
+# 🤝 Contributing
+
+1. Create a feature branch
+
+```bash
+git checkout -b feature/new-feature
+```
+
+2. Commit your changes
+
+```bash
+git commit -m "feat(module): add functionality"
+```
+
+3. Push your branch
+
+```bash
+git push origin feature/new-feature
+```
+
+4. Open a Pull Request
+
+---
+
+# 📄 License
+
+This project is proprietary software developed as part of the TalentMatch AI platform.
+
+All rights reserved © TalentMatch AI.
