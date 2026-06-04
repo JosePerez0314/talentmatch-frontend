@@ -49,7 +49,7 @@ const ProtectedRoute = () => {
     <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left w-full">
       {/* Centinela de inactividad global */}
       <SessionTimeoutGuard />
-      
+
       {/* Navegación lateral Enterprise colapsable */}
       <Sidebar />
 
