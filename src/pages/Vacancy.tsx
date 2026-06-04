@@ -72,7 +72,7 @@ const CreateVacancy: React.FC = () => {
         const data = await positionService.getAll();
         const positionsArray = Array.isArray(data) ? data : (data as any)?.data || [];
         setPositionsList(positionsArray);
-        
+
       } catch (error) {
         console.error("Error cargando posiciones:", error);
       }
@@ -95,7 +95,7 @@ const CreateVacancy: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     setFormData((prev) => {
       const newForm = { ...prev, [name]: value };
       if (name === "openDate" || name === "closeDate") {
@@ -109,7 +109,7 @@ const CreateVacancy: React.FC = () => {
   const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const posId = e.target.value;
     const selectedPosition = positionsList.find(p => String(p.id) === posId);
-    
+
     setFormData(prev => ({
       ...prev,
       positionId: posId,
@@ -135,7 +135,7 @@ const CreateVacancy: React.FC = () => {
         closeDate: formData.closeDate,
         departmentId: formData.departmentId,
         spots: Number(formData.spots),
-        location: "No especificada" 
+        location: "No especificada"
       };
 
       //TYPE ASSERTION
@@ -181,7 +181,7 @@ const CreateVacancy: React.FC = () => {
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            
+
             {/* DEPARTAMENTO    */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-gray-600">
@@ -270,8 +270,8 @@ const CreateVacancy: React.FC = () => {
                 <label className="text-[13px] font-medium text-gray-600">
                   Fecha Inicio <span className="text-red-400">*</span>
                 </label>
-                <div 
-                  className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10 transition-all cursor-text bg-white" 
+                <div
+                  className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10 transition-all cursor-text bg-white"
                   onClick={() => startDateRef.current?.showPicker()}
                 >
                   <input
@@ -293,8 +293,8 @@ const CreateVacancy: React.FC = () => {
                 <label className="text-[13px] font-medium text-gray-600">
                   Fecha Fin <span className="text-red-400">*</span>
                 </label>
-                <div 
-                  className={`relative flex items-center border rounded-xl overflow-hidden transition-all cursor-text bg-white ${dateError ? "border-red-400 focus-within:ring-red-100 bg-red-50/50" : "border-gray-200 focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10"}`} 
+                <div
+                  className={`relative flex items-center border rounded-xl overflow-hidden transition-all cursor-text bg-white ${dateError ? "border-red-400 focus-within:ring-red-100 bg-red-50/50" : "border-gray-200 focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10"}`}
                   onClick={() => endDateRef.current?.showPicker()}
                 >
                   <input
