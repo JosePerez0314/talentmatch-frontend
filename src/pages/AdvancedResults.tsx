@@ -225,7 +225,12 @@ const AdvancedResults: React.FC = () => {
                             <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50">
                                 <StatusDropdown status={c.status} onChange={(s) => handleStatusChange(c.id, s)} />
                                 
-                               
+                                <button 
+                                    onClick={() => handleViewCandidateProfile(c)}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-[#447ECA] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#3669ab] active:scale-95 transition-all"
+                                >
+                                    <Eye size={16} /> Ver perfil
+                                </button>
                             </div>
                         </div>
                     ))}
