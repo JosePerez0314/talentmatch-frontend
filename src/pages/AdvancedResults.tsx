@@ -65,7 +65,7 @@ const CircularProgress = ({ score }: { score: number }) => {
     );
 };
 
-// 2. Dropdown Custom para Estados de Contratación
+//  Dropdown Custom para Estados de Contratación
 const StatusDropdown = ({ status, onChange }: { status: CandidateStatus, onChange: (s: CandidateStatus) => void }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -117,7 +117,7 @@ return (
     );
 };
 
-// --- VISTA PRINCIPAL DE RESULTADOS AVANZADOS ---
+//  VISTA PRINCIPAL DE RESULTADOS AVANZADOS 
 const AdvancedResults: React.FC = () => {
     const navigate = useNavigate();
     
@@ -131,8 +131,8 @@ const AdvancedResults: React.FC = () => {
     };
 
     const handleViewCandidateProfile = (candidate: MockCandidate) => {
-        // Aquí se conectará el Modal de Detalles (CandidateDetailsModal)
-        // Por ahora solo mostramos un log.
+        // Aquí se conectará  CandidateDetailsModal
+        
         console.log("Abriendo perfil avanzado para:", candidate.fullName);
     };
 
@@ -140,17 +140,17 @@ const AdvancedResults: React.FC = () => {
         <div className="min-h-screen bg-[#F0F2F5] p-6 md:p-10 animate-fade-in flex justify-center">
             <div className="w-full max-w-[1400px]">
                 
-                {/* 1. TOP HEADER */}
+                {/*  TOP HEADER */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                     {/* Botón Volver */}
                     <button
-                        onClick={() => navigate(-1)} // Vuelve al componente anterior (Resultados.tsx)
+                        onClick={() => navigate(-1)} // Vuelve al componente anterior Resultados.tsx
                         className="flex items-center gap-2 text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors"
                     >
                         <ArrowLeft size={18} /> Volver al historial
                     </button>
 
-                    {/* Título Central */}
+                    {/*  Titulo Central */}
                     <div className="text-center flex-1 flex flex-col items-center">
                         <div className="flex items-center gap-3">
                             <h1 className="text-xl md:text-2xl font-medium text-gray-900">Diseñador UX/UI Senior</h1>
@@ -161,7 +161,7 @@ const AdvancedResults: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Acciones de la Vacante */}
+                    {/* Acciones de la Vacante   */}
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium shadow-sm hover:bg-gray-50 transition-colors text-sm">
                             <Share2 size={16} className="opacity-70" /> Compartir
@@ -172,7 +172,7 @@ const AdvancedResults: React.FC = () => {
                     </div>
                 </header>
 
-                {/* 2. ALERT BANNER */}
+                {/*   ALERT BANNER */}
                 <div className="bg-[#F0F7FF] border border-[#D1E9FF] rounded-xl p-4 flex items-center gap-3 mb-6">
                     <Sparkles className="text-[#447ECA]" size={20} strokeWidth={2.5} />
                     <p className="text-sm text-[#447ECA] font-medium">
@@ -180,22 +180,22 @@ const AdvancedResults: React.FC = () => {
                     </p>
                 </div>
 
-                {/* 3. RESUMEN DE MÉTRICAS */}
+                {/*  RESUMEN DE MAETRICAS */}
                 <p className="text-gray-500 font-medium text-sm mb-6">
                     <span className="text-[#447ECA] font-bold">{candidates.length} candidatos</span> evaluados · {candidates.length} CVs para esta vacante
                 </p>
 
-                {/* 4. GRID DE TARJETAS DE RESULTADOS (Pixel-Perfect a Figma) */}
+                {/*   GRID DE TARJETAS DE RESULTADOS  */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {candidates.map((c) => (
                         <div key={c.id} className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex flex-col relative group hover:shadow-md transition-shadow">
                             
-                            {/* Rango Top */}
+                            {/* Rango Top  */}
                             <div className="absolute top-6 right-6 text-gray-300 font-bold text-sm">
                                 #{c.rank}
                             </div>
 
-                            {/* Info del Candidato */}
+                            {/* Info de Candidato   */}
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="w-12 h-12 rounded-full bg-[#DCF9FF] text-[#447ECA] font-bold flex items-center justify-center text-sm shrink-0">
                                     {c.fullName.split(" ").map(n => n[0]).join("").substring(0, 2)}
@@ -206,7 +206,7 @@ const AdvancedResults: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Donut Chart Nativo */}
+                            {/*  Donut Chart Nativo */}
                             <div className="flex justify-center mb-8">
                                 <CircularProgress score={c.matchScore} />
                             </div>
@@ -221,16 +221,11 @@ const AdvancedResults: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Footer de Acciones (Dropdown Status y Ver Perfil) */}
+                            {/*   Footer de Acciones  */}
                             <div className="flex items-center justify-between mt-auto pt-6 border-t border-gray-50">
                                 <StatusDropdown status={c.status} onChange={(s) => handleStatusChange(c.id, s)} />
                                 
-                                <button 
-                                    onClick={() => handleViewCandidateProfile(c)}
-                                    className="flex items-center gap-2 px-5 py-2.5 bg-[#447ECA] text-white rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#3669ab] active:scale-95 transition-all"
-                                >
-                                    <Eye size={16} /> Ver perfil
-                                </button>
+                               
                             </div>
                         </div>
                     ))}
