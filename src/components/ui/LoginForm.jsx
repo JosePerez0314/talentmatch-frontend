@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import AuthInput from "./AuthInput";
 
 // Assets
-import { Icons } from "../../assets/icons";
+import { Icons } from "../../assets/icons/index";
 
 const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
   // Local state to show/hide password
