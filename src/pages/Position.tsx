@@ -6,7 +6,7 @@ import { Check, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileT
 import PillInput from "../components/ui/PillInput";
 import PositionSuccess from "../components/Sections/PositionSuccess";
 import { positionService, CreatePositionInput } from "../services/api/positions.api";
-import { apiClient } from "../services/api/apiClient"; // Para obtener departamentos
+import { apiClient } from "../services/api/apiClient";
 
 type EntryMethod = "manual" | "ai" | null;
 
@@ -35,7 +35,7 @@ const Position: React.FC = () => {
   
   // DATOS Y FORMULARIO
   const [formData, setFormData] = useState<CreatePositionInput>(INITIAL_STATE);
-  const [departments, setDepartments] = useState<any[]>([]); // Lista real de BD
+  const [departments, setDepartments] = useState<any[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -145,7 +145,7 @@ const Position: React.FC = () => {
     if (validateStep(4)) {
       setIsLoading(true);
       try {
-        // Formateamos si es necesario para el backend
+        // Format si es necesario para backend
         const finalPayload = {
             ...formData,
             departmentId: Number(formData.departmentId),
