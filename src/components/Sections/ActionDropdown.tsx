@@ -4,7 +4,7 @@ import { MoreVertical, Edit2, Copy, Trash2 } from "lucide-react";
 interface ActionDropdownProps {
     onDuplicate: () => void;
     onDelete: () => void;
-    onEdit?: () => void; // Por si en el futuro decides usarlo
+    onEdit?: () => void;
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, onEdit }) => {
@@ -38,7 +38,6 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, 
                 <MoreVertical size={16} />
             </button>
 
-            {/* Desplegable fiel a la captura de Figma */}
             {isOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-left">
 
