@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MoreVertical, Edit2, Copy, Trash2 } from "lucide-react";
 
-const ActionDropdown: React.FC = () => {
+interface ActionDropdownProps {
+    onDuplicate: () => void;
+    onDelete: () => void;
+    onEdit?: () => void; // Por si en el futuro decides usarlo
+}
+
+const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, onEdit }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +30,7 @@ const ActionDropdown: React.FC = () => {
         <div className="relative inline-block text-left" ref={dropdownRef}>
             <button
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
                 title="Opciones"
                 aria-label="Opciones"
                 className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${isOpen ? "bg-gray-100 text-gray-700" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
@@ -38,7 +44,7 @@ const ActionDropdown: React.FC = () => {
 
                     <button
                         type="button"
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); onEdit?.(); }}
                         className="w-full px-4 py-2.5 text-[14px] font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer group">
                         <Edit2 size={15} className="text-gray-400 group-hover:text-gray-500 transition-colors" />
                         Editar Posición
@@ -46,7 +52,7 @@ const ActionDropdown: React.FC = () => {
 
                     <button
                         type="button"
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDuplicate(); }}
                         className="w-full px-4 py-2.5 text-[14px] font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer group">
                         <Copy size={15} className="text-gray-400 group-hover:text-gray-500 transition-colors" />
                         Duplicar Posición
@@ -54,7 +60,7 @@ const ActionDropdown: React.FC = () => {
 
                     <button
                         type="button"
-                        onClick={() => setIsOpen(false)}
+                        onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDelete(); }}
                         className="w-full px-4 py-2.5 text-[14px] font-medium text-[#e53e3e] hover:bg-red-50/40 flex items-center gap-3 transition-colors cursor-pointer group">
                         <Trash2 size={15} className="text-red-400 group-hover:text-red-500 transition-colors" />
                         Eliminar Posición
