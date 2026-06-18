@@ -2,13 +2,13 @@ import React from "react";
 import { Briefcase } from "lucide-react";
 import ActionDropdown from "./ActionDropdown";
 
-// Interfaz actualizada para soportar tanto Mock Data como la estructura real de la API
+// Interfaz UI
 export interface PositionData {
     id: number | string;
     role: string;
     createdAt: string;
     departmentName?: string;
-    department?: { name: string }; // Estructura real de la base de datos
+    department?: { name: string };
 }
 
 interface PositionHistoryTableProps {
@@ -37,7 +37,7 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], 
 
     return (
         <div className="flex flex-col w-full bg-white text-left">
-            {/* Encabezado limpio idéntico a Figma */}
+            {/* Encabezado */}
             <div className="px-8 py-5 border-b border-gray-100 bg-white grid grid-cols-12 gap-4 items-center select-none">
                 <span className="col-span-5 text-gray-400 font-bold text-[11px] uppercase tracking-[0.15em]">
                     Posición
@@ -70,14 +70,14 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], 
 };
 
 const PositionRow: React.FC<PositionRowProps> = ({ position, formatDate, onDelete, onDuplicate }) => {
-    // Agregamos compatibilidad para extraer el nombre del departamento del Backend
+    // extraer nombre de departamento de Backend
     const { id, role, createdAt, departmentName, department } = position;
     const resolvedDepartmentName = department?.name || departmentName || "General";
 
     return (
         <div className="px-8 py-4 grid grid-cols-12 gap-4 items-center hover:bg-[#F9FBFF] transition-all group">
 
-            {/* Columna 1: Info de la Posición */}
+            {/* Columna 1 Info de la Posicion */}
             <div className="col-span-5 flex items-center gap-4">
                 <div className="w-9 h-9 bg-[#EBF3FC] rounded-xl flex items-center justify-center transition-colors shrink-0">
                     <Briefcase size={16} className="text-[#447ECA] opacity-90" />
@@ -89,19 +89,19 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, formatDate, onDelet
                 </div>
             </div>
 
-            {/* Columna 2: Píldora del Departamento */}
+            {/* Columna 2 Píldora del Departamento */}
             <div className="col-span-4 flex justify-start">
                 <span className="px-3 py-1 bg-[#f0f0f5] text-gray-500 rounded-full text-xs font-medium tracking-wide">
                     {resolvedDepartmentName}
                 </span>
             </div>
 
-            {/* Columna 3: Fecha Estructurada */}
+            {/* Columna 3 Fecha Estructurada */}
             <div className="col-span-2 flex items-center text-gray-400 text-[14px] font-medium">
                 <span>{formatDate(createdAt)}</span>
             </div>
 
-            {/* Columna 4: Dropdown de Acciones */}
+            {/* Columna 4 Dropdown de Acciones */}
             <div className="col-span-1 flex justify-end pr-1">
                 <ActionDropdown 
                     onDelete={() => onDelete(id)} 
