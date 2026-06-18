@@ -15,7 +15,17 @@ export interface CreatePositionInput {
 }
 
 export const positionService = {
-  // 1. Crear posición asistida por el Wizard (Manual)
+  // GET /positions/ - Listar posiciones
+  getAll: async (): Promise<ApiResponse<Position[]>> => {
+    return apiClient('/positions', { method: 'GET' });
+  },
+
+  // GET /positions/:id - Detalle de posición
+  getById: async (id: string | number): Promise<ApiResponse<Position>> => {
+    return apiClient(`/positions/${id}`, { method: 'GET' });
+  },
+
+  // POST /positions/ - Crear posición manual
   create: async (data: CreatePositionInput): Promise<ApiResponse<Position>> => {
     return apiClient('/positions', {
       method: 'POST',
@@ -24,32 +34,34 @@ export const positionService = {
     });
   },
 
-  // 2. Extraer datos con IA a partir de un archivo PDF (POST /positions/complete)
+  // PUT /positions/:id - Actualizar posición
+  update: async (id: string | number, data: Partial<CreatePositionInput>): Promise<ApiResponse<Position>> => {
+    return apiClient(`/positions/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  },
+
+  // DELETE /positions/:id - Eliminar posición
+  delete: async (id: string | number): Promise<ApiResponse<void>> => {
+    return apiClient(`/positions/${id}`, { method: 'DELETE' });
+  },
+
+  // POST /positions/complete - Extraer datos de PDF con IA
   completeWithAI: async (pdfFile: File): Promise<ApiResponse<Partial<CreatePositionInput>>> => {
     const formData = new FormData();
     formData.append("file", pdfFile);
 
     return apiClient('/positions/complete', {
       method: 'POST',
-      // No seteamos Content-Type para que el navegador ponga automáticamente 'multipart/form-data' con su boundary
+      // No asignamos Content-Type para que el navegador genere el multipart/form-data automático
       body: formData as unknown as BodyInit, 
     });
   },
 
-  // 3. Obtener todas las posiciones activas
-  getAll: async (): Promise<ApiResponse<Position[]>> => {
-    return apiClient('/positions', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-  },
-
-  // (Módulo preparado para futuros requerimientos de la doc API)
-  getById: async (id: number | string): Promise<ApiResponse<Position>> => {
-    return apiClient(`/positions/${id}`, { method: 'GET' });
-  },
-
-  delete: async (id: number | string): Promise<ApiResponse<void>> => {
-    return apiClient(`/positions/${id}`, { method: 'DELETE' });
+  // POST /positions/duplicate/:id - Duplicar posicion
+  duplicate: async (id: string | number): Promise<ApiResponse<Position>> => {
+    return apiClient(`/positions/duplicate/${id}`, { method: 'POST' });
   }
 };
