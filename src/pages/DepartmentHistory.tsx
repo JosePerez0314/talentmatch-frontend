@@ -1,30 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Department } from "../types/department.types";
 import { FiLayers, FiMoreVertical, FiEdit2, FiTrash2, FiClock } from "react-icons/fi";
+
+// Importamos el servicio real de la API
+import { departmentsApi } from "../services/api/departments.api";
 
 import EditDepartmentModal from "../components/modals/EditDepartmentModal";
 import DeleteDepartmentModal from "../components/modals/DeleteDepartmentModal";
 
-interface ExtendedDepartment extends Department {
-    createdAt?: string;
-}
-
-const INITIAL_DEPARTMENTS: ExtendedDepartment[] = [
-    { id: "1", name: "Tecnología / IT", positionsCount: 2, createdAt: "01/01/2026" },
-    { id: "2", name: "Ventas", positionsCount: 2, createdAt: "01/01/2026" },
-    { id: "3", name: "Recursos Humanos", positionsCount: 1, createdAt: "01/01/2026" },
-    { id: "4", name: "Finanzas & Contabilidad", positionsCount: 0, createdAt: "01/01/2026" },
-    { id: "5", name: "Operaciones", positionsCount: 2, createdAt: "01/01/2026" },
-    { id: "6", name: "Marketing", positionsCount: 0, createdAt: "01/01/2026" },
-    { id: "7", name: "Legal", positionsCount: 0, createdAt: "01/01/2026" },
-];
-
 const DepartmentHistory: React.FC = () => {
-    const [departments, setDepartments] = useState<ExtendedDepartment[]>(INITIAL_DEPARTMENTS);
+    // Estado inicial vacío para llenarse con los datos del backend
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-    const [editModalDept, setEditModalDept] = useState<ExtendedDepartment | null>(null);
-    const [deleteModalDept, setDeleteModalDept] = useState<ExtendedDepartment | null>(null);
+    // Estados de control de flujo asíncrono
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const [editModalDept, setEditModalDept] = useState<Department | null>(null);
+    const [deleteModalDept, setDeleteModalDept] = useState<Department | null>(null);
+
+    // FUNCIÓN CENTRAL: GET /departments/
+    const fetchDepartments = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await departmentsApi.getAll();
+            setDepartments(data);
+        } catch (err) {
+            const errorObj = err as Error;
+            setError(errorObj.message || "Error al cargar los departamentos desde el servidor.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Efecto de montaje para sincronizar los datos al cargar la pantalla
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
 
     const toggleMenu = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -33,13 +47,32 @@ const DepartmentHistory: React.FC = () => {
 
     const closeMenu = () => setOpenMenuId(null);
 
-    const handleSaveEdit = (id: string, newName: string) => {
-        setDepartments(prev => prev.map(d => d.id === id ? { ...d, name: newName } : d));
+    // MANEJADOR ASÍNCRONO: PUT /departments/:id
+    const handleSaveEdit = async (id: string, newName: string) => {
+        try {
+            await departmentsApi.update(id, { name: newName });
+
+            // Sincronización del estado local inmediato tras el éxito en base de datos
+            setDepartments(prev => prev.map(d => d.id === id ? { ...d, name: newName } : d));
+            setEditModalDept(null);
+        } catch (err) {
+            const errorObj = err as Error;
+            alert(`Error al actualizar el departamento: ${errorObj.message}`);
+        }
     };
 
-    const handleConfirmDelete = (id: string) => {
-        setDepartments(prev => prev.filter(d => d.id !== id));
-        setDeleteModalDept(null);
+    // MANEJADOR ASÍNCRONO: DELETE /departments/:id
+    const handleConfirmDelete = async (id: string) => {
+        try {
+            await departmentsApi.delete(id);
+
+            // Filtramos el registro del estado local para no forzar un refetch innecesario
+            setDepartments(prev => prev.filter(d => d.id !== id));
+            setDeleteModalDept(null);
+        } catch (err) {
+            const errorObj = err as Error;
+            alert(`Error al eliminar el departamento: ${errorObj.message}`);
+        }
     };
 
     return (
@@ -51,14 +84,33 @@ const DepartmentHistory: React.FC = () => {
                 </header>
 
                 <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-8 py-5 border-b border-gray-100 bg-white">
+                    <div className="px-8 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
                         <span className="text-gray-400 text-[11px] font-black uppercase tracking-[2px]">
-                            {departments.length} DEPARTAMENTOS
+                            {loading ? "Cargando..." : `${departments.length} DEPARTAMENTOS`}
                         </span>
+                        {loading && (
+                            <span className="text-xs text-[#447ECA] font-medium animate-pulse">
+                                Sincronizando con la API...
+                            </span>
+                        )}
                     </div>
 
+                    {/* Manejo visual de errores de red o autenticación */}
+                    {error && (
+                        <div className="p-6 text-center text-sm font-medium text-red-500 bg-red-50 border-b border-red-100">
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Estado vacío (Empty State) */}
+                    {!loading && departments.length === 0 && !error && (
+                        <div className="p-16 text-center text-gray-400 text-sm">
+                            No existen departamentos creados en la organización.
+                        </div>
+                    )}
+
                     <div className="divide-y divide-gray-50">
-                        {departments.map((dept) => (
+                        {!loading && departments.map((dept) => (
                             <div key={dept.id} className="px-8 py-5 flex items-center justify-between hover:bg-[#F8FBFF] transition-colors group relative">
                                 <div className="flex items-center gap-5">
                                     <div className="w-12 h-12 bg-[#EAF7FF] rounded-full flex items-center justify-center shrink-0 text-[#447ECA]">
@@ -75,10 +127,12 @@ const DepartmentHistory: React.FC = () => {
                                 </div>
 
                                 <div className="flex items-center gap-6">
-                                    {/* Muestra la fecha de creación alineada */}
+                                    {/* Componente UI de fecha de creación real solicitada */}
                                     <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium whitespace-nowrap">
                                         <FiClock className="text-gray-300 text-sm" />
-                                        <span>Creado: {dept.createdAt || "01/01/2026"}</span>
+                                        <span>
+                                            Creado: {dept.createdAt ? new Date(dept.createdAt).toLocaleDateString() : "01/01/2026"}
+                                        </span>
                                     </div>
 
                                     {dept.positionsCount > 0 && (
