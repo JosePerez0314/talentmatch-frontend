@@ -1,6 +1,20 @@
-const BASE_URL: string = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const BASE_URL: string = import.meta.env.VITE_API_URL || "https://api.talentmatchai.com.do/api";
 
-// 1. Interfaz para tipar de forma segura las opciones extendiendo de RequestInit de JS
+// Clase personalizada en TypeScript para transportar los detalles reales del servidor
+export class ApiError extends Error {
+  status: number;
+  serverData: any;
+
+  constructor(message: string, status: number, serverData: any) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.serverData = serverData;
+    // Asegura el prototipo correcto en herencia de clases nativas de JS
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
+
 export interface ApiClientOptions extends Omit<RequestInit, 'headers'> {
   headers?: Record<string, string> | HeadersInit;
 }
@@ -10,11 +24,15 @@ export const apiClient = async <T = unknown>(
   options: ApiClientOptions = {}
 ): Promise<T> => {
   try {
-    const url = `${BASE_URL}${endpoint}`;
-
+    const url = `${BASE_URL}${endpoint}`.replace(/([^:]\/)\/+/g, "$1");
     const headers = new Headers(options.headers as Record<string, string> || {});
 
-    // Recuperamos el token que el AuthContext guarda correctamente
+    if (options.body && !(options.body instanceof FormData)) {
+      if (!headers.has("Content-Type")) {
+        headers.set("Content-Type", "application/json");
+      }
+    }
+
     const token = localStorage.getItem("token");
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
@@ -26,26 +44,24 @@ export const apiClient = async <T = unknown>(
     };
 
     const response = await fetch(url, config);
-
     const isJson = response.headers.get('content-type')?.includes('application/json');
-
-    // Tratamos el cuerpo crudo temporalmente como unknown para forzar validación estricta
     const responseBody: unknown = isJson ? await response.json() : null;
 
-    // Type casting seguro para auditar banderas de éxito sin usar 'any'
     const castedBody = responseBody as Record<string, unknown> | null;
     const isSuccessFlag = castedBody?.success !== false && castedBody?.succes !== false;
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
-        throw new Error("Sesión expirada o no autorizada.");
+        throw new ApiError("Sesión expirada o no autorizada.", response.status, responseBody);
       }
-      const errorMessage = String(castedBody?.error || castedBody?.message || `Error: ${response.status}`);
-      throw new Error(errorMessage);
+
+      const serverError = castedBody?.error || castedBody?.message || castedBody?.errors;
+      const errorMessage = typeof serverError === 'object' ? JSON.stringify(serverError) : String(serverError || `Error: ${response.status}`);
+
+      // MODIFICACIÓN CLAVE: Lanzamos el error con los datos reales adjuntos
+      throw new ApiError(errorMessage, response.status, responseBody);
     }
 
-    // CLAVE: Si la respuesta tiene una propiedad 'data', la devolvemos casteada.
-    // Si no, devolvemos el objeto completo (vital para el flujo de Login y métricas directas)
     if (castedBody && castedBody.data !== undefined) {
       return castedBody.data as T;
     }
@@ -53,6 +69,9 @@ export const apiClient = async <T = unknown>(
     return responseBody as T;
 
   } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
     const err = error as Error;
     console.error(`API Client Error [${options.method || 'GET'} ${endpoint}]:`, err.message);
     throw err;
