@@ -1,26 +1,30 @@
 import React, { useState } from "react";
 import { Department } from "../types/department.types";
-import { FiLayers, FiMoreVertical, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiLayers, FiMoreVertical, FiEdit2, FiTrash2, FiClock } from "react-icons/fi";
 
 import EditDepartmentModal from "../components/modals/EditDepartmentModal";
 import DeleteDepartmentModal from "../components/modals/DeleteDepartmentModal";
 
-const INITIAL_DEPARTMENTS: Department[] = [
-    { id: "1", name: "Tecnología / IT", positionsCount: 2 },
-    { id: "2", name: "Ventas", positionsCount: 2 },
-    { id: "3", name: "Recursos Humanos", positionsCount: 1 },
-    { id: "4", name: "Finanzas & Contabilidad", positionsCount: 0 },
-    { id: "5", name: "Operaciones", positionsCount: 2 },
-    { id: "6", name: "Marketing", positionsCount: 0 },
-    { id: "7", name: "Legal", positionsCount: 0 },
+interface ExtendedDepartment extends Department {
+    createdAt?: string;
+}
+
+const INITIAL_DEPARTMENTS: ExtendedDepartment[] = [
+    { id: "1", name: "Tecnología / IT", positionsCount: 2, createdAt: "01/01/2026" },
+    { id: "2", name: "Ventas", positionsCount: 2, createdAt: "01/01/2026" },
+    { id: "3", name: "Recursos Humanos", positionsCount: 1, createdAt: "01/01/2026" },
+    { id: "4", name: "Finanzas & Contabilidad", positionsCount: 0, createdAt: "01/01/2026" },
+    { id: "5", name: "Operaciones", positionsCount: 2, createdAt: "01/01/2026" },
+    { id: "6", name: "Marketing", positionsCount: 0, createdAt: "01/01/2026" },
+    { id: "7", name: "Legal", positionsCount: 0, createdAt: "01/01/2026" },
 ];
 
 const DepartmentHistory: React.FC = () => {
-    const [departments, setDepartments] = useState<Department[]>(INITIAL_DEPARTMENTS);
+    const [departments, setDepartments] = useState<ExtendedDepartment[]>(INITIAL_DEPARTMENTS);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-    const [editModalDept, setEditModalDept] = useState<Department | null>(null);
-    const [deleteModalDept, setDeleteModalDept] = useState<Department | null>(null);
+    const [editModalDept, setEditModalDept] = useState<ExtendedDepartment | null>(null);
+    const [deleteModalDept, setDeleteModalDept] = useState<ExtendedDepartment | null>(null);
 
     const toggleMenu = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -70,9 +74,15 @@ const DepartmentHistory: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-6">
+                                    {/* Muestra la fecha de creación alineada */}
+                                    <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium whitespace-nowrap">
+                                        <FiClock className="text-gray-300 text-sm" />
+                                        <span>Creado: {dept.createdAt || "01/01/2026"}</span>
+                                    </div>
+
                                     {dept.positionsCount > 0 && (
-                                        <div className="w-7 h-7 bg-[#DCF9FF] text-[#447ECA] rounded-full flex items-center justify-center text-xs font-bold">
+                                        <div className="w-7 h-7 bg-[#DCF9FF] text-[#447ECA] rounded-full flex items-center justify-center text-xs font-bold shrink-0">
                                             {dept.positionsCount}
                                         </div>
                                     )}
@@ -81,7 +91,7 @@ const DepartmentHistory: React.FC = () => {
                                         onClick={(e) => toggleMenu(dept.id, e)}
                                         title="Opciones de departamento"
                                         aria-label="Opciones de departamento"
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 shrink-0"
                                     >
                                         <FiMoreVertical className="text-lg" />
                                     </button>
