@@ -26,7 +26,6 @@ export const apiClient = async <T = unknown>(
     };
 
     const response = await fetch(url, config);
-
     const isJson = response.headers.get('content-type')?.includes('application/json');
     const responseBody: unknown = isJson ? await response.json() : null;
 
@@ -35,10 +34,14 @@ export const apiClient = async <T = unknown>(
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
-        throw new Error("Sesión expirada o no autorizada.");
+        throw new ApiError("Sesión expirada o no autorizada.", response.status, responseBody);
       }
-      const errorMessage = String(castedBody?.error || castedBody?.message || `Error: ${response.status}`);
-      throw new Error(errorMessage);
+
+      const serverError = castedBody?.error || castedBody?.message || castedBody?.errors;
+      const errorMessage = typeof serverError === 'object' ? JSON.stringify(serverError) : String(serverError || `Error: ${response.status}`);
+
+      // MODIFICACIÓN CLAVE: Lanzamos el error con los datos reales adjuntos
+      throw new ApiError(errorMessage, response.status, responseBody);
     }
 
     if (castedBody && castedBody.data !== undefined) {
@@ -48,6 +51,9 @@ export const apiClient = async <T = unknown>(
     return responseBody as T;
 
   } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
     const err = error as Error;
     console.error(`API Client Error [${options.method || 'GET'} ${endpoint}]:`, err.message);
     throw err;
