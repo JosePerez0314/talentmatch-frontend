@@ -1,6 +1,5 @@
-const BASE_URL: string = import.meta.env.VITE_API_URL || "https://api.talentmatchai.com.do/api";
+const BASE_URL: string = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-// Clase personalizada en TypeScript para transportar los detalles reales del servidor
 export class ApiError extends Error {
   status: number;
   serverData: any;
@@ -10,7 +9,6 @@ export class ApiError extends Error {
     this.name = "ApiError";
     this.status = status;
     this.serverData = serverData;
-    // Asegura el prototipo correcto en herencia de clases nativas de JS
     Object.setPrototypeOf(this, ApiError.prototype);
   }
 }
@@ -58,7 +56,7 @@ export const apiClient = async <T = unknown>(
       const serverError = castedBody?.error || castedBody?.message || castedBody?.errors;
       const errorMessage = typeof serverError === 'object' ? JSON.stringify(serverError) : String(serverError || `Error: ${response.status}`);
 
-      // MODIFICACIÓN CLAVE: Lanzamos el error con los datos reales adjuntos
+
       throw new ApiError(errorMessage, response.status, responseBody);
     }
 
