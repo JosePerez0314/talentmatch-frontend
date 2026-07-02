@@ -1,5 +1,5 @@
 import { apiClient } from "./apiClient";
-import { Vacancy, MatchResult, ApiResponse } from "../../types/api.types";
+import { Vacancy, ApiResponse } from "../../types/api.types";
 
 // Interfaz
 export interface CreateVacancyInput {
