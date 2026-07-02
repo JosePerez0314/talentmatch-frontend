@@ -1,25 +1,29 @@
 import { apiClient } from "./apiClient";
 import { Vacancy, MatchResult, ApiResponse } from "../../types/api.types";
 
-// 1. Interfaz estricta para la creación de vacantes
+// Interfaz
 export interface CreateVacancyInput {
-  positionId: number;
   title: string;
-  location: string;
-  salaryRange?: string;
-  limitDate?: string;
+  availableSlots: number;
+  startDate: string;
+  endDate: string;
+  status?: 'ACTIVE' | 'PAUSED' | 'CLOSED';
+  departmentId: number;
+  positionId: number;
 }
 
 export const vacanciesApi = {
-  // Obtener todas las vacantes que no estén bajo borrado lógico (soft-delete)
+  // GET /vacancies/ - Listar vacantes
   getAll: async (): Promise<ApiResponse<Vacancy[]>> => {
-    return apiClient('/vacancies', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return apiClient('/vacancies', { method: 'GET' });
   },
 
-  // Crear una nueva vacante enlazada a una posición
+  // GET /vacancies/:id - Detalle de vacante
+  getById: async (id: number | string): Promise<ApiResponse<Vacancy>> => {
+    return apiClient(`/vacancies/${id}`, { method: 'GET' });
+  },
+
+  // POST /vacancies/ - Crear vacante
   create: async (data: CreateVacancyInput): Promise<ApiResponse<Vacancy>> => {
     return apiClient('/vacancies', {
       method: 'POST',
@@ -28,37 +32,49 @@ export const vacanciesApi = {
     });
   },
 
-  // Vista Drill-Down: Obtiene el Top 10 de candidatos ordenados por MatchScore para esta vacante
-  getResults: async (vacancyId: number | string): Promise<ApiResponse<MatchResult[]>> => {
-    return apiClient(`/vacancies/${vacancyId}/results`, {
-      method: 'GET',
+  // PUT /vacancies/:id - Actualizacion
+  update: async (id: number | string, data: Partial<CreateVacancyInput>): Promise<ApiResponse<Vacancy>> => {
+    return apiClient(`/vacancies/${id}`, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
   },
 
-  // Lazy Evaluation: Ejecuta el motor de IA JIT (Just-In-Time) y hace un Upsert en MatchResult
-  calculateMatch: async (
-    vacancyId: number | string,
-    candidateId: string
-  ): Promise<ApiResponse<MatchResult>> => {
-    return apiClient(`/vacancies/${vacancyId}/results`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vacancyId, candidateId }),
-    });
-  },
-
-  // Menú Kebab Contextual: Actualiza de forma segura el estado operativo de la vacante (OPEN, PAUSED, CLOSED)
-  updateStatus: async (
-    vacancyId: number | string,
-    newStatus: 'OPEN' | 'PAUSED' | 'CLOSED'
-  ): Promise<ApiResponse<Vacancy>> => {
-    return apiClient(`/vacancies/${vacancyId}/status`, {
+  // PATCH /vacancies/:id/status - Cambiar estado
+  updateStatus: async (id: number | string, status: 'ACTIVE' | 'PAUSED' | 'CLOSED'): Promise<ApiResponse<Vacancy>> => {
+    return apiClient(`/vacancies/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        status: String(newStatus).trim()
-      }),
+      body: JSON.stringify({ status }),
     });
   },
+
+  // DELETE /vacancies/:id - Eliminar vacante
+  delete: async (id: number | string): Promise<ApiResponse<void>> => {
+    return apiClient(`/vacancies/${id}`, { method: 'DELETE' });
+  },
+
+  // --- MODULO RESULTADOS Y EVALUACION IA ---
+
+  // GET /vacancies/:id/results - Obtener ranking de candidatos
+  getResults: async (id: number | string, page = 1, limit = 20): Promise<ApiResponse<any>> => {
+    return apiClient(`/vacancies/${id}/results?page=${page}&limit=${limit}`, { method: 'GET' });
+  },
+
+  // POST /vacancies/:id/upload - Subir PDF
+  uploadCVs: async (id: number | string, files: File[]): Promise<ApiResponse<any>> => {
+    const formData = new FormData();
+    files.forEach(file => formData.append("pdfs", file));
+
+    return apiClient(`/vacancies/${id}/upload`, {
+      method: 'POST',
+      body: formData as unknown as BodyInit,
+    });
+  },
+
+  // POST /vacancies/:id/evaluations - Ejecutar IA para evalua
+  evaluateCandidates: async (id: number | string): Promise<ApiResponse<any>> => {
+    return apiClient(`/vacancies/${id}/evaluations`, { method: 'POST' });
+  }
 };
