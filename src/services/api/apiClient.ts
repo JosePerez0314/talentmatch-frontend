@@ -40,7 +40,7 @@ export const apiClient = async <T = unknown>(
       const serverError = castedBody?.error || castedBody?.message || castedBody?.errors;
       const errorMessage = typeof serverError === 'object' ? JSON.stringify(serverError) : String(serverError || `Error: ${response.status}`);
 
-      // MODIFICACIÓN CLAVE: Lanzamos el error con los datos reales adjuntos
+
       throw new ApiError(errorMessage, response.status, responseBody);
     }
 
