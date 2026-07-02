@@ -1,51 +1,94 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Components
 import EmptyState from "../components/EmptyState";
-import PositionHistoryTable, { PositionData } from "../components/Sections/PositionHistoryTable";
+import PositionHistoryTable from "../components/Sections/PositionHistoryTable";
 
-// Assets e Iconos
-import { ChevronLeft, Plus } from "lucide-react";
-
-// Data estática exacta de tus pantallas de Figma
-const MOCK_POSITIONS: PositionData[] = [
-    { id: 1, role: "Cajero", createdAt: "2026-03-15T00:00:00Z", departmentName: "Finanzas" },
-    { id: 2, role: "Supervisor de Recursos Humanos", createdAt: "2026-03-15T00:00:00Z", departmentName: "RRHH" },
-    { id: 3, role: "Desarrollador Backend Jr", createdAt: "2026-03-15T00:00:00Z", departmentName: "IT" },
-    { id: 4, role: "Supervisor de Ventas", createdAt: "2026-03-15T00:00:00Z", departmentName: "Ventas" },
-    { id: 5, role: "Conserje", createdAt: "2026-03-15T00:00:00Z", departmentName: "Operaciones" },
-    { id: 6, role: "Encargado de Mantenimiento", createdAt: "2026-03-15T00:00:00Z", departmentName: "Operaciones" },
-    { id: 7, role: "UX & UI Designer Senior", createdAt: "2026-03-15T00:00:00Z", departmentName: "General" }
-];
-
-const DEPARTMENTS = ["Todos", "Finanzas", "General", "IT", "Operaciones", "RRHH", "Ventas"];
+// Assets & Services
+import { ChevronLeft, Plus, AlertCircle } from "lucide-react";
+import { positionService } from "../services/api/positions.api";
 
 const PositionHistory: React.FC = () => {
     const navigate = useNavigate();
+    
+    // Estados de Conexión y Datos
+    const [positions, setPositions] = useState<any[]>([]);
+    const [departmentsList, setDepartmentsList] = useState<string[]>(["Todos"]);
     const [activeTab, setActiveTab] = useState<string>("Todos");
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>("");
 
-    const filteredPositions = MOCK_POSITIONS.filter(pos => {
+    // OBTENER DATA REAL AL MONTAR
+    const fetchPositions = async () => {
+        setIsLoading(true);
+        setError("");
+        try {
+            const data = await positionService.getAll();
+            const positionsArray = Array.isArray(data) ? data : (data as any)?.data || [];
+            
+            setPositions(positionsArray);
+
+            // Generamos las pestañas dinámicamente basados en las posiciones obtenidas
+            const uniqueDepts = Array.from(new Set(positionsArray.map((p: any) => p.department?.name || "General")));
+            setDepartmentsList(["Todos", ...uniqueDepts as string[]]);
+        } catch (err: any) {
+            console.error("Error fetching positions:", err);
+            setError("No se pudieron cargar las posiciones desde el servidor.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPositions();
+    }, []);
+
+    // HANDLERS DEL CRUD (Eliminar y Duplicar)
+    const handleDeletePosition = async (id: number | string) => {
+        try {
+            await positionService.delete(id);
+            // Actualización optimista de UI
+            setPositions(prev => prev.filter(p => p.id !== id));
+        } catch (error) {
+            console.error("Error al eliminar", error);
+            alert("No se pudo eliminar la posición.");
+        }
+    };
+
+    const handleDuplicatePosition = async (id: number | string) => {
+        try {
+            // POST /positions/duplicate/:id
+            await positionService.duplicate(id);
+            // Refrescamos para trae copia generada por el backend
+            fetchPositions();
+        } catch (error) {
+            console.error("Error al duplicar", error);
+            alert("No se pudo duplicar la posición.");
+        }
+    };
+
+    // Lógica de Filtrado
+    const filteredPositions = positions.filter(pos => {
         if (activeTab === "Todos") return true;
-        return pos.departmentName.toLowerCase() === activeTab.toLowerCase();
+        const deptName = pos.department?.name || "General";
+        return deptName.toLowerCase() === activeTab.toLowerCase();
     });
 
     const getTabCount = (tab: string) => {
-        if (tab === "Todos") return MOCK_POSITIONS.length;
-        return MOCK_POSITIONS.filter(pos => pos.departmentName.toLowerCase() === tab.toLowerCase()).length;
+        if (tab === "Todos") return positions.length;
+        return positions.filter(pos => (pos.department?.name || "General").toLowerCase() === tab.toLowerCase()).length;
     };
 
     return (
         <div className="p-10 animate-fade-in max-w-5xl mx-auto flex flex-col min-h-screen text-left relative">
-
-            {/* Encabezado Superior con Título y Botón de Nueva Posición alineados */}
             <div className="flex justify-between items-start mb-8">
                 <header className="flex flex-col">
                     <h1 className="text-[26px] font-semibold text-gray-800 tracking-tight mb-1">
                         Historial de Posiciones
                     </h1>
                     <p className="text-sm text-gray-400 font-medium">
-                        {MOCK_POSITIONS.length} posiciones registradas
+                        {positions.length} posiciones registradas en la base de datos
                     </p>
                 </header>
 
@@ -57,59 +100,59 @@ const PositionHistory: React.FC = () => {
                 </button>
             </div>
 
-            {/* CONTENEDOR BLANCO PRINCIPAL (Figma Style) */}
-            <section className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col relative pb-6">
+            {error && (
+                <div className="mb-6 bg-red-50 text-red-600 px-6 py-4 rounded-xl border border-red-200 text-sm font-bold flex items-center gap-3">
+                    <AlertCircle size={20} /> {error}
+                </div>
+            )}
 
-                {/* Menú de Pestañas (Tabs) integrado en la parte superior interna */}
+            <section className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col relative pb-6">
+                
+                {/* Tabs Dinamicos */}
                 <div className="flex border-b border-gray-100 px-8 pt-5 overflow-x-auto gap-4 custom-scrollbar whitespace-nowrap bg-white select-none">
-                    {DEPARTMENTS.map((dept) => {
+                    {departmentsList.map((dept) => {
                         const isActive = activeTab === dept;
                         const count = getTabCount(dept);
 
                         return (
                             <button
                                 key={dept}
-                                type="button"
                                 onClick={() => setActiveTab(dept)}
-                                className={`pb-4 px-1 text-sm font-medium transition-all relative flex items-center gap-2 cursor-pointer ${isActive ? "text-[#447ECA]" : "text-gray-400 hover:text-gray-600"
-                                    }`}>
+                                className={`pb-4 px-1 text-sm font-medium transition-all relative flex items-center gap-2 cursor-pointer ${isActive ? "text-[#447ECA]" : "text-gray-400 hover:text-gray-600"}`}
+                            >
                                 {dept}
-                                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${isActive ? "bg-[#DCF9FF] text-[#447ECA]" : "bg-[#f0f0f5] text-gray-500"
-                                    }`}>
+                                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${isActive ? "bg-[#DCF9FF] text-[#447ECA]" : "bg-[#f0f0f5] text-gray-500"}`}>
                                     {count}
                                 </span>
-
-                                {isActive && (
-                                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#447ECA]" />
-                                )}
+                                {isActive && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#447ECA]" />}
                             </button>
                         );
                     })}
                 </div>
 
-                {/* Tabla o Estado Vacío */}
-                {filteredPositions.length > 0 ? (
-                    <PositionHistoryTable data={filteredPositions} />
+                {isLoading ? (
+                    <div className="py-24 flex items-center justify-center text-gray-400 font-medium">Cargando base de datos...</div>
+                ) : filteredPositions.length > 0 ? (
+                    <PositionHistoryTable 
+                        data={filteredPositions}
+                        onDelete={handleDeletePosition} 
+                        onDuplicate={handleDuplicatePosition} 
+                    />
                 ) : (
                     <div className="py-24 flex-grow flex items-center justify-center">
-                        <EmptyState
-                            title="¡Aún no hay posiciones!"
-                            description="Aquí aparecerán las vacantes que crees para empezar a buscar el match perfecto." />
+                        <EmptyState title="¡Aún no hay posiciones!" description="Aquí aparecerán las posiciones que crees para la plataforma." />
                     </div>
                 )}
             </section>
 
-            {/* Botón Volver discreto en la parte inferior */}
             <div className="flex justify-start mt-6">
                 <button
-                    type="button"
                     onClick={() => navigate("/dashboard")}
                     className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-[#356BB0] active:scale-95 transition-all text-sm cursor-pointer">
                     <ChevronLeft size={16} strokeWidth={2.5} />
                     Volver al Dashboard
                 </button>
             </div>
-
         </div>
     );
 };

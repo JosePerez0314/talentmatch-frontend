@@ -1,17 +1,5 @@
-const BASE_URL: string = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-export class ApiError extends Error {
-  status: number;
-  serverData: any;
-
-  constructor(message: string, status: number, serverData: any) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.serverData = serverData;
-    Object.setPrototypeOf(this, ApiError.prototype);
-  }
-}
+const BASE_URL: string = import.meta.env.VITE_API_URL;
 
 export interface ApiClientOptions extends Omit<RequestInit, 'headers'> {
   headers?: Record<string, string> | HeadersInit;
@@ -22,14 +10,10 @@ export const apiClient = async <T = unknown>(
   options: ApiClientOptions = {}
 ): Promise<T> => {
   try {
-    const url = `${BASE_URL}${endpoint}`.replace(/([^:]\/)\/+/g, "$1");
-    const headers = new Headers(options.headers as Record<string, string> || {});
+    const baseUrlCleaned = BASE_URL.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL;
+    const url = `${baseUrlCleaned}${endpoint}`;
 
-    if (options.body && !(options.body instanceof FormData)) {
-      if (!headers.has("Content-Type")) {
-        headers.set("Content-Type", "application/json");
-      }
-    }
+    const headers = new Headers(options.headers as Record<string, string> || {});
 
     const token = localStorage.getItem("token");
     if (token) {

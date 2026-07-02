@@ -2,24 +2,29 @@ import React from "react";
 import { Briefcase } from "lucide-react";
 import ActionDropdown from "./ActionDropdown";
 
-// Exportamos la interfaz para que PositionHistory la use y se elimine la línea roja
+// Interfaz UI
 export interface PositionData {
     id: number | string;
     role: string;
     createdAt: string;
-    departmentName: string;
+    departmentName?: string;
+    department?: { name: string };
 }
 
 interface PositionHistoryTableProps {
     data: PositionData[];
+    onDelete: (id: number | string) => void;
+    onDuplicate: (id: number | string) => void;
 }
 
 interface PositionRowProps {
     position: PositionData;
     formatDate: (dateString: string) => string;
+    onDelete: (id: number | string) => void;
+    onDuplicate: (id: number | string) => void;
 }
 
-const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [] }) => {
+const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], onDelete, onDuplicate }) => {
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return "15/03/2026";
@@ -32,7 +37,7 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [] }
 
     return (
         <div className="flex flex-col w-full bg-white text-left">
-            {/* Encabezado limpio idéntico a Figma (Sin fondo gris) */}
+            {/* Encabezado */}
             <div className="px-8 py-5 border-b border-gray-100 bg-white grid grid-cols-12 gap-4 items-center select-none">
                 <span className="col-span-5 text-gray-400 font-bold text-[11px] uppercase tracking-[0.15em]">
                     Posición
@@ -55,6 +60,8 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [] }
                         key={position.id}
                         position={position}
                         formatDate={formatDate}
+                        onDelete={onDelete}
+                        onDuplicate={onDuplicate}
                     />
                 ))}
             </div>
@@ -62,13 +69,15 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [] }
     );
 };
 
-const PositionRow: React.FC<PositionRowProps> = ({ position, formatDate }) => {
-    const { role, createdAt, departmentName } = position;
+const PositionRow: React.FC<PositionRowProps> = ({ position, formatDate, onDelete, onDuplicate }) => {
+    // extraer nombre de departamento de Backend
+    const { id, role, createdAt, departmentName, department } = position;
+    const resolvedDepartmentName = department?.name || departmentName || "General";
 
     return (
         <div className="px-8 py-4 grid grid-cols-12 gap-4 items-center hover:bg-[#F9FBFF] transition-all group">
 
-            {/* Columna 1: Info de la Posición */}
+            {/* Columna 1 Info de la Posicion */}
             <div className="col-span-5 flex items-center gap-4">
                 <div className="w-9 h-9 bg-[#EBF3FC] rounded-xl flex items-center justify-center transition-colors shrink-0">
                     <Briefcase size={16} className="text-[#447ECA] opacity-90" />
@@ -80,21 +89,24 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, formatDate }) => {
                 </div>
             </div>
 
-            {/* Columna 2: Píldora del Departamento */}
+            {/* Columna 2 Píldora del Departamento */}
             <div className="col-span-4 flex justify-start">
                 <span className="px-3 py-1 bg-[#f0f0f5] text-gray-500 rounded-full text-xs font-medium tracking-wide">
-                    {departmentName || "General"}
+                    {resolvedDepartmentName}
                 </span>
             </div>
 
-            {/* Columna 3: Fecha Estructurada */}
+            {/* Columna 3 Fecha Estructurada */}
             <div className="col-span-2 flex items-center text-gray-400 text-[14px] font-medium">
                 <span>{formatDate(createdAt)}</span>
             </div>
 
-            {/* Columna 4: Dropdown de Acciones */}
+            {/* Columna 4 Dropdown de Acciones */}
             <div className="col-span-1 flex justify-end pr-1">
-                <ActionDropdown />
+                <ActionDropdown 
+                    onDelete={() => onDelete(id)} 
+                    onDuplicate={() => onDuplicate(id)} 
+                />
             </div>
 
         </div>

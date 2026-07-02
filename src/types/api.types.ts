@@ -10,13 +10,21 @@ export interface User {
 
 export interface Position {
     id: number;
-    title: string;
-    description: string;
-    requirements?: string;
-    departmentId: number;
+    departmentId: number | string;
     department?: Department;
-    isDeleted: boolean; // Control de Soft Delete requerido
-    createdAt: string;
+    // Adaptado al nuevo Stepper de 4 pasos
+    role: string;
+    yearsOfExperience: number;
+    description: string;
+    technicalSkills: string[];
+    optionalTechnicalSkills: string[];
+    softSkills: string[];
+    educationLevel: string;
+    education: string;
+    languages: string[];
+    
+    isDeleted?: boolean; 
+    createdAt?: string;
 }
 
 export interface Vacancy {
@@ -24,10 +32,10 @@ export interface Vacancy {
     positionId: number;
     position?: Position;
     title: string;
-    status: 'OPEN' | 'PAUSED' | 'CLOSED'; // Estados operativos según UI/UX
+    status: 'OPEN' | 'PAUSED' | 'CLOSED'; 
     location: string;
     salaryRange?: string;
-    isDeleted: boolean; // Control de Soft Delete requerido
+    isDeleted: boolean; 
     createdAt: string;
     limitDate?: string;
 }
@@ -40,30 +48,27 @@ export interface Candidate {
     phone?: string;
     resumeUrl?: string;
     skills: string[];
-    niche: string; // Generado automáticamente por la IA ("Backend Engineer", etc.)
-    status: 'AVAILABLE' | 'HIRED'; // Estado operativo inmutable para ahorro de tokens
-    indexedAt: string; // Procedencia de datos (Frescura)
+    niche: string; 
+    status: 'AVAILABLE' | 'HIRED'; 
+    indexedAt: string; 
     createdAt: string;
 }
 
-// Representa el modelo relacional del Upsert con restricción compuesta
 export interface MatchResult {
     id: number;
     vacancyId: number;
     candidateId: number;
     candidate?: Candidate;
-    matchScore: number; // Lazy Evaluation: calculado Just-In-Time
-    evaluatedAt: string; // Timestamp del Upsert
+    matchScore: number; 
+    evaluatedAt: string; 
 }
 
-// Envoltorio genérico de Axios/Backend (Criterio de aceptación obligado)
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
     message?: string;
 }
 
-// ====== CONTRATOS DE AUTENTICACIÓN AÑADIDOS ======
 export interface AuthResponse {
     token?: string;
     user?: { email: string };

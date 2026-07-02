@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 
 // Components
 import Footer from "../layouts/Footer";
@@ -7,15 +8,9 @@ import LoginForm from "../components/ui/LoginForm";
 import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets & Types
-import { authService } from "../services/api/auth.api";
+import { authService, LoginCredentials } from "../services/api/auth.api";
 import { Icons } from "../assets/icons/index";
 import { AuthResponse } from "../types/api.types";
-
-// 1. Tipado de Estados e Interfaces de Localización
-interface LoginInputs {
-  email: string;
-  password: string;
-}
 
 type UiState = "form" | "loading" | "error";
 
@@ -28,17 +23,14 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const location = useLocation();
 
-  // 2. Aplicación de Tipos Genéricos en Hooks de Estado
-  const [inputs, setInputs] = useState<LoginInputs>({ email: "", password: "" });
+  const [inputs, setInputs] = useState<LoginCredentials>({ email: "", password: "" });
   const [uiState, setUiState] = useState<UiState>("form");
 
-  // 3. Conversión de Tipo segura para el estado de ubicación de React Router v6
   const state = location.state as LocationState | null;
   const timeoutMessage = state?.sessionExpired
     ? "Tu sesión ha sido cerrada por inactividad por motivos de seguridad."
     : null;
 
-  // 4. Tipado estricto del manejador de cambios en inputs HTML
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -48,29 +40,20 @@ const Login: React.FC = () => {
     }
   };
 
-  // 5. Tipado del manejador del envío del formulario (Asíncrono)
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setUiState("loading");
 
     try {
-      // Aplicación del contrato de respuesta de la API
       const data: AuthResponse = await authService.login(inputs);
 
-      // 🔍 LÓGICA DE EXTRACCIÓN ROBUSTA (Preservada exactamente)
       if (data) {
-        // Buscamos el token y el email en la raíz o dentro de .data
         const token = data.token || data.data?.token;
         const email = data.user?.email || data.data?.user?.email || inputs.email;
 
-        if (!token) {
-          throw new Error("El servidor no devolvió un token de acceso.");
-        }
+        if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 
-        // 🚀 SINCRONIZACIÓN CON AUTHCONTEXT
         login(email, token);
-
-        // Redirección al éxito
         navigate("/dashboard");
       } else {
         throw new Error("No se recibieron datos del servidor.");
@@ -84,37 +67,25 @@ const Login: React.FC = () => {
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
       <header className="flex justify-center shrink-0">
-        <img
-          src={Icons.logos.large}
-          alt="TalentMatch AI Logo"
-          className="h-40 w-auto object-contain pt-10"
-        />
+        <img src={Icons.logos.large} alt="TalentMatch AI Logo" className="h-40 w-auto object-contain pt-10" />
       </header>
 
       <main className="flex flex-col items-center justify-center pb-12 w-full px-6">
-        {/* INACTIVITY CLOSURE ALERT */}
         {timeoutMessage && (
-          <div className="mb-6 max-w-md w-full bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in shadow-sm">
+          <div className="mb-6 max-w-md w-full bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm">
             <p className="text-red-700 text-sm font-bold">{timeoutMessage}</p>
           </div>
         )}
+        
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
             <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>
-            <img
-              src={Icons.auth.loading}
-              alt="Loading"
-              className="h-16 w-16 animate-spin opacity-80"
-            />
+            {/* Ícono de carga de Lucide */}
+            <Loader2 className="h-16 w-16 animate-spin text-[#447ECA] opacity-80" />
           </div>
         ) : (
           <div className="w-full max-w-md flex flex-col items-center">
-            <LoginForm
-              inputs={inputs}
-              onChange={handleInputChange}
-              onSubmit={handleSubmit}
-              uiState={uiState}
-            />
+            <LoginForm inputs={inputs} onChange={handleInputChange} onSubmit={handleSubmit} uiState={uiState} />
           </div>
         )}
       </main>

@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-// 1. Definimos la estructura exacta del Objeto Usuario que guardas en localStorage
+// Estructura de Objeto Usuario que guarda localStorage
 export interface UserData {
   username: string;
   email: string;
   loginDate: string;
 }
 
-// 2. Definimos el contrato de todo lo que expone tu Contexto de Autenticación
+// contrato de todo lo que expone AuthContext
 interface AuthContextType {
   user: UserData | null;
   loading: boolean;
@@ -15,16 +15,16 @@ interface AuthContextType {
   logout: () => void;
 }
 
-// 3. Tipamos el contexto inicial (inicializado en undefined para obligar el uso del Provider)
+// Tipado el contexto inicial 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 4. Tipamos las propiedades del componente (Criterio de Aceptación: interfaces estrictas)
+// Tipado propiedades de componente
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // Inicialización síncrona con tipado explícito para el estado del usuario
+  // estado del usuario
   const [user, setUser] = useState<UserData | null>(() => {
     try {
       const savedUser = localStorage.getItem("tm_user");
