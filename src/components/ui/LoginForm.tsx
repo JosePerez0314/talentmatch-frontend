@@ -1,12 +1,18 @@
 import React, { useState } from "react";
+
+import { Mail, Lock, Eye, EyeOff } from "lucide-react"; 
 import AuthInput from "./AuthInput";
+import { LoginCredentials } from "../../services/api/auth.api";
 
-// Assets
-import { Icons } from "../../assets/icons/index";
+interface LoginFormProps {
+  inputs: LoginCredentials;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  uiState: "form" | "loading" | "error";
+}
 
-const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
-  // Local state to show/hide password
-  const [showPassword, setShowPassword] = useState(false);
+const LoginForm: React.FC<LoginFormProps> = ({ inputs, onChange, onSubmit, uiState }) => {
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   return (
     <div className="w-full max-w-[420px] bg-white rounded-[24px] p-10 shadow-sm border border-blue-50 animate-fade-in">
@@ -15,7 +21,6 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
         <p className="text-[#447ECA] font-medium mt-2">TalentMatch AI</p>
       </div>
 
-      {/* Error Message */}
       {uiState === "error" && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold text-center animate-fade-in">
           Credenciales incorrectas.
@@ -28,7 +33,7 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
           name="email"
           type="email"
           placeholder="Correo Electrónico"
-          icon={Icons.auth.mail}
+          icon={<Mail className="w-5 h-5 text-gray-400" />}
           value={inputs.email}
           onChange={onChange}
           required
@@ -40,26 +45,20 @@ const LoginForm = ({ inputs, onChange, onSubmit, uiState }) => {
             name="password"
             type={showPassword ? "text" : "password"}
             placeholder="Contraseña"
-            icon={Icons.auth.lock}
+            icon={<Lock className="w-5 h-5 text-gray-400" />}
             value={inputs.password}
             onChange={onChange}
             required
           />
-          {/* Buttom eye*/}
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-[42px] opacity-40 hover:opacity-100 transition-opacity"
+            className="absolute right-4 top-[42px] text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <img 
-              src={showPassword ? Icons.auth.eyeOpen : Icons.auth.eyeClosed} 
-              alt="Mostrar" 
-              className="w-5 h-5" 
-            />
+            {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
           </button>
         </div>
 
-        {/* Button automatically disabled while uiState is 'loading' */}
         <button
           type="submit"
           disabled={uiState === "loading"}
