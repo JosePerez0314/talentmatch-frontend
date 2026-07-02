@@ -1,91 +1,76 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-//Components
-import VacancySuccess from "../components/Sections/VacancySuccess";
-
-//Assets and Services
 import { ChevronDown, Calendar, ChevronLeft, AlertCircle } from "lucide-react";
-import { vacanciesApi } from "../services/api/vacancies.api";
-import { positionService } from "../services/api/positions.api";
 
-// --- TIPADOS ---
+// Components & API
+import VacancySuccess from "../components/Sections/VacancySuccess";
+import { vacanciesApi, CreateVacancyInput } from "../services/api/vacancies.api";
+import { positionService } from "../services/api/positions.api";
+import { apiClient } from "../services/api/apiClient"; // para departamentos (supuesto a cambio)
+
+// Interfaces internas adaptadas a la API
 interface Position {
-  id: number | string;
+  id: number;
+  departmentId: number;
   role: string;
 }
 
 interface Department {
-  id: string;
+  id: number;
   name: string;
 }
-
-interface VacancyFormData {
-  departmentId: string;
-  positionId: string;
-  title: string;
-  spots: number;
-  openDate: string;
-  closeDate: string;
-}
-
-// --- MOCK DATA PARA DEPARTAMENTOS ---
-// Lo dejamos listo para conectar con la base de datos en el futuro
-const MOCK_DEPARTMENTS: Department[] = [
-  { id: "1", name: "Tecnología / IT" },
-  { id: "2", name: "Ventas" },
-  { id: "3", name: "Recursos Humanos" },
-  { id: "4", name: "Finanzas & Contabilidad" },
-  { id: "5", name: "Operaciones" },
-  { id: "6", name: "Marketing" },
-  { id: "7", name: "Legal" },
-  { id: "8", name: "Customer Success" },
-  { id: "9", name: "Producto" },
-  { id: "10", name: "Logística" },
-];
 
 const CreateVacancy: React.FC = () => {
   const navigate = useNavigate();
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
-  // Estados
+  // Estados de UI y Datos
   const [uiState, setUiState] = useState<"form" | "success">("form");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string>("");
-  const [positionsList, setPositionsList] = useState<Position[]>([]);
   const [dateError, setDateError] = useState<string>("");
+  
+  // Catálogos dinámicos
+  const [departmentsList, setDepartmentsList] = useState<Department[]>([]);
+  const [positionsList, setPositionsList] = useState<Position[]>([]);
 
-  const [formData, setFormData] = useState<VacancyFormData>({
+  // Estado del formulario
+  const [formData, setFormData] = useState({
     departmentId: "",
     positionId: "",
     title: "",
-    spots: 1,
-    openDate: "",
-    closeDate: ""
+    availableSlots: 1,
+    startDate: "",
+    endDate: ""
   });
 
-  //CARGA DE POSICIONES
+  // CARGA DE DEPARTAMENTOS Y POSICIONES REALES
   useEffect(() => {
-    const fetchPositions = async () => {
+    const fetchCatalogs = async () => {
       try {
-        const data = await positionService.getAll();
-        const positionsArray = Array.isArray(data) ? data : (data as any)?.data || [];
-        setPositionsList(positionsArray);
-
+        const [deptRes, posRes] = await Promise.all([
+          apiClient('/departments', { method: 'GET' }),
+          positionService.getAll()
+        ]);
+        
+        // Manejador seguro de arrays independientemente del envoltorio del backend
+        setDepartmentsList(Array.isArray(deptRes) ? deptRes : (deptRes as any)?.data || []);
+        setPositionsList(Array.isArray(posRes) ? posRes : (posRes as any)?.data || []);
       } catch (error) {
-        console.error("Error cargando posiciones:", error);
+        console.error("Error cargando catálogos:", error);
       }
     };
-    fetchPositions();
+    fetchCatalogs();
   }, []);
 
-  //VALIDACION DE FECHAS EN TIEMPO REAL
+  // Lógica de filtrado de posiciones: El backend exige que la posición pertenezca al departamento
+  const filteredPositions = positionsList.filter(p => String(p.departmentId) === formData.departmentId);
+
+  // VALIDACIÓN DE FECHAS EN TIEMPO REAL
   const validateDates = (start: string, end: string) => {
     if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      if (endDate <= startDate) {
+      if (new Date(end) <= new Date(start)) {
         setDateError("La fecha fin debe ser posterior a la fecha de inicio");
         return;
       }
@@ -95,17 +80,16 @@ const CreateVacancy: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
     setFormData((prev) => {
       const newForm = { ...prev, [name]: value };
-      if (name === "openDate" || name === "closeDate") {
-        validateDates(newForm.openDate, newForm.closeDate);
+      if (name === "startDate" || name === "endDate") {
+        validateDates(newForm.startDate, newForm.endDate);
       }
       return newForm;
     });
   };
 
-  //MANEJADOR PARA Posico
+  // AUTO-COMPLETADO INTELIGENTE DEL TÍTULO
   const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const posId = e.target.value;
     const selectedPosition = positionsList.find(p => String(p.id) === posId);
@@ -113,14 +97,13 @@ const CreateVacancy: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       positionId: posId,
-      // auto-completa
       title: selectedPosition ? selectedPosition.role : prev.title
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (dateError || !formData.positionId || !formData.title || !formData.openDate || !formData.closeDate) {
+    if (dateError || !formData.positionId || !formData.title || !formData.startDate || !formData.endDate) {
       return;
     }
 
@@ -128,23 +111,25 @@ const CreateVacancy: React.FC = () => {
     setApiError("");
 
     try {
-      const payload = {
+      // Mapeo seguro asegurando tipos de datos correctos e ISO strings para el backend
+      const payload: CreateVacancyInput = {
         title: formData.title,
+        availableSlots: Number(formData.availableSlots),
+        departmentId: parseInt(formData.departmentId, 10),
         positionId: parseInt(formData.positionId, 10),
-        openDate: formData.openDate,
-        closeDate: formData.closeDate,
-        departmentId: formData.departmentId,
-        spots: Number(formData.spots),
-        location: "No especificada"
+        // Agregamos tiempo "T00:00:00Z" para garantizar formato ISO válido sin problemas de Timezone
+        startDate: `${formData.startDate}T00:00:00.000Z`, 
+        endDate: `${formData.endDate}T23:59:59.000Z`,
+        status: "ACTIVE"
       };
 
-      //TYPE ASSERTION
-      await vacanciesApi.create(payload as unknown as any);
-
+      // Ejecución limpia tipada
+      await vacanciesApi.create(payload);
       setUiState("success");
+      
     } catch (error: any) {
       console.error("Error al crear vacante:", error);
-      setApiError(error.message || "Error al procesar la solicitud");
+      setApiError(error.message || "Ocurrió un error al crear la vacante.");
     } finally {
       setIsLoading(false);
     }
@@ -171,8 +156,8 @@ const CreateVacancy: React.FC = () => {
 
           {apiError && (
             <div className="mb-6 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 text-sm font-bold flex items-center gap-3">
-              <AlertCircle size={18} />
-              {apiError}
+              <AlertCircle size={18} className="shrink-0" />
+              <span>{apiError}</span>
             </div>
           )}
 
@@ -182,7 +167,7 @@ const CreateVacancy: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-            {/* DEPARTAMENTO    */}
+            {/* DEPARTAMENTO */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-gray-600">
                 Departamento <span className="text-red-400">*</span>
@@ -191,12 +176,16 @@ const CreateVacancy: React.FC = () => {
                 <select
                   name="departmentId"
                   value={formData.departmentId}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    // Reseteamos posición al cambiar departamento por la regla de BD
+                    setFormData(prev => ({...prev, departmentId: e.target.value, positionId: ""}));
+                  }}
                   required
                   className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all"
                 >
                   <option value="" disabled>Selecciona un departamento...</option>
-                  {MOCK_DEPARTMENTS.map(dept => (
+                  {departmentsList.map(dept => (
                     <option key={dept.id} value={dept.id}>{dept.name}</option>
                   ))}
                 </select>
@@ -206,7 +195,7 @@ const CreateVacancy: React.FC = () => {
               </div>
             </div>
 
-            {/* POSICIÓN    */}
+            {/* POSICIÓN FILTRADA */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-gray-600">
                 Posición <span className="text-red-400">*</span>
@@ -217,12 +206,14 @@ const CreateVacancy: React.FC = () => {
                   value={formData.positionId}
                   onChange={handlePositionChange}
                   required
-                  disabled={!formData.departmentId} //Se habilita al elegir departamento
+                  disabled={!formData.departmentId}
                   className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all disabled:opacity-50 disabled:bg-gray-50">
                   <option value="" disabled>
-                    {formData.departmentId ? "Selecciona una posición..." : "Selecciona un departamento primero..."}
+                    {formData.departmentId 
+                      ? filteredPositions.length > 0 ? "Selecciona una posición..." : "No hay posiciones en este depto." 
+                      : "Selecciona un departamento primero..."}
                   </option>
-                  {positionsList.map(pos => (
+                  {filteredPositions.map(pos => (
                     <option key={pos.id} value={pos.id}>{pos.role}</option>
                   ))}
                 </select>
@@ -232,7 +223,7 @@ const CreateVacancy: React.FC = () => {
               </div>
             </div>
 
-            {/* TITULO DE LA VACANTE    */}
+            {/* TÍTULO DE LA VACANTE */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-gray-600">
                 Título de la Vacante <span className="text-red-400">*</span>
@@ -248,23 +239,23 @@ const CreateVacancy: React.FC = () => {
               />
             </div>
 
-            {/*  CUPOS DISPONIBLES */}
+            {/* CUPOS DISPONIBLES (Mapeado a availableSlots) */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[13px] font-medium text-gray-600">
                 Cupos Disponibles <span className="text-red-400">*</span>
               </label>
               <input
                 type="number"
-                name="spots"
+                name="availableSlots"
                 min="1"
-                value={formData.spots}
+                value={formData.availableSlots}
                 onChange={handleInputChange}
                 required
                 className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 transition-all text-sm text-[#334155]"
               />
             </div>
 
-            {/* DATE */}
+            {/* FECHAS */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5 relative">
                 <label className="text-[13px] font-medium text-gray-600">
@@ -276,9 +267,9 @@ const CreateVacancy: React.FC = () => {
                 >
                   <input
                     type="date"
-                    name="openDate"
+                    name="startDate"
                     ref={startDateRef}
-                    value={formData.openDate}
+                    value={formData.startDate}
                     onChange={handleInputChange}
                     required
                     className="w-full p-3 outline-none text-sm text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
@@ -299,9 +290,9 @@ const CreateVacancy: React.FC = () => {
                 >
                   <input
                     type="date"
-                    name="closeDate"
+                    name="endDate"
                     ref={endDateRef}
-                    value={formData.closeDate}
+                    value={formData.endDate}
                     onChange={handleInputChange}
                     required
                     className="w-full p-3 outline-none text-sm text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
@@ -315,11 +306,11 @@ const CreateVacancy: React.FC = () => {
 
             {dateError && <p className="text-red-500 text-xs font-bold -mt-3">{dateError}</p>}
 
-            {/* BUTTOM SUBMIT */}
+            {/* BOTÓN SUBMIT */}
             <div className="flex justify-end mt-4">
               <button
                 type="submit"
-                disabled={isLoading || !!dateError || !formData.positionId || !formData.title || !formData.openDate || !formData.closeDate}
+                disabled={isLoading || !!dateError || !formData.positionId || !formData.title || !formData.startDate || !formData.endDate}
                 className="bg-[#447ECA] text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3669ab] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Creando..." : "Crear Vacante"}
