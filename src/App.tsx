@@ -23,6 +23,7 @@ import DepartmentHistory from "./pages/DepartmentHistory"
 import CandidatesHistory from "./pages/CandidatesHistory";
 import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
+import AdminPanel from "./pages/AdminPanel";
 
 // --- PROTECTED ROUTE CORREGIDA ---
 const ProtectedRoute = () => {
@@ -86,6 +87,7 @@ function App() {
             <Route path="/candidates-history" element={<CandidatesHistory />} />
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Route>
 
           {/* Redirección por defecto para rutas inexistentes */}
