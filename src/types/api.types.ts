@@ -1,57 +1,65 @@
 import { Department } from "./department.types";
 
+// ENUMS
+export type UserRole = 'ADMIN' | 'USER';
+export type EducationLevel = 'NONE' | 'HIGH_SCHOOL' | 'BACHELOR' | 'TECHNICAL' | 'UNIVERSITY' | 'MASTER' | 'DOCTORATE';
+export type VacancyStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
+export type CandidateStatus = 'DISPONIBLE' | 'CONTRATADO';
+
+// INTERFACES DE ENTIDADES
+
 export interface User {
     id: string;
     username: string;
     email: string;
-    role: 'ADMIN' | 'RECRUITER' | 'CANDIDATE';
+    role: UserRole;
     createdAt: string;
 }
 
 export interface Position {
     id: number;
-    departmentId: number | string;
+    departmentId: number; 
     department?: Department;
-    // Adaptado al nuevo Stepper de 4 pasos
     role: string;
     yearsOfExperience: number;
     description: string;
     technicalSkills: string[];
     optionalTechnicalSkills: string[];
     softSkills: string[];
-    educationLevel: string;
-    education: string;
     languages: string[];
-    
+    educationLevel: EducationLevel | string;
+    educationArea?: string;
     isDeleted?: boolean; 
     createdAt?: string;
 }
 
 export interface Vacancy {
     id: number;
+    departmentId: number;
     positionId: number;
     position?: Position;
     title: string;
-    status: 'OPEN' | 'PAUSED' | 'CLOSED'; 
-    location: string;
-    salaryRange?: string;
+    availableSlots: number;
+    startDate: string;
+    endDate: string;
+    status: VacancyStatus;
     isDeleted: boolean; 
     createdAt: string;
-    limitDate?: string;
 }
 
 export interface Candidate {
-    id: string;
-    firstName: string;
-    lastName: string;
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
     email: string;
     phone?: string;
     resumeUrl?: string;
-    skills: string[];
-    niche: string; 
-    status: 'AVAILABLE' | 'HIRED'; 
-    indexedAt: string; 
-    createdAt: string;
+    skills?: string[];
+    niche?: string; 
+    status: CandidateStatus;
+    indexedAt?: string; 
+    createdAt?: string;
 }
 
 export interface MatchResult {
@@ -60,20 +68,30 @@ export interface MatchResult {
     candidateId: number;
     candidate?: Candidate;
     matchScore: number; 
-    evaluatedAt: string; 
+    evaluatedAt?: string; 
+}
+
+// INTERFACES DE RESPUESTA HTTP
+
+// Soporte para errores
+export interface ApiErrorDetail {
+    field: string;
+    message: string;
 }
 
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
     message?: string;
+    error?: string;
+    details?: ApiErrorDetail[];
 }
 
 export interface AuthResponse {
     token?: string;
-    user?: { email: string };
+    user?: { id: string | number; email: string; role: string };
     data?: {
         token?: string;
-        user?: { email: string };
+        user?: { id: string | number; email: string; role: string };
     };
 }
