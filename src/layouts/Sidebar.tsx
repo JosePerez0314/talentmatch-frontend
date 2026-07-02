@@ -50,6 +50,12 @@ const MENU_GROUPS: MenuSection[] = [
         items: [
             { name: "Evaluaciones", icon: Icons.sidebar.trophy, path: "/evaluations-history", isDynamic: true },
         ],
+    },
+    {
+        title: "CONFIGURACIÓN",
+        items: [
+            { name: "Administración", icon: Icons.sidebar.dashboard, path: "/admin" },
+        ],
     }
 ];
 

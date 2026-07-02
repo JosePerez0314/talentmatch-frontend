@@ -1,19 +1,53 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-//Assets
+// Assets
 import { Icons } from "../assets/icons/index";
+// API Service para la persistencia real
+import { departmentsApi } from "../services/api/departments.api";
 
 const CreateDepartment: React.FC = () => {
     const navigate = useNavigate();
     const [departmentName, setDepartmentName] = useState<string>("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // Estados de control de flujo asíncrono y excepciones
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!departmentName.trim()) return;
-        
-        // Simulación de guardado
-        console.log("Guardando departamento:", departmentName);
-        navigate("/department-history");
+        if (!departmentName.trim() || isSubmitting) return;
+
+        try {
+            setIsSubmitting(true);
+            setError(null);
+
+            // LLAMADA REAL: POST /departments/
+            await departmentsApi.create({ name: departmentName.trim() });
+
+            // Redirección exitosa al historial para ver el registro actualizado
+            navigate("/department-history");
+        } catch (err) {
+            // === LOGS CRUCIALES ACTUALIZADOS ===
+            console.error("1. Error detectado en el formulario:", err);
+
+            // Importamos o validamos dinámicamente si es un error de nuestra API
+            if (err && typeof err === "object" && "serverData" in err) {
+                const apiError = err as { status: number; serverData: any; message: string };
+                console.log("DETALLE DEL ERROR DENTRO DEL ARRAY:", JSON.stringify(apiError.serverData.details, null, 2));
+
+                // Si el backend responde con un objeto descriptivo (ej: { message: "..." }), lo usamos en la UI
+                if (apiError.serverData && typeof apiError.serverData === "object") {
+                    const msg = apiError.serverData.message || apiError.serverData.error || JSON.stringify(apiError.serverData);
+                    setError(`Error del Servidor: ${msg}`);
+                    return;
+                }
+            }
+
+            const errorObj = err as Error;
+            setError(errorObj.message || "No se pudo registrar el departamento. Intenta de nuevo.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -25,6 +59,13 @@ const CreateDepartment: React.FC = () => {
                 </header>
 
                 <form onSubmit={handleSubmit} className="w-full">
+                    {/* Alerta UI si el backend arroja error de duplicidad o red */}
+                    {error && (
+                        <div className="mb-6 p-4 text-sm font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl animate-fade-in">
+                            {error}
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 mb-6">
                         <div className="flex items-start gap-4 mb-6">
                             <div className="w-12 h-12 bg-[#DCF9FF] rounded-xl flex items-center justify-center shrink-0">
@@ -45,8 +86,9 @@ const CreateDepartment: React.FC = () => {
                                 type="text"
                                 value={departmentName}
                                 onChange={(e) => setDepartmentName(e.target.value)}
+                                disabled={isSubmitting}
                                 placeholder="Ej: Tecnología / IT, Ventas, Legal..."
-                                className="w-full p-4 bg-white border border-[#447ECA]/40 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 transition-all text-[#334155] placeholder:text-gray-300"
+                                className="w-full p-4 bg-white border border-[#447ECA]/40 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 transition-all text-[#334155] placeholder:text-gray-300 disabled:bg-gray-50 disabled:text-gray-400"
                                 required
                             />
                         </div>
@@ -56,16 +98,17 @@ const CreateDepartment: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => navigate(-1)}
-                            className="flex items-center gap-2 px-6 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all shadow-sm"
+                            disabled={isSubmitting}
+                            className="flex items-center gap-2 px-6 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50"
                         >
                             <span>←</span> Cancelar
                         </button>
                         <button
                             type="submit"
-                            disabled={!departmentName.trim()}
-                            className="px-8 py-3.5 bg-[#A4BDE4] text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 hover:bg-[#447ECA] active:scale-95"
+                            disabled={!departmentName.trim() || isSubmitting}
+                            className="px-8 py-3.5 bg-[#447ECA] text-white rounded-xl text-sm font-bold shadow-sm transition-all disabled:opacity-50 hover:bg-[#3669ab] active:scale-95 flex items-center gap-2"
                         >
-                            Crear Departamento
+                            {isSubmitting ? "Guardando..." : "Crear Departamento"}
                         </button>
                     </div>
                 </form>
