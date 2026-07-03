@@ -1,13 +1,18 @@
-export type VacancyStatus = 'OPEN' | 'PAUSED' | 'CLOSED' | 'CONTACTING';
+export type VacancyStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
 
 export interface Vacancy {
-    id: string | number;
+    id: number;
     title: string;
     positionId: number;
-    openDate: string;
-    closeDate: string;
+    departmentId: number;
+    availableSlots: number;
+    startDate: string;
+    endDate: string;
     status: VacancyStatus;
-    // Fallback opcional por si el backend llega a incluir el objeto anidado
+    isDeleted: boolean;
+    createdAt: string;
+    
+    // Fallback relacional
     position?: {
         id: number;
         role: string;

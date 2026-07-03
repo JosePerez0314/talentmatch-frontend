@@ -10,7 +10,6 @@ import { useAuth } from "../components/context/AuthContext";
 // Services & Assets & Types
 import { authService, LoginCredentials } from "../services/api/auth.api";
 import { Icons } from "../assets/icons/index";
-import { AuthResponse } from "../types/api.types";
 
 type UiState = "form" | "loading" | "error";
 
@@ -45,7 +44,7 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data: AuthResponse = await authService.login(inputs);
+      const data: any = await authService.login(inputs);
 
       if (data) {
         const token = data.token || data.data?.token;
@@ -80,7 +79,6 @@ const Login: React.FC = () => {
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
             <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>
-            {/* Ícono de carga de Lucide */}
             <Loader2 className="h-16 w-16 animate-spin text-[#447ECA] opacity-80" />
           </div>
         ) : (

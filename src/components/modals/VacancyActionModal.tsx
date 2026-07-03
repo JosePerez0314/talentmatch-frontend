@@ -1,30 +1,31 @@
 import React from "react";
-import { Vacancy, VacancyStatus } from "../../types/vacancy.types";
+import { Vacancy, VacancyStatus } from "../../types/api.types";
 
 interface VacancyActionModalProps {
     isOpen: boolean;
     onClose: () => void;
     vacancy: Vacancy | null;
     targetStatus: VacancyStatus | null;
-    onConfirm: (id: string | number, status: VacancyStatus) => void;
+    onConfirm: (id: number, status: VacancyStatus) => void;
 }
 
 const VacancyActionModal: React.FC<VacancyActionModalProps> = ({ isOpen, onClose, vacancy, targetStatus, onConfirm }) => {
     if (!isOpen || !vacancy || !targetStatus) return null;
 
+    // Adaptado a la API oficial
     const getModalConfig = () => {
         switch (targetStatus) {
-            case 'OPEN':
+            case 'ACTIVE':
                 return {
                     title: "Marcar vacante como Activa",
-                    message: `¿Estás seguro de que deseas activar la vacante "${vacancy.title}"? Volverá a estar visible para postulaciones.`,
+                    message: `¿Estás seguro de que deseas activar la vacante "${vacancy.title}"? Volverá a estar visible para recibir nuevos perfiles y postulaciones.`,
                     btnClass: "bg-emerald-600 hover:bg-emerald-700",
                     actionText: "Activar"
                 };
             case 'PAUSED':
                 return {
                     title: "Pausar vacante",
-                    message: `¿Estás seguro de que deseas pausar la vacante "${vacancy.title}"? Las evaluaciones se detendrán temporalmente.`,
+                    message: `¿Estás seguro de que deseas pausar la vacante "${vacancy.title}"? El procesamiento de candidatos se detendrá temporalmente.`,
                     btnClass: "bg-amber-500 hover:bg-amber-600",
                     actionText: "Pausar"
                 };
