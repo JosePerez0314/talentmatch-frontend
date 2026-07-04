@@ -84,6 +84,7 @@ function App() {
             <Route path="/resultados/:id" element={<Resultados />} />
             <Route path="/candidates-history" element={<CandidatesHistory />} />
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
+            <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
