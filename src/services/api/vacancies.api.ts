@@ -32,7 +32,7 @@ export const vacanciesApi = {
     });
   },
 
-  // PUT /vacancies/:id - Actualizacion
+  // PUT /vacancies/:id - Actualización
   update: async (id: number | string, data: Partial<CreateVacancyInput>): Promise<ApiResponse<Vacancy>> => {
     return apiClient(`/vacancies/${id}`, {
       method: 'PUT',
@@ -55,7 +55,7 @@ export const vacanciesApi = {
     return apiClient(`/vacancies/${id}`, { method: 'DELETE' });
   },
 
-  // --- MODULO RESULTADOS Y EVALUACION IA ---
+  // --- MÓDULO RESULTADOS Y EVALUACIÓN IA ---
 
   // GET /vacancies/:id/results - Obtener ranking de candidatos
   getResults: async (id: number | string, page = 1, limit = 20): Promise<ApiResponse<any>> => {
@@ -73,7 +73,7 @@ export const vacanciesApi = {
     });
   },
 
-  // POST /vacancies/:id/evaluations - Ejecutar IA para evalua
+  // POST /vacancies/:id/evaluations - Ejecutar IA para evaluar
   evaluateCandidates: async (id: number | string): Promise<ApiResponse<any>> => {
     return apiClient(`/vacancies/${id}/evaluations`, { method: 'POST' });
   }

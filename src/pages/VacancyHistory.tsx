@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Components
-import EmptyVacancyState from "../components/ui/EmptyVacancyState"; 
+import EmptyVacancyState from "../components/ui/EmptyVacancyState";
 import VacancyActionModal from "../components/modals/VacancyActionModal";
 
 // Assets & Tipos & API
@@ -206,8 +206,9 @@ const VacancyHistory: React.FC = () => {
                                     {/* Kebab Menu de Acciones */}
                                     <td className="px-6 py-5 text-center relative">
                                         <button
+                                            title="Opciones de vacante"
                                             onClick={(e) => toggleMenu(vac.id, e)}
-                                            className="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                                            className="w-8 h-8 inline-flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all"
                                         >
                                             <MoreVertical size={18} />
                                         </button>
@@ -223,7 +224,7 @@ const VacancyHistory: React.FC = () => {
                                                 >
                                                     <Edit2 size={16} className="text-blue-500" /> Editar vacante
                                                 </button>
-                                                
+
                                                 <button
                                                     onClick={() => handleDeleteVacancy(vac.id)}
                                                     className="w-full px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
