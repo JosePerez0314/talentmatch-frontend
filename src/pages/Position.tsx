@@ -32,7 +32,7 @@ const Position: React.FC = () => {
   const [entryMethod, setEntryMethod] = useState<EntryMethod>(null);
   const [isAiMode, setIsAiMode] = useState<boolean>(false);
   const [showAiLoader, setShowAiLoader] = useState<boolean>(false);
-  
+
   // DATOS Y FORMULARIO
   const [formData, setFormData] = useState<CreatePositionInput>(INITIAL_STATE);
   const [departments, setDepartments] = useState<any[]>([]);
@@ -42,7 +42,7 @@ const Position: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [apiError, setApiError] = useState("");
-  
+
   const [tempInputs, setTempInputs] = useState<Record<string, string>>({
     technicalSkills: "", optionalTechnicalSkills: "", softSkills: "", languages: ""
   });
@@ -61,7 +61,7 @@ const Position: React.FC = () => {
     fetchDepartments();
   }, []);
 
-  const handlePill = (field: keyof CreatePositionInput, val: string | null, action: 'add'|'remove', idx?: number) => {
+  const handlePill = (field: keyof CreatePositionInput, val: string | null, action: 'add' | 'remove', idx?: number) => {
     if (action === 'add' && val) {
       const cleanValue = val.trim();
       if (!cleanValue) return setTempInputs(prev => ({ ...prev, [field]: "" }));
@@ -89,11 +89,10 @@ const Position: React.FC = () => {
     if (!file) return;
     setShowAiLoader(true);
     setApiError("");
-    
+
     try {
-      // POST /positions/complete
       const response = await positionService.completeWithAI(file);
-      const aiData = response as Partial<CreatePositionInput>; 
+      const aiData = response as Partial<CreatePositionInput>;
 
       setFormData(prev => ({
         ...prev,
@@ -107,7 +106,7 @@ const Position: React.FC = () => {
         education: aiData.education || prev.education,
         languages: aiData.languages || prev.languages,
       }));
-      
+
       setIsAiMode(true);
       setCurrentStep(2);
     } catch (error: any) {
@@ -122,7 +121,7 @@ const Position: React.FC = () => {
     if (step === 1) return formData.departmentId !== "" && (entryMethod === "manual" || (entryMethod === "ai" && file));
     if (step === 2) return formData.role.trim() !== "" && formData.description.trim() !== "";
     if (step === 3) return formData.technicalSkills.length > 0 && formData.softSkills.length > 0;
-    return true; 
+    return true;
   };
 
   const nextStep = () => {
@@ -145,13 +144,11 @@ const Position: React.FC = () => {
     if (validateStep(4)) {
       setIsLoading(true);
       try {
-        // Format si es necesario para backend
         const finalPayload = {
-            ...formData,
-            departmentId: Number(formData.departmentId),
-            yearsOfExperience: Number(formData.yearsOfExperience)
+          ...formData,
+          departmentId: Number(formData.departmentId),
+          yearsOfExperience: Number(formData.yearsOfExperience)
         };
-        // POST /positions
         await positionService.create(finalPayload as CreatePositionInput);
         setIsSuccess(true);
       } catch (error: any) {
@@ -214,13 +211,13 @@ const Position: React.FC = () => {
   }
 
   if (isSuccess) {
-    return <PositionSuccess positionName={formData.role} isAiGenerated={isAiMode} onReset={() => { setIsSuccess(false); setFormData(INITIAL_STATE); setCurrentStep(1); setIsAiMode(false); setFile(null); setEntryMethod(null); }}/>;
+    return <PositionSuccess positionName={formData.role} isAiGenerated={isAiMode} onReset={() => { setIsSuccess(false); setFormData(INITIAL_STATE); setCurrentStep(1); setIsAiMode(false); setFile(null); setEntryMethod(null); }} />;
   }
 
   return (
     <div className="p-6 md:p-10 animate-fade-in max-w-5xl mx-auto min-h-screen flex flex-col">
       <div className="bg-white rounded-[32px] p-8 md:p-12 shadow-sm border border-gray-100 flex-1 flex flex-col relative">
-        
+
         {/* Notificación Global de Error */}
         {apiError && (
           <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[80%] bg-red-50 text-red-600 px-6 py-3 rounded-xl border border-red-200 text-sm font-bold text-center animate-fade-in">
@@ -239,10 +236,11 @@ const Position: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-2 max-w-xl">
-                <label className="text-[13px] font-medium text-gray-700">Departamento <span className="text-red-500">*</span></label>
+                <label htmlFor="departmentSelect" className="text-[13px] font-medium text-gray-700">Departamento <span className="text-red-500">*</span></label>
                 <select
+                  id="departmentSelect"
                   value={formData.departmentId}
-                  onChange={e => setFormData({...formData, departmentId: e.target.value})}
+                  onChange={e => setFormData({ ...formData, departmentId: e.target.value })}
                   className="w-full p-4 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 text-sm text-[#334155]"
                 >
                   <option value="" disabled>Selecciona un departamento...</option>
@@ -298,15 +296,15 @@ const Position: React.FC = () => {
                 <div className="space-y-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Nombre del puesto <span className="text-red-500">*</span></label>
-                    <input type="text" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="text" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Años de experiencia requerida</label>
-                    <input type="number" min="0" value={formData.yearsOfExperience} onChange={e => setFormData({...formData, yearsOfExperience: Number(e.target.value)})} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="number" min="0" value={formData.yearsOfExperience} onChange={e => setFormData({ ...formData, yearsOfExperience: Number(e.target.value) })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Descripción del puesto <span className="text-red-500">*</span></label>
-                    <textarea rows={5} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA] resize-none" />
+                    <textarea rows={5} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA] resize-none" />
                   </div>
                 </div>
               </div>
@@ -319,9 +317,9 @@ const Position: React.FC = () => {
               <h2 className="text-xl font-medium text-gray-900 mb-8">Habilidades y cualificaciones</h2>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
                 <div className="space-y-6">
-                  <PillInput label="Habilidades técnicas obligatorias *" id="technicalSkills" theme="green" pills={formData.technicalSkills} tempValue={tempInputs.technicalSkills} hasAttemptedSubmit={hasAttemptedSubmit} placeholder="Ej: React, Python..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({...tempInputs, [id]: v})} />
-                  <PillInput label="Habilidades técnicas opcionales" id="optionalTechnicalSkills" theme="green" pills={formData.optionalTechnicalSkills} tempValue={tempInputs.optionalTechnicalSkills} placeholder="Ej: Figma..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({...tempInputs, [id]: v})} />
-                  <PillInput label="Habilidades blandas *" id="softSkills" theme="blue" pills={formData.softSkills} tempValue={tempInputs.softSkills} hasAttemptedSubmit={hasAttemptedSubmit} placeholder="Ej: Liderazgo..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({...tempInputs, [id]: v})} />
+                  <PillInput label="Habilidades técnicas obligatorias *" id="technicalSkills" theme="green" pills={formData.technicalSkills} tempValue={tempInputs.technicalSkills} hasAttemptedSubmit={hasAttemptedSubmit} placeholder="Ej: React, Python..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
+                  <PillInput label="Habilidades técnicas opcionales" id="optionalTechnicalSkills" theme="green" pills={formData.optionalTechnicalSkills} tempValue={tempInputs.optionalTechnicalSkills} placeholder="Ej: Figma..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
+                  <PillInput label="Habilidades blandas *" id="softSkills" theme="blue" pills={formData.softSkills} tempValue={tempInputs.softSkills} hasAttemptedSubmit={hasAttemptedSubmit} placeholder="Ej: Liderazgo..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
                 </div>
               </div>
             </div>
@@ -335,7 +333,7 @@ const Position: React.FC = () => {
                 <div className="space-y-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Nivel de educación mínimo <span className="text-red-500">*</span></label>
-                    <select value={formData.educationLevel} onChange={e => setFormData({...formData, educationLevel: e.target.value})} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]">
+                    <select value={formData.educationLevel} onChange={e => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]">
                       <option value="">Selecciona...</option>
                       <option value="Ninguno">Ninguno</option>
                       <option value="Bachiller">Bachiller</option>
@@ -345,9 +343,9 @@ const Position: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Área de estudio <span className="text-red-500">*</span></label>
-                    <input type="text" value={formData.education} onChange={e => setFormData({...formData, education: e.target.value})} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="text" value={formData.education} onChange={e => setFormData({ ...formData, education: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
                   </div>
-                  <PillInput label="Idiomas" id="languages" theme="green" pills={formData.languages} tempValue={tempInputs.languages} placeholder="Ej: Inglés..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({...tempInputs, [id]: v})} />
+                  <PillInput label="Idiomas" id="languages" theme="green" pills={formData.languages} tempValue={tempInputs.languages} placeholder="Ej: Inglés..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
                 </div>
               </div>
             </div>
@@ -356,7 +354,11 @@ const Position: React.FC = () => {
 
         {/* FOOTER WIZARD */}
         <div className="mt-12 pt-6 border-t border-gray-100 flex items-center justify-between">
-          <button onClick={() => currentStep > 1 ? prevStep() : navigate("/dashboard")} className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors text-sm">
+          <button
+            aria-label="Volver al paso anterior"
+            onClick={() => currentStep > 1 ? prevStep() : navigate("/dashboard")}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors text-sm"
+          >
             <ChevronLeft size={18} /> Atrás
           </button>
 
@@ -365,7 +367,11 @@ const Position: React.FC = () => {
               <Sparkles size={18} /> Analizar Perfil con IA
             </button>
           ) : currentStep < 4 ? (
-            <button onClick={nextStep} className="flex items-center gap-2 bg-[#A4BDE4] hover:bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-sm active:scale-95 text-sm">
+            <button
+              aria-label="Avanzar al siguiente paso"
+              onClick={nextStep}
+              className="flex items-center gap-2 bg-[#A4BDE4] hover:bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-sm active:scale-95 text-sm"
+            >
               Continuar <ChevronRight size={18} />
             </button>
           ) : (

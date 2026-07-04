@@ -13,10 +13,12 @@ export const departmentsApi = {
     getAll: async (): Promise<Department[]> => {
         const res = await apiClient<any>("/departments/");
 
-        // Extraemos el arreglo real navegando de forma segura por res.response.data
-        const rawDepartments = (res && res.response && Array.isArray(res.response.data))
-            ? res.response.data
-            : [];
+        // === EXTRACTOR FLEXIBLE Y SEGURO ===
+        // Verifica si los datos vienen envueltos en res.response.data, res.data, o si res es el array directo.
+        const rawDepartments =
+            (res && res.response && Array.isArray(res.response.data)) ? res.response.data :
+                (res && Array.isArray(res.data)) ? res.data :
+                    Array.isArray(res) ? res : [];
 
         // Normalizamos las propiedades para que hagan match con tu UI
         return rawDepartments.map((dept: any) => ({
@@ -35,7 +37,7 @@ export const departmentsApi = {
     getById: async (id: string): Promise<Department> => {
         const res = await apiClient<any>(`/departments/${id}`);
 
-        // Extraemos el objeto del departamento desde res.response.data
+        // Extraemos el objeto del departamento de forma segura tal como lo tenías
         const dept = (res && res.response && res.response.data) ? res.response.data : res;
 
         return {

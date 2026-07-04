@@ -1,8 +1,8 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 // Context
-import { AuthProvider } from "./components/context/AuthContext";
+import { AuthProvider, useAuth } from "./components/context/AuthContext";
 
 // Components
 import Sidebar from "./layouts/Sidebar";
@@ -25,8 +25,24 @@ import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
-// Se han retirado los bloqueos de sesion temporalmente para facilitar pruebas
+// Componente de Rutas Protegidas con Validación de Sesión Real activa
 const ProtectedRoute: React.FC = () => {
+  const { user, loading } = useAuth();
+
+  // Pantalla de carga mientras se verifica el token/estado
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
+        <div className="animate-pulse text-gray-400 font-medium">Verificando sesión...</div>
+      </div>
+    );
+  }
+
+  // Si no hay un usuario autenticado, rebota directo al login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   return (
     <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left w-full">
       <SessionTimeoutGuard />
@@ -43,18 +59,25 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Redirección automática de la raíz al Login al iniciar */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* RUTAS PRINCIPALES  */}
+          {/* RUTAS PRINCIPALES PROTEGIDAS */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
             <Route path="/uploadcv" element={<UploadCV />} />
             <Route path="/cv-history" element={<CVHistory />} />
             <Route path="/position-history" element={<PositionHistory />} />
+
+            {/* Rutas de Vacantes */}
             <Route path="/vacancy" element={<Vacancy />} />
+            <Route path="/vacancy/edit/:id" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
+
             <Route path="/department" element={<CreateDepartment />} />
             <Route path="/department-history" element={<DepartmentHistory />} />
             <Route path="/resultados" element={<Resultados />} />
@@ -64,8 +87,9 @@ function App() {
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
-          
-          {/* Se eliminó la ruta por defecto ('*') temporalmente */}
+
+          {/* Cualquier ruta desconocida rebota al Dashboard (si está autenticado pasará, si no, ProtectedRoute lo mandará a login) */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
