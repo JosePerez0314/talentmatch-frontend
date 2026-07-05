@@ -1,74 +1,97 @@
 import { Department } from "./department.types";
 
+// ENUMS
+export type UserRole = 'ADMIN' | 'USER';
+export type EducationLevel = 'NONE' | 'HIGH_SCHOOL' | 'BACHELOR' | 'TECHNICAL' | 'UNIVERSITY' | 'MASTER' | 'DOCTORATE';
+export type VacancyStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
+export type CandidateStatus = 'DISPONIBLE' | 'CONTRATADO';
+
+// INTERFACES DE ENTIDADES
+
 export interface User {
     id: string;
     username: string;
     email: string;
-    role: 'ADMIN' | 'RECRUITER' | 'CANDIDATE';
+    role: UserRole;
     createdAt: string;
 }
 
 export interface Position {
     id: number;
-    title: string;
-    description: string;
-    requirements?: string;
-    departmentId: number;
+    departmentId: number; 
     department?: Department;
-    isDeleted: boolean; // Control de Soft Delete requerido
-    createdAt: string;
+    role: string;
+    yearsOfExperience: number;
+    description: string;
+    technicalSkills: string[];
+    optionalTechnicalSkills: string[];
+    softSkills: string[];
+    languages: string[];
+    educationLevel: EducationLevel | string;
+    educationArea?: string;
+    isDeleted?: boolean; 
+    createdAt?: string;
 }
 
 export interface Vacancy {
     id: number;
+    departmentId: number;
     positionId: number;
     position?: Position;
     title: string;
-    status: 'OPEN' | 'PAUSED' | 'CLOSED'; // Estados operativos según UI/UX
-    location: string;
-    salaryRange?: string;
-    isDeleted: boolean; // Control de Soft Delete requerido
+    availableSlots: number;
+    startDate: string;
+    endDate: string;
+    status: VacancyStatus;
+    isDeleted: boolean; 
     createdAt: string;
-    limitDate?: string;
 }
 
 export interface Candidate {
-    id: string;
-    firstName: string;
-    lastName: string;
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    fullName?: string;
     email: string;
     phone?: string;
     resumeUrl?: string;
-    skills: string[];
-    niche: string; // Generado automáticamente por la IA ("Backend Engineer", etc.)
-    status: 'AVAILABLE' | 'HIRED'; // Estado operativo inmutable para ahorro de tokens
-    indexedAt: string; // Procedencia de datos (Frescura)
-    createdAt: string;
+    skills?: string[];
+    niche?: string; 
+    status: CandidateStatus;
+    indexedAt?: string; 
+    createdAt?: string;
 }
 
-// Representa el modelo relacional del Upsert con restricción compuesta
 export interface MatchResult {
     id: number;
     vacancyId: number;
     candidateId: number;
     candidate?: Candidate;
-    matchScore: number; // Lazy Evaluation: calculado Just-In-Time
-    evaluatedAt: string; // Timestamp del Upsert
+    matchScore: number; 
+    evaluatedAt?: string; 
 }
 
-// Envoltorio genérico de Axios/Backend (Criterio de aceptación obligado)
+// INTERFACES DE RESPUESTA HTTP
+
+// Soporte para errores
+export interface ApiErrorDetail {
+    field: string;
+    message: string;
+}
+
 export interface ApiResponse<T> {
     success: boolean;
     data: T;
     message?: string;
+    error?: string;
+    details?: ApiErrorDetail[];
 }
 
-// ====== CONTRATOS DE AUTENTICACIÓN AÑADIDOS ======
 export interface AuthResponse {
     token?: string;
-    user?: { email: string };
+    user?: { id: string | number; email: string; role: string };
     data?: {
         token?: string;
-        user?: { email: string };
+        user?: { id: string | number; email: string; role: string };
     };
 }

@@ -1,12 +1,12 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 // Context
 import { AuthProvider, useAuth } from "./components/context/AuthContext";
 
-// Context
+// Components
 import Sidebar from "./layouts/Sidebar";
 import SessionTimeoutGuard from "./components/ui/SessionTimeoutGuard";
-
 
 // Pages
 import Login from "./pages/Login";
@@ -18,17 +18,18 @@ import PositionHistory from "./pages/PositionHistory";
 import Vacancy from "./pages/Vacancy";
 import VacacyHistory from "./pages/VacancyHistory";
 import Resultados from "./pages/Resultados";
-import CreateDepartment from "./pages/CreateDepartment"
-import DepartmentHistory from "./pages/DepartmentHistory"
+import CreateDepartment from "./pages/CreateDepartment";
+import DepartmentHistory from "./pages/DepartmentHistory";
 import CandidatesHistory from "./pages/CandidatesHistory";
 import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
+import AdminPanel from "./pages/AdminPanel";
 
-// --- PROTECTED ROUTE CORREGIDA ---
-const ProtectedRoute = () => {
+// Componente de Rutas Protegidas con Validación de Sesión Real activa
+const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth();
 
-  // 1. ESPERA ACTIVA: Si el Contexto aún está leyendo el localStorage, no hacemos nada.
+  // Pantalla de carga mientras se verifica el token/estado
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
@@ -37,24 +38,15 @@ const ProtectedRoute = () => {
     );
   }
 
-  // 2. VALIDACIÓN: Si terminó de cargar y realmente no hay usuario, al login.
+  // Si no hay un usuario autenticado, rebota directo al login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // 3. ÉXITO: Si hay usuario, renderizamos el Layout con las rutas hijas (Outlet).
-  // 3. ÉXITO: Absorbe la responsabilidad estructural de Layout.tsx de forma limpia.
-  // Cumplimos con el background universal #F0F0F5 solicitado por el Lead.
   return (
     <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left w-full">
-      {/* Centinela de inactividad global */}
       <SessionTimeoutGuard />
-
-      {/* Navegación lateral Enterprise colapsable */}
       <Sidebar />
-
-      {/* PANEL PRINCIPAL: El Outlet renderiza dinámicamente el Dashboard, Positions, etc. */}
-      {/* Al remover el wrapper del dashboard viejo, este scroll viewport maneja todo con el scrollbar personalizado */}
       <main className="flex-1 overflow-y-auto p-0 relative">
         <Outlet />
       </main>
@@ -67,29 +59,38 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Redirección automática de la raíz al Login al iniciar */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* RUTAS PRIVADAS (Protegidas por el estado 'loading' y 'user') */}
+          {/* RUTAS PRINCIPALES PROTEGIDAS */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
             <Route path="/uploadcv" element={<UploadCV />} />
             <Route path="/cv-history" element={<CVHistory />} />
             <Route path="/position-history" element={<PositionHistory />} />
+
+            {/* Rutas de Vacantes */}
             <Route path="/vacancy" element={<Vacancy />} />
+            <Route path="/vacancy/edit/:id" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
+
             <Route path="/department" element={<CreateDepartment />} />
             <Route path="/department-history" element={<DepartmentHistory />} />
             <Route path="/resultados" element={<Resultados />} />
             <Route path="/resultados/:id" element={<Resultados />} />
             <Route path="/candidates-history" element={<CandidatesHistory />} />
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
+            <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Route>
 
-          {/* Redirección por defecto para rutas inexistentes */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Cualquier ruta desconocida rebota al Dashboard (si está autenticado pasará, si no, ProtectedRoute lo mandará a login) */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
