@@ -4,6 +4,19 @@ export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
   headers?: Record<string, string> | HeadersInit;
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+  message?: string;
+}
+
+interface WrappedApiResponse<T> {
+  response: ApiResponse<T>;
+}
+
+type ExpressResponse<T> = ApiResponse<T> | WrappedApiResponse<T>;
+
 //  ApiError
 export class ApiError extends Error {
   constructor(
@@ -44,7 +57,9 @@ export const apiClient = async <T = unknown>(
     const isJson = response.headers
       .get("content-type")
       ?.includes("application/json");
-    const responseBody: unknown = isJson ? await response.json() : null;
+    const responseBody: unknown = isJson
+      ? ((await response.json()) as ExpressResponse<T>)
+      : null;
 
     const rawBody = responseBody as Record<string, unknown> | null;
 
