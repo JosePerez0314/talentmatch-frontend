@@ -43,7 +43,7 @@ Este archivo es el **índice general**. El desarrollo detallado de cada issue (p
 
 **Issues:**
 
-- [ ] **1.1** Centralizar el desempaquetado en `apiClient`: si `body.response` existe, operar sobre `body.response`; devolver `.data` si está, si no el objeto. Contemplar `success: "false"` **string** en el 404 de `sendResponseOr404` (`API_DOCUMENTATION.md` §9.2) para no tratarlo como éxito.
+- [x] **1.1** Centralizar el desempaquetado en `apiClient`: si `body.response` existe, operar sobre `body.response`; devolver `.data` si está, si no el objeto. ~~Contemplar `success: "false"` **string** en el 404 de `sendResponseOr404` (`API_DOCUMENTATION.md` §9.2) para no tratarlo como éxito.~~ **Corregido (2026-07-07):** `sendResponseOr404` ya manda `success: false` como booleano en el 404; no hace falta contemplar el string.
 - [ ] **1.2** Eliminar los extractores ad-hoc redundantes una vez centralizado: `Position.tsx:55`, `PositionHistory.tsx:28`, `VacancyHistory.tsx:35`, `Vacancy.tsx:64`, `CVHistory.jsx:25`, y la lógica manual de `departmentsApi`.
 - [ ] **1.3** Regresión: verificar que `GET /vacancies/:id` (que **no** usa el helper, responde `{ success, data }` directo — §9.1 nota ¹) siga funcionando tras el cambio.
 
