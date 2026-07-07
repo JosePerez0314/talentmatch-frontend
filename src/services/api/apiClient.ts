@@ -56,7 +56,7 @@ export const apiClient = async <T = unknown>(
 
     // success tolerante: boolean false y string "false" (caso 404 del helper)
     const successFlag = envelope?.success;
-    const isSuccessFlag = successFlag !== false && successFlag !== "false";
+    const isSuccessFlag = successFlag !== false;
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
