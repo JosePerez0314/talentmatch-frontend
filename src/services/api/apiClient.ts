@@ -1,6 +1,7 @@
 const BASE_URL: string = import.meta.env.VITE_API_URL;
 
 export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
+  raw?: boolean; // if is true, returns the full response object instead of just the data
   headers?: Record<string, string> | HeadersInit;
 }
 
@@ -9,6 +10,7 @@ interface ApiResponse<T> {
   data: T;
   error?: string;
   message?: string;
+  details?: unknown;
 }
 
 interface WrappedApiResponse<T> {
@@ -57,20 +59,19 @@ export const apiClient = async <T = unknown>(
     const isJson = response.headers
       .get("content-type")
       ?.includes("application/json");
-    const responseBody: unknown = isJson
+    const responseBody = isJson
       ? ((await response.json()) as ExpressResponse<T>)
       : null;
 
-    const rawBody = responseBody as Record<string, unknown> | null;
+    const standardResponse =
+      responseBody &&
+      typeof responseBody === "object" &&
+      "response" in responseBody
+        ? responseBody.response
+        : responseBody;
 
-    // Desanida la doble envoltura de sendResponseOr404: { response: { success, data } }
-    const envelope: Record<string, unknown> | null =
-      rawBody && typeof rawBody === "object" && "response" in rawBody
-        ? (rawBody.response as Record<string, unknown> | null)
-        : rawBody;
-
-    // success tolerante: boolean false y string "false" (caso 404 del helper)
-    const successFlag = envelope?.success;
+    // success flag can be undefined, true or false. If it's undefined or true, we consider it a success. If it's false, we consider it a failure.
+    const successFlag = standardResponse?.success;
     const isSuccessFlag = successFlag !== false;
 
     if (!response.ok || !isSuccessFlag) {
@@ -82,29 +83,31 @@ export const apiClient = async <T = unknown>(
         );
       }
 
-      // Mensaje legible; details de validación viaja estructurado en ApiError.data
+      // Clean up the error message to avoid exposing sensitive informatiokn
       const errorMessage = String(
-        envelope?.error || envelope?.message || `Error: ${response.status}`,
+        standardResponse?.error ||
+          standardResponse?.message ||
+          `Error: ${response.status}`,
       );
 
       throw new ApiError(
         errorMessage,
         response.status,
-        envelope?.details ?? responseBody,
+        standardResponse?.details ?? responseBody,
       );
     }
 
-    // Si el consumidor pide el sobre completo, devuelve { data, meta } sin desempaquetar
+    // If the comsumer wants the raw response, return it as is
     if ((options as ApiClientOptions & { raw?: boolean }).raw) {
-      return envelope as T;
+      return standardResponse as T;
     }
 
-    // Devuelve data desempaquetada; si no hay data (login), el objeto normalizado
-    if (envelope && envelope.data !== undefined) {
-      return envelope.data as T;
+    // Provide a more convenient way to access the data property if it exists
+    if (standardResponse && standardResponse.data !== undefined) {
+      return standardResponse.data as T;
     }
 
-    return envelope as T;
+    return standardResponse as T;
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
