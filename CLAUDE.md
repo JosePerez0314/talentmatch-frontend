@@ -60,3 +60,8 @@ The app reads `VITE_API_URL` (with a `http://localhost:5000/api` fallback in `ap
 - **Types allowed:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`.
 - **Examples:** `feat(admin): implement JWT test helper utility`, `fix(db): resolve foreign key constraint in test teardown`, `refactor(auth): migrate token validation to strict TypeScript`.
 - When generating the commit message, briefly ensure the subject line accurately reflects the actual architectural or code changes we just discussed.
+- **Language:** commit messages (subject and body) must always be written in English, regardless of the language used in the conversation.
+
+## Code comment language
+
+New or edited code comments must always be written in English going forward, even though existing legacy comments in the codebase are in Spanish (see Conventions above). Don't bulk-translate untouched files — only apply this when writing new comments or editing lines that already have one.
