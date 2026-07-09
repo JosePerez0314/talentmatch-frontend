@@ -2,11 +2,11 @@ import React from "react";
 import { Briefcase } from "lucide-react";
 import ActionDropdown from "./ActionDropdown";
 
-// Interfaz UI
+// Interfaz UI — subset estructural del Position del backend.
 export interface PositionData {
     id: number | string;
     role: string;
-    createdAt: string;
+    createdAt?: string;
     departmentName?: string;
     department?: { name: string };
 }
@@ -19,14 +19,14 @@ interface PositionHistoryTableProps {
 
 interface PositionRowProps {
     position: PositionData;
-    formatDate: (dateString: string) => string;
+    formatDate: (dateString: string | undefined) => string;
     onDelete: (id: number | string) => void;
     onDuplicate: (id: number | string) => void;
 }
 
 const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], onDelete, onDuplicate }) => {
 
-    const formatDate = (dateString: string): string => {
+    const formatDate = (dateString: string | undefined): string => {
         if (!dateString) return "15/03/2026";
         return new Date(dateString).toLocaleDateString("es-ES", {
             day: "2-digit",

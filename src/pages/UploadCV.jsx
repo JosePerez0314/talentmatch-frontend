@@ -6,13 +6,13 @@ import UploadCVSuccess from "../components/Sections/UploadCVSuccess";
 
 // Services, Context & Assets
 import { Icons } from "../assets/icons";
-import { uploadService } from "../services/api/uploads.api"; 
+import { vacanciesApi } from "../services/api/vacancies.api";
 import { useAuth } from "../components/context/AuthContext";
 
 const UploadCV = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-  
+
   const { user } = useAuth();
 
   // Estados
@@ -21,8 +21,28 @@ const UploadCV = () => {
   const [error, setError] = useState(null);
   const [uiState, setUiState] = useState("idle");
 
+  // Vacantes disponibles para asociar los CVs
+  const [vacancies, setVacancies] = useState([]);
+  const [selectedVacancyId, setSelectedVacancyId] = useState("");
+
   // Contador para manejar bubbling de eventos drag
   const dragCounter = useRef(0);
+
+  // Carga las vacantes activas para poder asociar los CVs a una de ellas
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await vacanciesApi.getAll();
+        if (cancelled) return;
+        const active = (data || []).filter((v) => v.status === "ACTIVE");
+        setVacancies(active);
+      } catch (err) {
+        console.error("Error cargando vacantes:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // --- Lógica de Negocio (Helpers) ---
   const validateFiles = useCallback((fileList) => {
@@ -111,9 +131,14 @@ const UploadCV = () => {
 
   const handleUpload = async () => {
     if (files.length === 0) return;
-    
+
     if (!user) {
       setError("Sesión expirada. Por favor, inicia sesión nuevamente.");
+      return;
+    }
+
+    if (!selectedVacancyId) {
+      setError("Selecciona una vacante antes de subir los CVs.");
       return;
     }
 
@@ -121,7 +146,12 @@ const UploadCV = () => {
     setError(null);
 
     try {
-      await uploadService.uploadCVs(files);
+      const results = await vacanciesApi.uploadCVs(selectedVacancyId, files);
+      // La API procesa cada PDF independientemente (§4). Reportamos si alguno falló.
+      const failed = Array.isArray(results) ? results.filter((r) => r && r.success === false) : [];
+      if (failed.length > 0) {
+        setError(`${failed.length} de ${files.length} archivo(s) no pudieron procesarse.`);
+      }
       setUiState("success");
     } catch (err) {
       console.error("Fallo al subir:", err);
@@ -200,6 +230,26 @@ const UploadCV = () => {
         </button>
 
         <div className="bg-white rounded-[32px] shadow-sm p-8 border border-gray-100 relative">
+          <div className="mb-8">
+            <label htmlFor="vacancySelect" className="text-[11px] font-black text-gray-900 uppercase tracking-[0.2em] block mb-2">
+              Vacante destino <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="vacancySelect"
+              value={selectedVacancyId}
+              onChange={(e) => setSelectedVacancyId(e.target.value)}
+              className="w-full p-4 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 text-sm text-[#334155]"
+            >
+              <option value="" disabled>Selecciona una vacante activa...</option>
+              {vacancies.map((v) => (
+                <option key={v.id} value={v.id}>{v.title}</option>
+              ))}
+            </select>
+            {vacancies.length === 0 && (
+              <p className="text-gray-400 text-xs mt-2">No hay vacantes activas. Crea una vacante antes de subir CVs.</p>
+            )}
+          </div>
+
           {files.length > 0 && (
             <div className="flex justify-between items-center mb-10 animate-fade-in">
               <div className="bg-[#E9F7FF] flex items-center gap-5 p-5 rounded-2xl border border-[#D1E9FF]">
@@ -259,9 +309,10 @@ const UploadCV = () => {
               </div>
 
               <div className="flex justify-end mt-12">
-                <button 
+                <button
                   onClick={handleUpload}
-                  className="bg-[#447ECA] text-white px-10 py-3 rounded-2xl font-black text-sm hover:bg-[#356ab0] shadow-xl transition-all uppercase tracking-widest active:scale-95"
+                  disabled={!selectedVacancyId}
+                  className="bg-[#447ECA] text-white px-10 py-3 rounded-2xl font-black text-sm hover:bg-[#356ab0] shadow-xl transition-all uppercase tracking-widest active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Subir Archivos
                 </button>

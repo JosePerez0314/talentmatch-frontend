@@ -1,5 +1,5 @@
 import { apiClient } from "./apiClient";
-import { Position, ApiResponse } from "../../types/api.types";
+import { Position } from "../../types/api.types";
 
 export interface CreatePositionInput {
   departmentId: string | number;
@@ -10,24 +10,24 @@ export interface CreatePositionInput {
   optionalTechnicalSkills: string[];
   softSkills: string[];
   educationLevel: string;
-  education: string;
+  educationArea?: string;
   languages: string[];
 }
 
 export const positionService = {
   // GET /positions/ - Listar posiciones
-  getAll: async (): Promise<ApiResponse<Position[]>> => {
-    return apiClient('/positions', { method: 'GET' });
+  getAll: async (): Promise<Position[]> => {
+    return apiClient<Position[]>('/positions', { method: 'GET' });
   },
 
   // GET /positions/:id - Detalle de posición
-  getById: async (id: string | number): Promise<ApiResponse<Position>> => {
-    return apiClient(`/positions/${id}`, { method: 'GET' });
+  getById: async (id: string | number): Promise<Position> => {
+    return apiClient<Position>(`/positions/${id}`, { method: 'GET' });
   },
 
   // POST /positions/ - Crear posición manual
-  create: async (data: CreatePositionInput): Promise<ApiResponse<Position>> => {
-    return apiClient('/positions', {
+  create: async (data: CreatePositionInput): Promise<Position> => {
+    return apiClient<Position>('/positions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -35,8 +35,8 @@ export const positionService = {
   },
 
   // PUT /positions/:id - Actualizar posición
-  update: async (id: string | number, data: Partial<CreatePositionInput>): Promise<ApiResponse<Position>> => {
-    return apiClient(`/positions/${id}`, {
+  update: async (id: string | number, data: Partial<CreatePositionInput>): Promise<Position> => {
+    return apiClient<Position>(`/positions/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -44,24 +44,24 @@ export const positionService = {
   },
 
   // DELETE /positions/:id - Eliminar posición
-  delete: async (id: string | number): Promise<ApiResponse<void>> => {
-    return apiClient(`/positions/${id}`, { method: 'DELETE' });
+  delete: async (id: string | number): Promise<void> => {
+    return apiClient<void>(`/positions/${id}`, { method: 'DELETE' });
   },
 
   // POST /positions/complete - Extraer datos de PDF con IA
-  completeWithAI: async (pdfFile: File): Promise<ApiResponse<Partial<CreatePositionInput>>> => {
+  completeWithAI: async (pdfFile: File): Promise<Partial<CreatePositionInput>> => {
     const formData = new FormData();
-    formData.append("file", pdfFile);
+    formData.append("pdf", pdfFile);
 
-    return apiClient('/positions/complete', {
+    return apiClient<Partial<CreatePositionInput>>('/positions/complete', {
       method: 'POST',
       // No asignamos Content-Type para que el navegador genere el multipart/form-data automático
-      body: formData as unknown as BodyInit, 
+      body: formData as unknown as BodyInit,
     });
   },
 
   // POST /positions/duplicate/:id - Duplicar posicion
-  duplicate: async (id: string | number): Promise<ApiResponse<Position>> => {
-    return apiClient(`/positions/duplicate/${id}`, { method: 'POST' });
+  duplicate: async (id: string | number): Promise<Position> => {
+    return apiClient<Position>(`/positions/duplicate/${id}`, { method: 'POST' });
   }
 };

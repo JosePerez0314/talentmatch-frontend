@@ -44,7 +44,9 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data: any = await authService.login(inputs);
+      const data = await authService.login(inputs);
+      const token = data.token;
+      const email = data.user?.email ?? inputs.email;
 
       if (data) {
         // 1. Extraemos los datos de forma robusta

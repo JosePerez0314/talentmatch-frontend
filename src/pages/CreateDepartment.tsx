@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Icons } from "../assets/icons/index";
 // API Service para la persistencia real
 import { departmentsApi } from "../services/api/departments.api";
+import { ApiError } from "../services/api/apiClient";
 
 const CreateDepartment: React.FC = () => {
     const navigate = useNavigate();
@@ -27,24 +28,18 @@ const CreateDepartment: React.FC = () => {
             // Redirección exitosa al historial para ver el registro actualizado
             navigate("/department-history");
         } catch (err) {
-            // === LOGS CRUCIALES ACTUALIZADOS ===
             console.error("1. Error detectado en el formulario:", err);
 
-            // Importamos o validamos dinámicamente si es un error de nuestra API
-            if (err && typeof err === "object" && "serverData" in err) {
-                const apiError = err as { status: number; serverData: any; message: string };
-                console.log("DETALLE DEL ERROR DENTRO DEL ARRAY:", JSON.stringify(apiError.serverData.details, null, 2));
-
-                // Si el backend responde con un objeto descriptivo (ej: { message: "..." }), lo usamos en la UI
-                if (apiError.serverData && typeof apiError.serverData === "object") {
-                    const msg = apiError.serverData.message || apiError.serverData.error || JSON.stringify(apiError.serverData);
-                    setError(`Error del Servidor: ${msg}`);
-                    return;
-                }
+            if (err instanceof ApiError && err.data && typeof err.data === "object") {
+                const serverData = err.data as { message?: string; error?: string; details?: unknown };
+                console.log("DETALLE DEL ERROR:", JSON.stringify(serverData.details, null, 2));
+                const msg = serverData.message || serverData.error || JSON.stringify(serverData);
+                setError(`Error del Servidor: ${msg}`);
+                return;
             }
 
-            const errorObj = err as Error;
-            setError(errorObj.message || "No se pudo registrar el departamento. Intenta de nuevo.");
+            const message = err instanceof Error ? err.message : "";
+            setError(message || "No se pudo registrar el departamento. Intenta de nuevo.");
         } finally {
             setIsSubmitting(false);
         }

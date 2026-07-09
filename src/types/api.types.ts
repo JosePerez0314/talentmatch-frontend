@@ -87,6 +87,14 @@ export interface ApiResponse<T> {
     details?: ApiErrorDetail[];
 }
 
+// Per-file result of POST /vacancies/:id/upload (each PDF processed independently)
+export interface UploadResult {
+    success: boolean;
+    data?: Candidate;
+    message?: string;
+    error?: string;
+}
+
 export interface AuthResponse {
     token?: string;
     user?: { id: string | number; email: string; role: string };
