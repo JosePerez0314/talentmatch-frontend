@@ -27,7 +27,7 @@ import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
 const ProtectedRoute: React.FC = () => {
-  const { user } = useAuth(); // FIX: Se eliminó 'loading' ya que el interceptor global hace el trabajo
+  const { user } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;
