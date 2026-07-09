@@ -1,15 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { UserRole } from "../../types/api.types"; // <-- Importamos la fuente de verdad
 
 export interface UserData {
   email: string;
-  role: 'admin' | 'user';
-  username?: string; // Ahora permitimos username
+  role: UserRole; // <-- Usamos el tipado oficial ('ADMIN' | 'USER')
+  username?: string;
 }
 
 interface AuthContextType {
   user: UserData | null;
-  // Añadimos username opcional al login
-  login: (email: string, token: string, role: 'admin' | 'user', username?: string) => void;
+  login: (email: string, token: string, role: UserRole, username?: string) => void;
   logout: () => void;
 }
 
@@ -21,7 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const login = (email: string, token: string, role: 'admin' | 'user', username?: string) => {
+  const login = (email: string, token: string, role: UserRole, username?: string) => {
     // Si no viene username, usamos el email como fallback
     const userData: UserData = { email, role, username: username || email.split('@')[0] };
     setUser(userData);
