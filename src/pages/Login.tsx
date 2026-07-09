@@ -2,12 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-// Components
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
 import { useAuth } from "../components/context/AuthContext";
-
-// Services & Assets & Types
 import { authService, LoginCredentials } from "../services/api/auth.api";
 import { Icons } from "../assets/icons/index";
 
@@ -33,10 +30,7 @@ const Login: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setInputs((prev) => ({ ...prev, [name]: value }));
-
-    if (uiState === "error") {
-      setUiState("form");
-    }
+    if (uiState === "error") setUiState("form");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
@@ -44,31 +38,23 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data = await authService.login(inputs);
-      const token = data.token;
-      const email = data.user?.email ?? inputs.email;
+      const data: any = await authService.login(inputs);
 
       if (data) {
-        // 1. Extraemos los datos de forma robusta
-        const token = data.token || data.data?.token;
-        const email = data.user?.email || data.data?.user?.email || inputs.email;
+        const token = data.token;
+        const email = data.user?.email || inputs.email;
+        // FIX: Aseguramos el rol en MAYÚSCULAS para coincidir con la BD
+        const role = (data.user?.role || 'USER').toUpperCase(); 
 
-        // 2. Extraemos el rol (asegurando un valor por defecto si la API no lo trae)
-        const role = data.user?.role || data.data?.user?.role || 'user';
+        if (!token) throw new Error("El servidor no devolvió un token.");
 
-        if (!token) throw new Error("El servidor no devolvió un token de acceso.");
+        login(email, token, role as 'ADMIN' | 'USER');
 
-        // 3. Llamamos al login con los 3 argumentos (token, email, role)
-        // Forzamos el tipo 'admin' / 'user' para evitar errores de TypeScript
-        login(email, token, role as 'admin' | 'user');
-
-        // 4. Redirección inteligente basada en el rol
-        if (role === 'admin') {
-          navigate('/admin'); // Ajusta a tu ruta de panel de administrador
+        if (role === 'ADMIN') {
+          navigate('/admin');
         } else {
           navigate('/dashboard');
         }
-
       } else {
         throw new Error("No se recibieron datos del servidor.");
       }
@@ -102,7 +88,6 @@ const Login: React.FC = () => {
           </div>
         )}
       </main>
-
       <Footer />
     </div>
   );
