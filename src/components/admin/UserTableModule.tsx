@@ -1,20 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
-import { AdminUser } from '../../types/admin.types';
+// FIX: Cambiamos AdminUser por el tipo User oficial de la API
+import { User } from '../../types/api.types';
 
 export const UserTableModule: React.FC = () => {
-    const [users, setUsers] = useState<AdminUser[]>([]);
+    // FIX: Tipamos con User oficial
+    const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1);
-    const [searchTerm, setSearchTerm] = useState<string>(''); // Filtro visual reactivo
+    const [searchTerm, setSearchTerm] = useState<string>('');
     const limit = 10;
 
     const fetchUsers = useCallback(async (pageNum: number) => {
         try {
             setIsLoading(true);
-            const data = await adminService.getUsers(pageNum, limit);
-            setUsers(data || []);
+            const response = await adminService.getUsers(pageNum, limit);
+            
+            const usersArray = response?.users || [];
+            setUsers(usersArray);
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
         } finally {
@@ -26,15 +30,13 @@ export const UserTableModule: React.FC = () => {
         fetchUsers(page);
     }, [page, fetchUsers]);
 
-    // Filtrado en tiempo real sobre la data existente
-    const filteredUsers = (Array.isArray(users) ? users : []).filter(user =>
+    const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm overflow-hidden">
-            {/* Cabecera idéntica al diseño con Buscador */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-blue-50 text-blue-500 rounded-lg">
@@ -53,7 +55,6 @@ export const UserTableModule: React.FC = () => {
                 </div>
             </div>
 
-            {/* Tabla con las columnas solicitadas */}
             <div className="overflow-x-auto -mx-8">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/70 border-y border-gray-100 text-gray-400 text-[11px] uppercase font-bold tracking-wider">
@@ -62,56 +63,44 @@ export const UserTableModule: React.FC = () => {
                             <th className="px-8 py-3.5">Email</th>
                             <th className="px-8 py-3.5">Rol</th>
                             <th className="px-8 py-3.5">Fecha de creación</th>
-                            <th className="px-8 py-3.5">Último acceso</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={5} className="py-12 text-center">
+                                <td colSpan={4} className="py-12 text-center">
                                     <Loader2 className="animate-spin text-blue-500 mx-auto" size={24} />
                                 </td>
                             </tr>
                         ) : filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-8 text-center text-xs text-gray-400 font-medium">
-                                    No se encontraron usuarios matching con la búsqueda.
+                                <td colSpan={4} className="py-8 text-center text-xs text-gray-400 font-medium">
+                                    No se encontraron usuarios.
                                 </td>
                             </tr>
                         ) : (
                             filteredUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50/40 transition-colors">
-                                    {/* Columna Usuario con Avatar circular */}
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                                {user.avatar || user.username?.substring(0, 2) || 'US'}
+                                                {user.username?.substring(0, 2) || 'US'}
                                             </div>
                                             <span className="text-xs font-semibold text-gray-700">{user.username}</span>
                                         </div>
                                     </td>
-                                    {/* Columna Email */}
                                     <td className="px-8 py-4 text-xs text-gray-500 font-medium">
                                         {user.email}
                                     </td>
-                                    {/* Columna Rol con Badges Estilizados */}
                                     <td className="px-8 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'admin'
-                                            ? 'bg-blue-50 text-blue-600 border border-blue-100/70'
-                                            : 'bg-gray-50 text-gray-500 border border-gray-100'
-                                            }`}>
+                                        {/* FIX: user.role es oficialmente 'ADMIN' o 'USER', la comparación ya no arroja error */}
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-blue-50 text-blue-600 border border-blue-100/70' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
                                             {user.role}
                                         </span>
                                     </td>
-                                    {/* Columna Fecha de Creación */}
                                     <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {/* @ts-ignore */}
-                                        {user.createdAt || '06 Jul 2026'}
-                                    </td>
-                                    {/* Columna Último Acceso */}
-                                    <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {/* @ts-ignore */}
-                                        {user.lastAccess || 'Hace 2 min'}
+                                        {/* FIX: Se corrigió createdAt en lugar de invented date */}
+                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                                     </td>
                                 </tr>
                             ))
@@ -120,23 +109,13 @@ export const UserTableModule: React.FC = () => {
                 </table>
             </div>
 
-            {/* Paginación limpia inferior */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-2">
                 <p className="text-xs font-semibold text-gray-400"></p>
                 <div className="flex gap-1.5">
-                    <button
-                        onClick={() => setPage(p => p - 1)}
-                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
-                        aria-label="Página anterior"
-                    >
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500">
                         <ChevronLeft size={16} />
                     </button>
-
-                    <button
-                        onClick={() => setPage(p => p + 1)}
-                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 transition-colors text-gray-500"
-                        aria-label="Página siguiente"
-                    >
+                    <button onClick={() => setPage(p => p + 1)} className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 transition-colors text-gray-500">
                         <ChevronRight size={16} />
                     </button>
                 </div>
