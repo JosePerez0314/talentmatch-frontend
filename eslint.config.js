@@ -33,6 +33,9 @@ export default [
       // Forzamos reglas estrictas de tipado en el linter
       '@typescript-eslint/no-explicit-any': 'error', // Prohíbe el uso de "any"
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      // Delegamos en TypeScript/typescript-eslint (evita falsos positivos en TS)
+      'no-undef': 'off', // tsc ya valida símbolos; no-undef no conoce tipos DOM (RequestInit, HeadersInit)
+      'no-unused-vars': 'off', // usamos @typescript-eslint/no-unused-vars, que entiende parameter properties
     },
   },
 ];

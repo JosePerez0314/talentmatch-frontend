@@ -1,36 +1,40 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { ChevronDown, Calendar, ChevronLeft, AlertCircle } from "lucide-react";
 
 // Components & API
 import VacancySuccess from "../components/Sections/VacancySuccess";
 import { vacanciesApi, CreateVacancyInput } from "../services/api/vacancies.api";
 import { positionService } from "../services/api/positions.api";
-import { apiClient } from "../services/api/apiClient"; // para departamentos (supuesto a cambio)
+import { departmentsApi } from "../services/api/departments.api";
 
 // Interfaces internas adaptadas a la API
 interface Position {
-  id: number;
-  departmentId: number;
+  id: number | string;
+  departmentId: number | string;
   role: string;
 }
 
 interface Department {
-  id: number;
+  id: number | string;
   name: string;
 }
 
 const CreateVacancy: React.FC = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>(); // Captura el ID de la URL si estamos editando
+  const isEditMode = Boolean(id);
+
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
   // Estados de UI y Datos
   const [uiState, setUiState] = useState<"form" | "success">("form");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isFetchingData, setIsFetchingData] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string>("");
   const [dateError, setDateError] = useState<string>("");
-  
+
   // Catálogos dinámicos
   const [departmentsList, setDepartmentsList] = useState<Department[]>([]);
   const [positionsList, setPositionsList] = useState<Position[]>([]);
@@ -45,26 +49,59 @@ const CreateVacancy: React.FC = () => {
     endDate: ""
   });
 
-  // CARGA DE DEPARTAMENTOS Y POSICIONES REALES
+  // CARGA DE DEPARTAMENTOS Y POSICIONES REALES + DATA DE EDICIÓN
   useEffect(() => {
-    const fetchCatalogs = async () => {
+    const fetchCatalogsAndVacancy = async () => {
       try {
-        const [deptRes, posRes] = await Promise.all([
-          apiClient('/departments', { method: 'GET' }),
+        if (isEditMode) setIsFetchingData(true);
+
+        // 1. Cargar catálogos usando el servicio unificado de departamentos
+        const [depts, posRes] = await Promise.all([
+          departmentsApi.getAll(),
           positionService.getAll()
         ]);
-        
-        // Manejador seguro de arrays independientemente del envoltorio del backend
-        setDepartmentsList(Array.isArray(deptRes) ? deptRes : (deptRes as any)?.data || []);
-        setPositionsList(Array.isArray(posRes) ? posRes : (posRes as any)?.data || []);
+
+        const positions = Array.isArray(posRes) ? posRes : (posRes as any)?.data || [];
+
+        setDepartmentsList(depts);
+        setPositionsList(positions);
+
+        // 2. Si es Modo Edición, buscar los datos de la vacante específica
+        if (isEditMode && id) {
+          const vacancyData = await vacanciesApi.getById(id);
+          const v = vacancyData?.data || vacancyData; // Desempaquetado seguro
+
+          if (v) {
+            // Limpieza de ISO string a formato YYYY-MM-DD para los inputs tipo date
+            const cleanStartDate = v.startDate ? v.startDate.split("T")[0] : "";
+            const cleanEndDate = v.endDate ? v.endDate.split("T")[0] : "";
+
+            // Aseguramos que los IDs sean mapeados como strings para que coincidan con las opciones del select
+            const currentDeptId = v.departmentId || v.position?.departmentId || "";
+            const currentPosId = v.positionId || v.position?.id || "";
+
+            setFormData({
+              departmentId: String(currentDeptId),
+              positionId: String(currentPosId),
+              title: v.title || "",
+              availableSlots: v.availableSlots ? Number(v.availableSlots) : 1,
+              startDate: cleanStartDate,
+              endDate: cleanEndDate
+            });
+          }
+        }
       } catch (error) {
-        console.error("Error cargando catálogos:", error);
+        console.error("Error cargando catálogos o datos de vacante:", error);
+        setApiError("Error al cargar la información necesaria.");
+      } finally {
+        setIsFetchingData(false);
       }
     };
-    fetchCatalogs();
-  }, []);
 
-  // Lógica de filtrado de posiciones: El backend exige que la posición pertenezca al departamento
+    fetchCatalogsAndVacancy();
+  }, [id, isEditMode]);
+
+  // Lógica de filtrado de posiciones basada en el string del departamento seleccionado
   const filteredPositions = positionsList.filter(p => String(p.departmentId) === formData.departmentId);
 
   // VALIDACIÓN DE FECHAS EN TIEMPO REAL
@@ -111,43 +148,62 @@ const CreateVacancy: React.FC = () => {
     setApiError("");
 
     try {
-      // Mapeo seguro asegurando tipos de datos correctos e ISO strings para el backend
       const payload: CreateVacancyInput = {
         title: formData.title,
         availableSlots: Number(formData.availableSlots),
         departmentId: parseInt(formData.departmentId, 10),
         positionId: parseInt(formData.positionId, 10),
-        // Agregamos tiempo "T00:00:00Z" para garantizar formato ISO válido sin problemas de Timezone
-        startDate: `${formData.startDate}T00:00:00.000Z`, 
+        startDate: `${formData.startDate}T00:00:00.000Z`,
         endDate: `${formData.endDate}T23:59:59.000Z`,
         status: "ACTIVE"
       };
 
-      // Ejecución limpia tipada
-      await vacanciesApi.create(payload);
+      if (isEditMode && id) {
+        await vacanciesApi.update(id, payload);
+      } else {
+        await vacanciesApi.create(payload);
+      }
+
       setUiState("success");
-      
+
     } catch (error: any) {
-      console.error("Error al crear vacante:", error);
-      setApiError(error.message || "Ocurrió un error al crear la vacante.");
+      console.error(`Error al ${isEditMode ? 'actualizar' : 'crear'} vacante:`, error);
+      setApiError(error.message || `Ocurrió un error al ${isEditMode ? 'actualizar' : 'crear'} la vacante.`);
     } finally {
       setIsLoading(false);
     }
   };
 
   if (uiState === "success") {
-    return <VacancySuccess onReset={() => setUiState("form")} />;
+    return (
+      <VacancySuccess
+        onReset={() => {
+          setUiState("form");
+          if (isEditMode) {
+            navigate("/history");
+          }
+        }}
+      />
+    );
+  }
+
+  if (isFetchingData) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] w-full gap-4">
+        <p className="text-gray-500 font-medium tracking-wide animate-pulse">Cargando datos de la vacante...</p>
+      </div>
+    );
   }
 
   return (
     <div className="p-6 md:p-10 max-w-3xl mx-auto animate-fade-in relative min-h-[80vh]">
       <div className="flex justify-start mb-6">
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(isEditMode ? "/history" : "/dashboard")}
           className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-bold shadow-sm hover:bg-[#3669ab] active:scale-95 transition-all text-xs"
         >
           <ChevronLeft size={16} strokeWidth={3} />
-          VOLVER AL INICIO
+          {isEditMode ? "VOLVER AL HISTORIAL" : "VOLVER AL INICIO"}
         </button>
       </div>
 
@@ -162,24 +218,24 @@ const CreateVacancy: React.FC = () => {
           )}
 
           <h1 className="text-xl font-medium text-center text-[#1E293B] mb-8">
-            Nueva Vacante
+            {isEditMode ? "Editar Vacante" : "Nueva Vacante"}
           </h1>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
             {/* DEPARTAMENTO */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-gray-600">
+              <label htmlFor="departmentId" className="text-[13px] font-medium text-gray-600">
                 Departamento <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="departmentId"
                   name="departmentId"
                   value={formData.departmentId}
                   onChange={(e) => {
                     handleInputChange(e);
-                    // Reseteamos posición al cambiar departamento por la regla de BD
-                    setFormData(prev => ({...prev, departmentId: e.target.value, positionId: ""}));
+                    setFormData(prev => ({ ...prev, departmentId: e.target.value, positionId: "" }));
                   }}
                   required
                   className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all"
@@ -197,11 +253,12 @@ const CreateVacancy: React.FC = () => {
 
             {/* POSICIÓN FILTRADA */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-gray-600">
+              <label htmlFor="positionId" className="text-[13px] font-medium text-gray-600">
                 Posición <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <select
+                  id="positionId"
                   name="positionId"
                   value={formData.positionId}
                   onChange={handlePositionChange}
@@ -209,8 +266,8 @@ const CreateVacancy: React.FC = () => {
                   disabled={!formData.departmentId}
                   className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all disabled:opacity-50 disabled:bg-gray-50">
                   <option value="" disabled>
-                    {formData.departmentId 
-                      ? filteredPositions.length > 0 ? "Selecciona una posición..." : "No hay posiciones en este depto." 
+                    {formData.departmentId
+                      ? filteredPositions.length > 0 ? "Selecciona una posición..." : "No hay posiciones en este depto."
                       : "Selecciona un departamento primero..."}
                   </option>
                   {filteredPositions.map(pos => (
@@ -225,10 +282,11 @@ const CreateVacancy: React.FC = () => {
 
             {/* TÍTULO DE LA VACANTE */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-gray-600">
+              <label htmlFor="title" className="text-[13px] font-medium text-gray-600">
                 Título de la Vacante <span className="text-red-400">*</span>
               </label>
               <input
+                id="title"
                 type="text"
                 name="title"
                 value={formData.title}
@@ -239,12 +297,13 @@ const CreateVacancy: React.FC = () => {
               />
             </div>
 
-            {/* CUPOS DISPONIBLES (Mapeado a availableSlots) */}
+            {/* CUPOS DISPONIBLES */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[13px] font-medium text-gray-600">
+              <label htmlFor="availableSlots" className="text-[13px] font-medium text-gray-600">
                 Cupos Disponibles <span className="text-red-400">*</span>
               </label>
               <input
+                id="availableSlots"
                 type="number"
                 name="availableSlots"
                 min="1"
@@ -258,7 +317,7 @@ const CreateVacancy: React.FC = () => {
             {/* FECHAS */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5 relative">
-                <label className="text-[13px] font-medium text-gray-600">
+                <label htmlFor="startDate" className="text-[13px] font-medium text-gray-600">
                   Fecha Inicio <span className="text-red-400">*</span>
                 </label>
                 <div
@@ -266,6 +325,7 @@ const CreateVacancy: React.FC = () => {
                   onClick={() => startDateRef.current?.showPicker()}
                 >
                   <input
+                    id="startDate"
                     type="date"
                     name="startDate"
                     ref={startDateRef}
@@ -281,7 +341,7 @@ const CreateVacancy: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-1.5 relative">
-                <label className="text-[13px] font-medium text-gray-600">
+                <label htmlFor="endDate" className="text-[13px] font-medium text-gray-600">
                   Fecha Fin <span className="text-red-400">*</span>
                 </label>
                 <div
@@ -289,6 +349,7 @@ const CreateVacancy: React.FC = () => {
                   onClick={() => endDateRef.current?.showPicker()}
                 >
                   <input
+                    id="endDate"
                     type="date"
                     name="endDate"
                     ref={endDateRef}
@@ -306,14 +367,14 @@ const CreateVacancy: React.FC = () => {
 
             {dateError && <p className="text-red-500 text-xs font-bold -mt-3">{dateError}</p>}
 
-            {/* BOTÓN SUBMIT */}
+            {/* BOTÓN SUBMIT DINÁMICO */}
             <div className="flex justify-end mt-4">
               <button
                 type="submit"
                 disabled={isLoading || !!dateError || !formData.positionId || !formData.title || !formData.startDate || !formData.endDate}
                 className="bg-[#447ECA] text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3669ab] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Creando..." : "Crear Vacante"}
+                {isLoading ? (isEditMode ? "Guardando..." : "Creando...") : (isEditMode ? "Guardar Cambios" : "Crear Vacante")}
               </button>
             </div>
           </form>
