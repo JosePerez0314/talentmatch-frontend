@@ -1,38 +1,38 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import {
+  AuthContextValue,
+  LoginSession,
+  SessionUser,
+} from "../../types/auth.types";
+import {
+  clearStoredSession,
+  readStoredSession,
+  storeSession,
+} from "../../services/session";
 
-export interface UserData {
-  email: string;
-  role: 'admin' | 'user';
-  username?: string; // Ahora permitimos username
-}
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-interface AuthContextType {
-  user: UserData | null;
-  // Añadimos username opcional al login
-  login: (email: string, token: string, role: 'admin' | 'user', username?: string) => void;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+/** The API never returns a username, so we derive one from the email local-part. */
+const deriveUsername = (email: string, username?: string): string =>
+  username?.trim() || email.split("@")[0];
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserData | null>(() => {
-    const savedUser = localStorage.getItem("tm_user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<SessionUser | null>(readStoredSession);
 
-  const login = (email: string, token: string, role: 'admin' | 'user', username?: string) => {
-    // Si no viene username, usamos el email como fallback
-    const userData: UserData = { email, role, username: username || email.split('@')[0] };
+  const login = ({ email, token, role, username }: LoginSession) => {
+    const userData: SessionUser = {
+      email,
+      role,
+      username: deriveUsername(email, username),
+    };
+
     setUser(userData);
-    localStorage.setItem("tm_user", JSON.stringify(userData));
-    localStorage.setItem("token", token);
+    storeSession(userData, token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("tm_user");
-    localStorage.removeItem("token");
+    clearStoredSession();
     window.location.href = "/login";
   };
 

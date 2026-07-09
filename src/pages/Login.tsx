@@ -5,21 +5,33 @@ import { Loader2 } from "lucide-react";
 // Components
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
-import { useAuth, UserData } from "../components/context/AuthContext";
+import { useAuth } from "../components/context/AuthContext";
 
 // Services & Assets & Types
-import { authService, LoginCredentials } from "../services/api/auth.api";
+import { authService } from "../services/api/auth.api";
+import { ApiError } from "../services/api/apiClient";
+import { AuthUiState, LoginCredentials, SessionRole } from "../types/auth.types";
 import { Icons } from "../assets/icons/index";
-
-type UiState = "form" | "loading" | "error";
 
 interface LocationState {
   sessionExpired?: boolean;
 }
 
-// The API returns the role uppercased (`ADMIN` / `USER`); AuthContext stores it lowercased.
-const normalizeRole = (role: string | undefined): UserData["role"] =>
+const INVALID_CREDENTIALS_MESSAGE = "Credenciales incorrectas.";
+const SERVER_ERROR_MESSAGE =
+  "No pudimos contactar con el servidor. Inténtalo de nuevo.";
+
+/** The API returns the role uppercased (`ADMIN` / `USER`); the session stores it lowercased. */
+const normalizeRole = (role: string | undefined): SessionRole =>
   role?.toLowerCase() === "admin" ? "admin" : "user";
+
+/** Only a 400/401 means the credentials were wrong; anything else is our fault, not the user's. */
+const resolveErrorMessage = (error: unknown): string => {
+  if (error instanceof ApiError && (error.status === 400 || error.status === 401)) {
+    return INVALID_CREDENTIALS_MESSAGE;
+  }
+  return SERVER_ERROR_MESSAGE;
+};
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +42,10 @@ const Login: React.FC = () => {
     email: "",
     password: "",
   });
-  const [uiState, setUiState] = useState<UiState>("form");
+  const [uiState, setUiState] = useState<AuthUiState>("form");
+  const [errorMessage, setErrorMessage] = useState<string>(
+    INVALID_CREDENTIALS_MESSAGE,
+  );
 
   const state = location.state as LocationState | null;
   const timeoutMessage = state?.sessionExpired
@@ -53,20 +68,16 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data = await authService.login(inputs);
+      const { token, user } = await authService.login(inputs);
 
-      const token = data.token;
-      const email = data.user?.email ?? inputs.email;
-      const role = normalizeRole(data.user?.role);
+      if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 
-      if (!token)
-        throw new Error("El servidor no devolvió un token de acceso.");
+      const role = normalizeRole(user?.role);
+      login({ email: user?.email ?? inputs.email, token, role });
 
-      login(email, token, role);
       navigate(role === "admin" ? "/admin" : "/dashboard");
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("Fallo de Autenticación:", message);
+      setErrorMessage(resolveErrorMessage(error));
       setUiState("error");
     }
   };
@@ -102,6 +113,7 @@ const Login: React.FC = () => {
               onChange={handleInputChange}
               onSubmit={handleSubmit}
               uiState={uiState}
+              errorMessage={errorMessage}
             />
           </div>
         )}

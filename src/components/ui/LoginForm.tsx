@@ -2,13 +2,15 @@ import React, { useState } from "react";
 
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import AuthInput from "./AuthInput";
-import { LoginCredentials } from "../../services/api/auth.api";
+import { AuthUiState, LoginCredentials } from "../../types/auth.types";
 
 interface LoginFormProps {
   inputs: LoginCredentials;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  uiState: "form" | "loading" | "error";
+  /** Login swaps this form for a spinner while loading, so that state never reaches here. */
+  uiState: Exclude<AuthUiState, "loading">;
+  errorMessage: string;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
@@ -16,6 +18,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onChange,
   onSubmit,
   uiState,
+  errorMessage,
 }) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -28,7 +31,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       {uiState === "error" && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold text-center animate-fade-in">
-          Credenciales incorrectas.
+          {errorMessage}
         </div>
       )}
 
@@ -70,10 +73,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
         <button
           type="submit"
-          disabled={uiState === "loading"}
-          className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98] disabled:opacity-50"
+          className="w-full py-4 mt-2 bg-[#447ECA] text-white font-bold rounded-full hover:bg-[#3669ab] transition-all active:scale-[0.98]"
         >
-          {uiState === "loading" ? "Cargando..." : "Inicia sesión"}
+          Inicia sesión
         </button>
       </form>
     </div>
