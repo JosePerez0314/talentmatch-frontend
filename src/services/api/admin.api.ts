@@ -1,55 +1,57 @@
-// src/services/api/admin.api.ts
-import { AdminUser } from '../../types/admin.types';
+import { apiClient } from "./apiClient";
+import { User, UserRole } from "../../types/api.types";
 
-// Datos temporales para pruebas
-const MOCK_USERS: AdminUser[] = [
-    { id: '1', username: 'Ana Garcia', email: 'ana@ejemplo.com', role: 'admin', avatar: 'AG', lastAccessed: '2026-07-07' },
-    { id: '2', username: 'Carlos Perez', email: 'carlos@ejemplo.com', role: 'user', avatar: 'CP', lastAccessed: '2026-07-06' },
-    { id: '3', username: 'Beatriz Solis', email: 'beatriz@ejemplo.com', role: 'user', avatar: 'BS', lastAccessed: '2026-07-05' },
-];
+// --- TIPADOS DE RESPUESTA SEGÚN DOCUMENTACIÓN DE LA API ---
+
+export interface AdminStatsResponse {
+  usersCount: number;
+  candidatesCount: number;
+  positionsCount: number;
+  vacanciesCount: number;
+  activeVacancies: number;
+  closedVacancies: number;
+}
+
+export interface AdminUsersResponse {
+  users: User[];
+  meta: {
+    totalCount: number;
+    currentPage: number;
+    totalPages: number;
+  };
+}
+
+// --- SERVICIO DE ADMINISTRACIÓN ---
 
 export const adminService = {
-    getStats: async (): Promise<any> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    totalUsers: 145,
-                    admins: 4,
-                    standardUsers: 141,
-                    positions: 12,
-                    totalVacancies: 34,
-                    activeVacancies: 8,
-                    candidates: 256,
-                    evaluations: 89
-                });
-            }, 800);
-        });
-    },
+  // GET /api/admin/stats
+  getStats: async (): Promise<AdminStatsResponse> => {
+    return apiClient<AdminStatsResponse>('/admin/stats', {
+      method: 'GET',
+    });
+  },
 
-    getUsers: async (page: number, limit: number): Promise<AdminUser[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Fetching page ${page} with limit ${limit}`);
-                resolve(MOCK_USERS);
-            }, 500);
-        });
-    },
+  // GET /api/admin/users
+  getUsers: async (page: number = 1, limit: number = 50): Promise<AdminUsersResponse> => {
+    return apiClient<AdminUsersResponse>(`/admin/users?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  },
 
-    updateRole: async (userId: string, newRole: string): Promise<{ success: boolean }> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Rol de ${userId} actualizado a ${newRole}`);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
+  // PUT /api/admin/users/:id/role
+  // Nota: La documentación marca PUT, no PATCH para el cambio de rol.
+  updateRole: async (userId: string | number, newRole: UserRole): Promise<User> => {
+    return apiClient<User>(`/admin/users/${userId}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole }),
+    });
+  },
 
-    deleteUser: async (userId: string): Promise<{ success: boolean }> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Usuario ${userId} eliminado`);
-                resolve({ success: true });
-            }, 500);
-        });
-    }
+  // DELETE /api/admin/users/:id
+  deleteUser: async (userId: string | number): Promise<void> => {
+    return apiClient<void>(`/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
 };
