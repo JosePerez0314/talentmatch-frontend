@@ -44,21 +44,17 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data: any = await authService.login(inputs);
+      const data = await authService.login(inputs);
+      const token = data.token;
+      const email = data.user?.email ?? inputs.email;
 
-      if (data) {
-        const token = data.token || data.data?.token;
-        const email = data.user?.email || data.data?.user?.email || inputs.email;
+      if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 
-        if (!token) throw new Error("El servidor no devolvió un token de acceso.");
-
-        login(email, token);
-        navigate("/dashboard");
-      } else {
-        throw new Error("No se recibieron datos del servidor.");
-      }
-    } catch (error: any) {
-      console.error("Fallo de Autenticación:", error.message);
+      login(email, token);
+      navigate("/dashboard");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Fallo de Autenticación:", message);
       setUiState("error");
     }
   };

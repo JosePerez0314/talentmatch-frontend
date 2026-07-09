@@ -31,10 +31,7 @@ const VacancyHistory: React.FC = () => {
         try {
             setIsLoading(true);
             const data = await vacanciesApi.getAll();
-            // Desempaquetado
-            const rawData = Array.isArray(data) ? data : (data as any)?.data || [];
-            // para ver la recientes primero
-            setVacancies(rawData ? [...rawData].reverse() : []);
+            setVacancies([...data].reverse());
         } catch (error) {
             console.error("Error fetching vacancies:", error);
         } finally {

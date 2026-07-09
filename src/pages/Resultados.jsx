@@ -25,17 +25,7 @@ const Resultados = () => {
             try {
                 setLoading(true);
                 const response = await vacanciesApi.getResults(id);
-
-                let candidatesData = [];
-                if (response && response.status === "success") {
-                    candidatesData = response.data.results || response.data;
-                } else if (Array.isArray(response)) {
-                    candidatesData = response;
-                } else if (response?.candidates) {
-                    candidatesData = response.candidates;
-                }
-
-                setCandidates(candidatesData);
+                setCandidates(Array.isArray(response) ? response : []);
             } catch (error) {
                 console.error("Error al obtener candidatos:", error);
                 setCandidates([]);
@@ -59,7 +49,7 @@ const Resultados = () => {
 
             if (newStatus === "Contratado") {
                 console.log("Cerrando vacante...");
-                await vacanciesApi.updateStatus(id, "FILLED");
+                await vacanciesApi.updateStatus(id, "CLOSED");
                 // Mostrar alerta nativa estándar mientras integramos el componente visual
                 alert("¡Candidato contratado y vacante cerrada con éxito!");
             } else {

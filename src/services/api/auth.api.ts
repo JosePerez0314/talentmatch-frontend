@@ -1,10 +1,9 @@
 import { apiClient } from "./apiClient";
 import { UserData } from "../../components/context/AuthContext";
-import { ApiResponse } from "../../types/api.types";
 
 export interface LoginCredentials {
   email: string;
-  password: string; 
+  password: string;
 }
 export interface RegisterCredentials extends LoginCredentials {
   username: string;
@@ -17,8 +16,8 @@ export interface LoginResponseData {
 
 export const authService = {
   // POST /users/login
-  login: async (credentials: LoginCredentials): Promise<ApiResponse<LoginResponseData>> => {
-    return apiClient('/users/login', {
+  login: async (credentials: LoginCredentials): Promise<LoginResponseData> => {
+    return apiClient<LoginResponseData>('/users/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),
@@ -26,8 +25,8 @@ export const authService = {
   },
 
   // POST /users/
-  register: async (data: RegisterCredentials): Promise<ApiResponse<LoginResponseData>> => {
-    return apiClient('/users', {
+  register: async (data: RegisterCredentials): Promise<LoginResponseData> => {
+    return apiClient<LoginResponseData>('/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
