@@ -26,24 +26,9 @@ import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
-
-// Layout para todas las rutas protegidas
-
-// Componente de Rutas Protegidas con Validación de Sesión Real activa
-
 const ProtectedRoute: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth(); // FIX: Se eliminó 'loading' ya que el interceptor global hace el trabajo
 
-  // Pantalla de carga mientras se verifica el token/estado
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
-        <div className="animate-pulse text-gray-400 font-medium">Verificando sesión...</div>
-      </div>
-    );
-  }
-
-  // Si no hay un usuario autenticado, rebota directo al login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -64,12 +49,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-
           <Route path="/" element={<Navigate to="/login" replace />} />
-
-          {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
-
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -78,7 +59,6 @@ function App() {
             <Route path="/cv-history" element={<CVHistory />} />
             <Route path="/position-history" element={<PositionHistory />} />
 
-            {/* Rutas de Vacantes */}
             <Route path="/vacancy" element={<Vacancy />} />
             <Route path="/vacancy/edit/:id" element={<Vacancy />} />
             <Route path="/vacancy-history" element={<VacacyHistory />} />
@@ -92,17 +72,12 @@ function App() {
             <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
 
-
-            {/* RUTA EXCLUSIVA DE ADMINISTRADOR */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminPanel />} />
             </Route>
           </Route>
 
-
-          {/* Cualquier ruta desconocida rebota al Dashboard (si está autenticado pasará, si no, ProtectedRoute lo mandará a login) */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
-
         </Routes>
       </Router>
     </AuthProvider>
