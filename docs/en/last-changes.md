@@ -1,5 +1,97 @@
 # Last Changes
 
+> 🇪🇸 Versión en español: [`../es/last-changes.md`](../es/last-changes.md)
+
+---
+
+## Build unblocked + documentation restructured into `docs/`
+
+**Branch:** `features`
+**Date:** 2026-07-09
+
+### Context
+
+A documentation audit turned up two things that had nothing to do with docs: the working tree contained corrupted source text, and `npm run build` / `npm run dev` were both failing.
+
+### Broken build (6 type errors)
+
+`vite-plugin-checker` runs with `typescript: true`, so type errors fail `dev` and `build` alike.
+
+- **`src/App.tsx`** — `ProtectedRoute` destructured `loading` from `useAuth()`, but `AuthContextType` only exposes `user`, `login`, `logout`. `AuthProvider` hydrates `user` from `localStorage` synchronously in the `useState` initializer, so there was never anything async to wait on. The `loading` branch (and its "Verificando sesión…" screen) was removed rather than adding a permanently-`false` flag.
+- **`src/pages/Login.tsx`** — `handleSubmit` read `data.data?.token` and `data.data?.user`, but `LoginResponseData` is `{ user, token }` with no `.data` (a leftover from when services were typed `Promise<ApiResponse<T>>`). It also declared `token`/`email` at the top and shadowed them inside an `if`, tripping `noUnusedLocals`.
+
+### Corrupted source in `LoginForm.tsx`
+
+Uncommitted edits had prompt fragments typed into the JSX:
+
+```diff
+-    <div className="w-full max-w-[420px] bg-white rounded-[24px] p-10 ...">
++    <div className="w-full max-w-[420px] bg-white roundTomaed-[24px] p-10 ...">
+
+-        <h1 className="text-3xl font-bold">Inicia Sesión</h1>
++        <h1 className="text-3xl font-bold">Inicia Sesión</h1>, cr
+```
+
+`Toma` was spliced into `rounded-[24px]` (killing the login card's rounded corners) and `, cr` rendered as visible text under the title.
+
+**Neither `tsc` nor ESLint catches this** — `roundTomaed-[24px]` is a valid string in `className`, and `, cr` is valid JSX text. It only shows up in the browser. Recorded in `bugs.md §5`.
+
+### Role normalization in `Login.tsx`
+
+Fixing the type error surfaced a real bug. The API returns `role` uppercased (`ADMIN`/`USER`), while `AuthContext.UserData.role` types it lowercase. The old code compared the raw value:
+
+```ts
+if (role === 'admin') navigate('/admin');   // never true for a real ADMIN
+```
+
+so an actual admin was redirected to `/dashboard`. `AdminRoute` meanwhile compares with `.toLowerCase()`, so `/admin` *was* reachable by URL — an inconsistency between two code paths. Now normalized once:
+
+```ts
+// The API returns the role uppercased (`ADMIN` / `USER`); AuthContext stores it lowercased.
+const normalizeRole = (role: string | undefined): UserData["role"] =>
+  role?.toLowerCase() === "admin" ? "admin" : "user";
+```
+
+The `catch (error: any)` was also narrowed to `error instanceof Error` (the `any` violated `no-explicit-any`). Unifying the casing end to end remains open as issue **8.3**.
+
+Also removed: the dead JSX block after `export default Login;` (P3 §10.3, now closed).
+
+### Documentation restructured
+
+All documentation markdown moved into `docs/`, split by language, with `git mv` to preserve history:
+
+| Before                       | After                                                  |
+| ---------------------------- | ------------------------------------------------------ |
+| `FRONT_DOCUMENTATION.md`     | `docs/es/front-documentation.md`                        |
+| `FRONT_DOCUMENTATION.en.md`  | `docs/en/front-documentation.md`                        |
+| `API_DOCUMENTATION.md`       | `docs/en/api-documentation.md` (+ `docs/es/` from HEAD) |
+| `BUGS.md`                    | `docs/es/bugs.md` (+ new `docs/en/bugs.md`)             |
+| `ISSUES.md`                  | `docs/es/issues.md` (+ new `docs/en/issues.md`)         |
+| `issues/P0–P3.md`            | `docs/es/issues/` (+ new `docs/en/issues/`)             |
+| `LAST_CHANGES.md`            | `docs/en/last-changes.md` (+ new `docs/es/`)            |
+
+`API_DOCUMENTATION.md` had an uncommitted full ES→EN translation overwriting the Spanish version in place; the Spanish text was recovered from `git show HEAD:API_DOCUMENTATION.md` so both languages survive.
+
+`README.md` and `CLAUDE.md` stay at the repo root. `docs/README.md` is a language picker; `docs/{en,es}/README.md` index and describe each document.
+
+### Documentation corrected against the code
+
+The docs had drifted far from the source. The largest corrections:
+
+- **`admin.api.ts` exists but is a fake.** The docs said it didn't exist. It does — as `MOCK_USERS` + `setTimeout`, typed `Promise<any>`, never importing `apiClient`. All four admin modules consume it, so the panel *looks* connected. Promoted to the most urgent backlog item (`issues/P2.md §8.1`).
+- **`apiClient` has no `VITE_API_URL` fallback.** The docs (and `CLAUDE.md`) claimed `http://localhost:5000/api`. It's a bare `import.meta.env.VITE_API_URL`, so a missing env var throws on the first request.
+- **`apiClient` no longer tolerates `success: "false"`** (string) or the backend's `succes` typo — it only checks the boolean.
+- **`AuthContext` does store `role`** (the docs said it didn't) — see the casing caveat above. `loginDate` is gone; `username` is now optional.
+- **`AdminRoute.tsx` was undocumented**, including its two debug `console.log`s that dump `user` on every render.
+- `uploads.api.ts`, `position.types.ts`, `vacancy.types.ts` were deleted; `evaluations.types.ts` and `candidates-history.types.ts` are new and were undocumented.
+- `Resultados.jsx` already sends `CLOSED`, not `FILLED`; `bugs.md` still listed it as open.
+
+### Verification
+
+`npx tsc --noEmit` → 0 errors. `npm run build` → succeeds (1863 modules, 7.25s).
+
+---
+
 ## API alignment audit + typing cleanup
 
 **Branch:** `features`
