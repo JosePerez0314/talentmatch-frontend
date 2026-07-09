@@ -32,16 +32,10 @@ import AdminPanel from "./pages/AdminPanel";
 // Componente de Rutas Protegidas con Validación de Sesión Real activa
 
 const ProtectedRoute: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
-  // Pantalla de carga mientras se verifica el token/estado
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
-        <div className="animate-pulse text-gray-400 font-medium">Verificando sesión...</div>
-      </div>
-    );
-  }
+  // AuthProvider hydrates `user` from localStorage synchronously, so there is no
+  // async session check to wait on here.
 
   // Si no hay un usuario autenticado, rebota directo al login
   if (!user) {

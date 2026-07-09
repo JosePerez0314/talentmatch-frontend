@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 // Components
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
-import { useAuth } from "../components/context/AuthContext";
+import { useAuth, UserData } from "../components/context/AuthContext";
 
 // Services & Assets & Types
 import { authService, LoginCredentials } from "../services/api/auth.api";
@@ -17,12 +17,19 @@ interface LocationState {
   sessionExpired?: boolean;
 }
 
+// The API returns the role uppercased (`ADMIN` / `USER`); AuthContext stores it lowercased.
+const normalizeRole = (role: string | undefined): UserData["role"] =>
+  role?.toLowerCase() === "admin" ? "admin" : "user";
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const location = useLocation();
 
-  const [inputs, setInputs] = useState<LoginCredentials>({ email: "", password: "" });
+  const [inputs, setInputs] = useState<LoginCredentials>({
+    email: "",
+    password: "",
+  });
   const [uiState, setUiState] = useState<UiState>("form");
 
   const state = location.state as LocationState | null;
@@ -39,41 +46,27 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ): Promise<void> => {
     e.preventDefault();
     setUiState("loading");
 
     try {
       const data = await authService.login(inputs);
+
       const token = data.token;
       const email = data.user?.email ?? inputs.email;
+      const role = normalizeRole(data.user?.role);
 
-      if (data) {
-        // 1. Extraemos los datos de forma robusta
-        const token = data.token || data.data?.token;
-        const email = data.user?.email || data.data?.user?.email || inputs.email;
+      if (!token)
+        throw new Error("El servidor no devolvió un token de acceso.");
 
-        // 2. Extraemos el rol (asegurando un valor por defecto si la API no lo trae)
-        const role = data.user?.role || data.data?.user?.role || 'user';
-
-        if (!token) throw new Error("El servidor no devolvió un token de acceso.");
-
-        // 3. Llamamos al login con los 3 argumentos (token, email, role)
-        // Forzamos el tipo 'admin' / 'user' para evitar errores de TypeScript
-        login(email, token, role as 'admin' | 'user');
-
-        // 4. Redirección inteligente basada en el rol
-        if (role === 'admin') {
-          navigate('/admin'); // Ajusta a tu ruta de panel de administrador
-        } else {
-          navigate('/dashboard');
-        }
-
-      } else {
-        throw new Error("No se recibieron datos del servidor.");
-      }
-    } catch (error: any) {
-      console.error("Fallo de Autenticación:", error.message);
+      login(email, token, role);
+      navigate(role === "admin" ? "/admin" : "/dashboard");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("Fallo de Autenticación:", message);
       setUiState("error");
     }
   };
@@ -81,7 +74,11 @@ const Login: React.FC = () => {
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-[#F0F0F5]">
       <header className="flex justify-center shrink-0">
-        <img src={Icons.logos.large} alt="TalentMatch AI Logo" className="h-40 w-auto object-contain pt-10" />
+        <img
+          src={Icons.logos.large}
+          alt="TalentMatch AI Logo"
+          className="h-40 w-auto object-contain pt-10"
+        />
       </header>
 
       <main className="flex flex-col items-center justify-center pb-12 w-full px-6">
@@ -93,12 +90,19 @@ const Login: React.FC = () => {
 
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
-            <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>
+            <p className="text-xl font-medium text-gray-700 font-sans">
+              Verificando...
+            </p>
             <Loader2 className="h-16 w-16 animate-spin text-[#447ECA] opacity-80" />
           </div>
         ) : (
           <div className="w-full max-w-md flex flex-col items-center">
-            <LoginForm inputs={inputs} onChange={handleInputChange} onSubmit={handleSubmit} uiState={uiState} />
+            <LoginForm
+              inputs={inputs}
+              onChange={handleInputChange}
+              onSubmit={handleSubmit}
+              uiState={uiState}
+            />
           </div>
         )}
       </main>
@@ -109,16 +113,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-
-{
-  /* REVISIÓN DE CÓDIGO & ARQUITECTURA - TALENTMATCH AI (Nivel Senior)
-
-  3. COLORES "HARDCODEADOS" EN TAILWIND:
-     - El Error: Escribir el hexadecimal [#447ECA] directamente en las clases por todo 
-       el archivo es inmanejable. Si mañana el azul corporativo cambia, habrá que 
-       reemplazarlo en 50 archivos.
-     - La Solución: Configurar tailwind.config.js con primary: '#447ECA'. 
-       Así solo usamos bg-primary y text-primary.
-
-*/
-}

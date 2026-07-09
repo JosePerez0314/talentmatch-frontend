@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Mail, Lock, Eye, EyeOff } from "lucide-react"; 
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import AuthInput from "./AuthInput";
 import { LoginCredentials } from "../../services/api/auth.api";
 
@@ -11,7 +11,12 @@ interface LoginFormProps {
   uiState: "form" | "loading" | "error";
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ inputs, onChange, onSubmit, uiState }) => {
+const LoginForm: React.FC<LoginFormProps> = ({
+  inputs,
+  onChange,
+  onSubmit,
+  uiState,
+}) => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   return (
@@ -55,7 +60,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ inputs, onChange, onSubmit, uiSta
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-4 top-[42px] text-gray-400 hover:text-gray-600 transition-colors"
           >
-            {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+            {showPassword ? (
+              <Eye className="w-5 h-5" />
+            ) : (
+              <EyeOff className="w-5 h-5" />
+            )}
           </button>
         </div>
 
