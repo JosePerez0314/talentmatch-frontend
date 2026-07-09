@@ -1,23 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck, Loader2 } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
-import { AdminUser } from '../../types/admin.types';
+// FIX: Cambiamos AdminUser por el tipo User oficial de la API
+import { User } from '../../types/api.types'; 
 
 export const RoleUpdateModule: React.FC = () => {
-    const [users, setUsers] = useState<AdminUser[]>([]);
-    const [currentRoles, setCurrentRoles] = useState<Record<string, 'admin' | 'user'>>({});
+    // FIX: Tipamos con User oficial
+    const [users, setUsers] = useState<User[]>([]);
+    const [currentRoles, setCurrentRoles] = useState<Record<string, 'ADMIN' | 'USER'>>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
-    const [searchTerm, setSearchTerm] = useState<string>(''); // Filtro visual reactivo
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 setIsLoading(true);
-                const data = await adminService.getUsers(1, 50);
-                setUsers(data || []);
+                const response = await adminService.getUsers(1, 50);
+                
+                const usersArray = response?.users || [];
+                setUsers(usersArray); // Ya no hay error de tipos aquí
 
-                const initialRoles = (data || []).reduce((acc: any, user: AdminUser) => ({
+                const initialRoles = usersArray.reduce((acc: any, user: User) => ({
                     ...acc, [user.id]: user.role
                 }), {});
                 setCurrentRoles(initialRoles);
@@ -30,7 +34,7 @@ export const RoleUpdateModule: React.FC = () => {
         fetchUsers();
     }, []);
 
-    const handleRoleChange = (userId: string, newRole: 'admin' | 'user') => {
+    const handleRoleChange = (userId: string, newRole: 'ADMIN' | 'USER') => {
         setCurrentRoles((prev) => ({ ...prev, [userId]: newRole }));
     };
 
@@ -54,15 +58,13 @@ export const RoleUpdateModule: React.FC = () => {
         );
     }
 
-    // Filtrado reactivo en UI
-    const filteredUsers = (Array.isArray(users) ? users : []).filter(user =>
+    const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm">
-            {/* Cabecera del módulo con Buscador */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-amber-50 text-amber-500 rounded-lg">
@@ -81,21 +83,17 @@ export const RoleUpdateModule: React.FC = () => {
                 </div>
             </div>
 
-            {/* Listado de filas alineadas */}
             <div className="space-y-2.5">
                 {filteredUsers.length === 0 ? (
                     <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
                 ) : (
                     filteredUsers.map((user) => {
+                        // FIX: Ahora isChanged funciona porque ambos son 'ADMIN' | 'USER'
                         const isChanged = currentRoles[user.id] !== user.role;
                         const saving = isSaving[user.id];
 
                         return (
-                            <div
-                                key={user.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4"
-                            >
-                                {/* Info Principal Izquierda */}
+                            <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4">
                                 <div className="flex items-center gap-3 sm:w-1/3 min-w-[200px]">
                                     <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
                                         {user.username?.substring(0, 2) || 'US'}
@@ -103,30 +101,24 @@ export const RoleUpdateModule: React.FC = () => {
                                     <h4 className="text-xs font-bold text-gray-700 tracking-tight">{user.username}</h4>
                                 </div>
 
-                                {/* Contenedor Derecho (Email + Dropdown + Botón) */}
                                 <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <p className="text-xs text-gray-400 font-medium">{user.email}</p>
 
                                     <div className="flex items-center gap-2.5 justify-end shrink-0">
-                                        {/* Dropdown del diseño */}
                                         <select
                                             aria-label="Seleccionar nuevo rol"
-                                            value={currentRoles[user.id]}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user')}
+                                            value={currentRoles[user.id] || user.role}
+                                            onChange={(e) => handleRoleChange(user.id, e.target.value as 'ADMIN' | 'USER')}
                                             className="bg-gray-50/50 border border-gray-200 text-gray-600 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-300 cursor-pointer"
                                         >
-                                            <option value="admin">admin</option>
-                                            <option value="user">user</option>
+                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="USER">USER</option>
                                         </select>
 
-                                        {/* Botón Guardar con colores de Figma */}
                                         <button
                                             disabled={!isChanged || saving}
                                             onClick={() => handleSave(user.id)}
-                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged
-                                                    ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm'
-                                                    : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
-                                                }`}
+                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm' : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'}`}
                                         >
                                             {saving ? 'Guardando...' : 'Guardar'}
                                         </button>
