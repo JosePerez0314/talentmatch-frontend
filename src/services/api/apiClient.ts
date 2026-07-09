@@ -76,6 +76,10 @@ export const apiClient = async <T = unknown>(
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("tm_user");
+        window.location.href = "/login";
+        
         throw new ApiError(
           "Sesión expirada o no autorizada.",
           response.status,
