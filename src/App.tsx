@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./components/context/AuthContext";
 // Components
 import Sidebar from "./layouts/Sidebar";
 import SessionTimeoutGuard from "./components/ui/SessionTimeoutGuard";
+import { AdminRoute } from "./components/routes/AdminRoute";
 
 // Pages
 import Login from "./pages/Login";
@@ -25,7 +26,11 @@ import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
+
+// Layout para todas las rutas protegidas
+
 // Componente de Rutas Protegidas con Validación de Sesión Real activa
+
 const ProtectedRoute: React.FC = () => {
   const { user, loading } = useAuth();
 
@@ -59,13 +64,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Redirección automática de la raíz al Login al iniciar */}
+
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* RUTAS PRINCIPALES PROTEGIDAS */}
+
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
@@ -86,11 +91,18 @@ function App() {
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
             <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
-            <Route path="/admin" element={<AdminPanel />} />
+
+
+            {/* RUTA EXCLUSIVA DE ADMINISTRADOR */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminPanel />} />
+            </Route>
           </Route>
+
 
           {/* Cualquier ruta desconocida rebota al Dashboard (si está autenticado pasará, si no, ProtectedRoute lo mandará a login) */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
         </Routes>
       </Router>
     </AuthProvider>

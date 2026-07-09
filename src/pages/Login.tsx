@@ -48,13 +48,32 @@ const Login: React.FC = () => {
       const token = data.token;
       const email = data.user?.email ?? inputs.email;
 
-      if (!token) throw new Error("El servidor no devolvió un token de acceso.");
+      if (data) {
+        // 1. Extraemos los datos de forma robusta
+        const token = data.token || data.data?.token;
+        const email = data.user?.email || data.data?.user?.email || inputs.email;
 
-      login(email, token);
-      navigate("/dashboard");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error("Fallo de Autenticación:", message);
+        // 2. Extraemos el rol (asegurando un valor por defecto si la API no lo trae)
+        const role = data.user?.role || data.data?.user?.role || 'user';
+
+        if (!token) throw new Error("El servidor no devolvió un token de acceso.");
+
+        // 3. Llamamos al login con los 3 argumentos (token, email, role)
+        // Forzamos el tipo 'admin' / 'user' para evitar errores de TypeScript
+        login(email, token, role as 'admin' | 'user');
+
+        // 4. Redirección inteligente basada en el rol
+        if (role === 'admin') {
+          navigate('/admin'); // Ajusta a tu ruta de panel de administrador
+        } else {
+          navigate('/dashboard');
+        }
+
+      } else {
+        throw new Error("No se recibieron datos del servidor.");
+      }
+    } catch (error: any) {
+      console.error("Fallo de Autenticación:", error.message);
       setUiState("error");
     }
   };
@@ -71,7 +90,7 @@ const Login: React.FC = () => {
             <p className="text-red-700 text-sm font-bold">{timeoutMessage}</p>
           </div>
         )}
-        
+
         {uiState === "loading" ? (
           <div className="flex flex-col items-center justify-center gap-6 animate-pulse">
             <p className="text-xl font-medium text-gray-700 font-sans">Verificando...</p>
