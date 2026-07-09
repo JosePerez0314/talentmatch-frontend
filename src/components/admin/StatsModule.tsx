@@ -14,21 +14,17 @@ export const StatsModule: React.FC = () => {
                 setIsLoading(true);
                 const data = await adminService.getStats();
 
-                // Si la API devuelve el objeto con las propiedades, las mapeamos al array que la UI necesita
-                if (data && !Array.isArray(data)) {
+                if (data) {
+                    // FIX: Mapeamos exactamente a los valores que expone el Backend (AdminStatsResponse)
                     const formattedStats: StatItem[] = [
-                        { id: 1, label: 'Total usuarios', count: data.totalUsers || 0, icon: 'Users', type: 'azul' },
-                        { id: 2, label: 'Administradores', count: data.admins || 0, icon: 'Shield', type: 'morado' },
-                        { id: 3, label: 'Usuarios', count: data.standardUsers || 0, icon: 'User', type: 'verde' },
-                        { id: 4, label: 'Posiciones', count: data.positions || 0, icon: 'Briefcase', type: 'amarillo' },
-                        { id: 5, label: 'Vacantes totales', count: data.totalVacancies || 0, icon: 'FileText', type: 'rojo' },
-                        { id: 6, label: 'Vacantes activas', count: data.activeVacancies || 0, icon: 'CheckCircle2', type: 'verde' },
-                        { id: 7, label: 'Candidatos', count: data.candidates || 0, icon: 'Users', type: 'azul' },
-                        { id: 8, label: 'Evaluaciones', count: data.evaluations || 0, icon: 'BarChart3', type: 'morado' },
+                        { id: 1, label: 'Total usuarios', count: data.usersCount || 0, icon: 'Users', type: 'azul' },
+                        { id: 2, label: 'Candidatos Indexados', count: data.candidatesCount || 0, icon: 'Users', type: 'morado' },
+                        { id: 3, label: 'Posiciones Creadas', count: data.positionsCount || 0, icon: 'Briefcase', type: 'amarillo' },
+                        { id: 4, label: 'Vacantes Totales', count: data.vacanciesCount || 0, icon: 'FileText', type: 'rojo' },
+                        { id: 5, label: 'Vacantes Activas', count: data.activeVacancies || 0, icon: 'CheckCircle2', type: 'verde' },
+                        { id: 6, label: 'Vacantes Cerradas', count: data.closedVacancies || 0, icon: 'Archive', type: 'morado' }
                     ];
                     setStats(formattedStats);
-                } else {
-                    setStats(Array.isArray(data) ? data : []);
                 }
             } catch (error) {
                 console.error("Error al cargar las estadísticas:", error);
@@ -50,7 +46,6 @@ export const StatsModule: React.FC = () => {
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm w-full">
-            {/* Cabecera del módulo */}
             <div className="flex items-center gap-2.5 mb-6">
                 <div className="p-1.5 bg-blue-50 text-blue-500 rounded-lg">
                     <Activity size={16} strokeWidth={2.5} />
@@ -58,13 +53,9 @@ export const StatsModule: React.FC = () => {
                 <h2 className="text-sm font-bold text-gray-700 tracking-tight">Estadísticas del sistema</h2>
             </div>
 
-            {/* Grid adaptativo exacto de 4 columnas */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {stats.map((stat) => (
-                    <StatCard
-                        key={stat.id}
-                        {...stat}
-                    />
+                    <StatCard key={stat.id} {...stat} />
                 ))}
             </div>
         </div>
