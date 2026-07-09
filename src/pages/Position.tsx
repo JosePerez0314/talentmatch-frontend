@@ -6,7 +6,24 @@ import { Check, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileT
 import PillInput from "../components/ui/PillInput";
 import PositionSuccess from "../components/Sections/PositionSuccess";
 import { positionService, CreatePositionInput } from "../services/api/positions.api";
-import { apiClient } from "../services/api/apiClient";
+import { departmentsApi } from "../services/api/departments.api";
+import { ApiError } from "../services/api/apiClient";
+import { Department } from "../types/department.types";
+import { ApiErrorDetail } from "../types/api.types";
+
+// Convierte los `details` de Zod (400) en un mensaje legible campo por campo.
+const formatApiError = (error: unknown, fallback: string): string => {
+  if (error instanceof ApiError) {
+    if (Array.isArray(error.data)) {
+      const details = (error.data as ApiErrorDetail[])
+        .map(d => `${d.field}: ${d.message}`)
+        .join("; ");
+      if (details) return `${error.message} — ${details}`;
+    }
+    return error.message;
+  }
+  return error instanceof Error ? error.message || fallback : fallback;
+};
 
 type EntryMethod = "manual" | "ai" | null;
 
@@ -19,7 +36,7 @@ const INITIAL_STATE: CreatePositionInput = {
   optionalTechnicalSkills: [],
   softSkills: [],
   educationLevel: "",
-  education: "",
+  educationArea: "",
   languages: [],
 };
 
@@ -35,7 +52,7 @@ const Position: React.FC = () => {
 
   // DATOS Y FORMULARIO
   const [formData, setFormData] = useState<CreatePositionInput>(INITIAL_STATE);
-  const [departments, setDepartments] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -51,9 +68,8 @@ const Position: React.FC = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const res = await apiClient('/departments', { method: 'GET' });
-        const dataArray = Array.isArray(res) ? res : (res as any)?.data || [];
-        setDepartments(dataArray);
+        const depts = await departmentsApi.getAll();
+        setDepartments(depts);
       } catch (error) {
         console.error("Error al cargar departamentos:", error);
       }
@@ -97,20 +113,20 @@ const Position: React.FC = () => {
       setFormData(prev => ({
         ...prev,
         role: aiData.role || prev.role,
-        yearsOfExperience: aiData.yearsOfExperience || prev.yearsOfExperience,
+        yearsOfExperience: aiData.yearsOfExperience ?? prev.yearsOfExperience,
         description: aiData.description || prev.description,
         technicalSkills: aiData.technicalSkills || prev.technicalSkills,
         optionalTechnicalSkills: aiData.optionalTechnicalSkills || prev.optionalTechnicalSkills,
         softSkills: aiData.softSkills || prev.softSkills,
         educationLevel: aiData.educationLevel || prev.educationLevel,
-        education: aiData.education || prev.education,
+        educationArea: aiData.educationArea ?? prev.educationArea,
         languages: aiData.languages || prev.languages,
       }));
 
       setIsAiMode(true);
       setCurrentStep(2);
-    } catch (error: any) {
-      setApiError(error.message || "Error al analizar el PDF con la IA.");
+    } catch (error) {
+      setApiError(formatApiError(error, "Error al analizar el PDF con la IA."));
     } finally {
       setShowAiLoader(false);
     }
@@ -119,8 +135,10 @@ const Position: React.FC = () => {
   // VALIDACIÓN DE PASOS
   const validateStep = (step: number) => {
     if (step === 1) return formData.departmentId !== "" && (entryMethod === "manual" || (entryMethod === "ai" && file));
-    if (step === 2) return formData.role.trim() !== "" && formData.description.trim() !== "";
+    if (step === 2) return formData.role.trim().length >= 5 && formData.description.trim().length >= 25;
     if (step === 3) return formData.technicalSkills.length > 0 && formData.softSkills.length > 0;
+    const areaRequerida = !["NONE", "HIGH_SCHOOL"].includes(formData.educationLevel);
+    if (step === 4) return formData.educationLevel !== "" && (!areaRequerida || (formData.educationArea?.trim() ?? "") !== "");
     return true;
   };
 
@@ -147,12 +165,13 @@ const Position: React.FC = () => {
         const finalPayload = {
           ...formData,
           departmentId: Number(formData.departmentId),
-          yearsOfExperience: Number(formData.yearsOfExperience)
+          yearsOfExperience: Number(formData.yearsOfExperience),
+          educationArea: formData.educationArea?.trim() || undefined,
         };
         await positionService.create(finalPayload as CreatePositionInput);
         setIsSuccess(true);
-      } catch (error: any) {
-        setApiError(error.message || "Error al crear la posición.");
+      } catch (error) {
+        setApiError(formatApiError(error, "Error al crear la posición."));
       } finally {
         setIsLoading(false);
       }
@@ -335,15 +354,21 @@ const Position: React.FC = () => {
                     <label className="text-[13px] font-medium text-gray-700">Nivel de educación mínimo <span className="text-red-500">*</span></label>
                     <select value={formData.educationLevel} onChange={e => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]">
                       <option value="">Selecciona...</option>
-                      <option value="Ninguno">Ninguno</option>
-                      <option value="Bachiller">Bachiller</option>
-                      <option value="Grado Universitario">Grado Universitario</option>
-                      <option value="Maestría">Maestría</option>
+                      <option value="NONE">Ninguno</option>
+                      <option value="HIGH_SCHOOL">Bachiller</option>
+                      <option value="TECHNICAL">Técnico</option>
+                      <option value="BACHELOR">Pregrado / Bachiller universitario</option>
+                      <option value="UNIVERSITY">Grado Universitario</option>
+                      <option value="MASTER">Maestría</option>
+                      <option value="DOCTORATE">Doctorado</option>
                     </select>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="text-[13px] font-medium text-gray-700">Área de estudio <span className="text-red-500">*</span></label>
-                    <input type="text" value={formData.education} onChange={e => setFormData({ ...formData, education: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <label className="text-[13px] font-medium text-gray-700">
+                      Área de estudio
+                      {!["NONE", "HIGH_SCHOOL", ""].includes(formData.educationLevel) && <span className="text-red-500"> *</span>}
+                    </label>
+                    <input type="text" value={formData.educationArea} onChange={e => setFormData({ ...formData, educationArea: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
                   </div>
                   <PillInput label="Idiomas" id="languages" theme="green" pills={formData.languages} tempValue={tempInputs.languages} placeholder="Ej: Inglés..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
                 </div>

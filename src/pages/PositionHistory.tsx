@@ -5,15 +5,16 @@ import { useNavigate } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
 import PositionHistoryTable from "../components/Sections/PositionHistoryTable";
 
-// Assets & Services
+// Assets & Services & Types
 import { ChevronLeft, Plus, AlertCircle } from "lucide-react";
 import { positionService } from "../services/api/positions.api";
+import { Position } from "../types/api.types";
 
 const PositionHistory: React.FC = () => {
     const navigate = useNavigate();
-    
+
     // Estados de Conexión y Datos
-    const [positions, setPositions] = useState<any[]>([]);
+    const [positions, setPositions] = useState<Position[]>([]);
     const [departmentsList, setDepartmentsList] = useState<string[]>(["Todos"]);
     const [activeTab, setActiveTab] = useState<string>("Todos");
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -25,14 +26,14 @@ const PositionHistory: React.FC = () => {
         setError("");
         try {
             const data = await positionService.getAll();
-            const positionsArray = Array.isArray(data) ? data : (data as any)?.data || [];
-            
+            const positionsArray = data ?? [];
+
             setPositions(positionsArray);
 
             // Generamos las pestañas dinámicamente basados en las posiciones obtenidas
-            const uniqueDepts = Array.from(new Set(positionsArray.map((p: any) => p.department?.name || "General")));
-            setDepartmentsList(["Todos", ...uniqueDepts as string[]]);
-        } catch (err: any) {
+            const uniqueDepts = Array.from(new Set(positionsArray.map((p) => p.department?.name || "General")));
+            setDepartmentsList(["Todos", ...uniqueDepts]);
+        } catch (err) {
             console.error("Error fetching positions:", err);
             setError("No se pudieron cargar las posiciones desde el servidor.");
         } finally {

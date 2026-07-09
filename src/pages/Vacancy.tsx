@@ -7,6 +7,22 @@ import VacancySuccess from "../components/Sections/VacancySuccess";
 import { vacanciesApi, CreateVacancyInput } from "../services/api/vacancies.api";
 import { positionService } from "../services/api/positions.api";
 import { departmentsApi } from "../services/api/departments.api";
+import { ApiError } from "../services/api/apiClient";
+import { ApiErrorDetail } from "../types/api.types";
+
+// Convierte los `details` de Zod (400) en un mensaje legible campo por campo.
+const formatApiError = (error: unknown, fallback: string): string => {
+  if (error instanceof ApiError) {
+    if (Array.isArray(error.data)) {
+      const details = (error.data as ApiErrorDetail[])
+        .map(d => `${d.field}: ${d.message}`)
+        .join("; ");
+      if (details) return `${error.message} — ${details}`;
+    }
+    return error.message;
+  }
+  return error instanceof Error ? error.message || fallback : fallback;
+};
 
 // Interfaces internas adaptadas a la API
 interface Position {
@@ -61,15 +77,14 @@ const CreateVacancy: React.FC = () => {
           positionService.getAll()
         ]);
 
-        const positions = Array.isArray(posRes) ? posRes : (posRes as any)?.data || [];
+        const positions = posRes;
 
         setDepartmentsList(depts);
         setPositionsList(positions);
 
         // 2. Si es Modo Edición, buscar los datos de la vacante específica
         if (isEditMode && id) {
-          const vacancyData = await vacanciesApi.getById(id);
-          const v = vacancyData?.data || vacancyData; // Desempaquetado seguro
+          const v = await vacanciesApi.getById(id);
 
           if (v) {
             // Limpieza de ISO string a formato YYYY-MM-DD para los inputs tipo date
@@ -166,9 +181,9 @@ const CreateVacancy: React.FC = () => {
 
       setUiState("success");
 
-    } catch (error: any) {
+    } catch (error) {
       console.error(`Error al ${isEditMode ? 'actualizar' : 'crear'} vacante:`, error);
-      setApiError(error.message || `Ocurrió un error al ${isEditMode ? 'actualizar' : 'crear'} la vacante.`);
+      setApiError(formatApiError(error, `Ocurrió un error al ${isEditMode ? 'actualizar' : 'crear'} la vacante.`));
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +195,7 @@ const CreateVacancy: React.FC = () => {
         onReset={() => {
           setUiState("form");
           if (isEditMode) {
-            navigate("/history");
+            navigate("/vacancy-history");
           }
         }}
       />
@@ -199,7 +214,7 @@ const CreateVacancy: React.FC = () => {
     <div className="p-6 md:p-10 max-w-3xl mx-auto animate-fade-in relative min-h-[80vh]">
       <div className="flex justify-start mb-6">
         <button
-          onClick={() => navigate(isEditMode ? "/history" : "/dashboard")}
+          onClick={() => navigate(isEditMode ? "/vacancy-history" : "/dashboard")}
           className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-bold shadow-sm hover:bg-[#3669ab] active:scale-95 transition-all text-xs"
         >
           <ChevronLeft size={16} strokeWidth={3} />

@@ -1,10 +1,10 @@
 import { apiClient } from "./apiClient";
-import { Candidate, ApiResponse } from "../../types/api.types";
+import { Candidate } from "../../types/api.types";
 
 export const candidateService = {
   // Obtener todos los candidatos con tipado explícito de retorno
-  getAll: async (): Promise<ApiResponse<Candidate[]>> => {
-    return apiClient('/candidates', {
+  getAll: async (): Promise<Candidate[]> => {
+    return apiClient<Candidate[]>('/candidates', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
