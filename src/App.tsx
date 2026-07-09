@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 
 // Context
 import { AuthProvider } from "./components/context/AuthContext";
@@ -7,6 +7,7 @@ import { AuthProvider } from "./components/context/AuthContext";
 // Components
 import Sidebar from "./layouts/Sidebar";
 import SessionTimeoutGuard from "./components/ui/SessionTimeoutGuard";
+import { AdminRoute } from "./components/routes/AdminRoute";
 
 // Pages
 import Login from "./pages/Login";
@@ -25,7 +26,7 @@ import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
-// Se han retirado los bloqueos de sesion temporalmente para facilitar pruebas
+// Layout para todas las rutas protegidas
 const ProtectedRoute: React.FC = () => {
   return (
     <div className="flex h-screen bg-[#F0F0F5] font-sans overflow-hidden text-left w-full">
@@ -43,10 +44,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Ruta Raíz */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* RUTAS PRINCIPALES  */}
+          {/* RUTAS PRINCIPALES (Protegidas) */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
@@ -61,11 +65,15 @@ function App() {
             <Route path="/resultados/:id" element={<Resultados />} />
             <Route path="/candidates-history" element={<CandidatesHistory />} />
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
+            <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
-            <Route path="/admin" element={<AdminPanel />} />
+
+
+            {/* RUTA EXCLUSIVA DE ADMINISTRADOR */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminPanel />} />
+            </Route>
           </Route>
-          
-          {/* Se eliminó la ruta por defecto ('*') temporalmente */}
         </Routes>
       </Router>
     </AuthProvider>

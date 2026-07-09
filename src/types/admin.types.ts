@@ -15,8 +15,8 @@ export interface AdminUser {
     id: string;
     username: string;
     email: string;
-    role: 'admin' | 'user'; // Criterio de aceptación: Solo deben aparecer estos 2 estados
-    created: string;
-    lastAccess: string;
-    avatar: string; // Inicial para el círculo del diseño (ej: 'A', 'U', 'R')
+    role: 'admin' | 'user';
+    avatar: string;
+    created?: string;
+    lastAccessed?: string;  // El '?' lo hace opcional
 }

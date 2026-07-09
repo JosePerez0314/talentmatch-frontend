@@ -1,79 +1,50 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
-// Estructura de Objeto Usuario que guarda localStorage
 export interface UserData {
-  username: string;
   email: string;
-  loginDate: string;
+  role: 'admin' | 'user';
+  username?: string; // Ahora permitimos username
 }
 
-// contrato de todo lo que expone AuthContext
 interface AuthContextType {
   user: UserData | null;
-  loading: boolean;
-  login: (email: string, token: string) => void;
+  // Añadimos username opcional al login
+  login: (email: string, token: string, role: 'admin' | 'user', username?: string) => void;
   logout: () => void;
 }
 
-// Tipado el contexto inicial 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Tipado propiedades de componente
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // estado del usuario
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserData | null>(() => {
-    try {
-      const savedUser = localStorage.getItem("tm_user");
-      return savedUser ? (JSON.parse(savedUser) as UserData) : null;
-    } catch (error) {
-      console.error("Error leyendo el localStorage:", error);
-      return null;
-    }
+    const savedUser = localStorage.getItem("tm_user");
+    return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const login = (email: string, token: string): void => {
-    setLoading(true);
-    try {
-      const username = email.split('@')[0];
-
-      const userData: UserData = {
-        username,
-        email,
-        loginDate: new Date().toISOString()
-      };
-
-      setUser(userData);
-
-      localStorage.setItem("tm_user", JSON.stringify(userData));
-      localStorage.setItem("token", token);
-    } finally {
-      setLoading(false);
-    }
+  const login = (email: string, token: string, role: 'admin' | 'user', username?: string) => {
+    // Si no viene username, usamos el email como fallback
+    const userData: UserData = { email, role, username: username || email.split('@')[0] };
+    setUser(userData);
+    localStorage.setItem("tm_user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
   };
 
-  const logout = (): void => {
+  const logout = () => {
     setUser(null);
     localStorage.removeItem("tm_user");
     localStorage.removeItem("token");
+    window.location.href = "/login";
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  }
+  if (!context) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return context;
 };

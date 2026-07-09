@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, NavLink, Link } from "react-router-dom";
 
-//Assets
+// Assets
 import { Icons } from "../assets/icons/index";
-//Components
+// Components
 import { useAuth } from "../components/context/AuthContext";
 
-//TIPADOS
+// TIPADOS
 interface MenuItem {
     name: string;
     icon: string;
@@ -19,7 +19,7 @@ interface MenuSection {
     items: MenuItem[];
 }
 
-//CONFIGURACIÓN DEL MENÚ
+// CONFIGURACIÓN DEL MENÚ
 const MENU_GROUPS: MenuSection[] = [
     {
         title: null,
@@ -62,7 +62,6 @@ const MENU_GROUPS: MenuSection[] = [
 const Sidebar: React.FC = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    // Defecto abierto
     const [isExpanded, setIsExpanded] = useState<boolean>(true);
 
     const lastVacancyId = localStorage.getItem("lastVacancyId");
@@ -74,8 +73,8 @@ const Sidebar: React.FC = () => {
 
     const toggleSidebar = () => setIsExpanded(!isExpanded);
 
-    // Extrae user e inicial 
-    const displayName = user?.username || "admin";
+    // Lógica segura para mostrar nombre e inicial (Ahora user tiene username gracias a AuthContext)
+    const displayName = user?.username || "Admin";
     const initialLetter = displayName.charAt(0).toUpperCase();
 
     return (
@@ -83,7 +82,7 @@ const Sidebar: React.FC = () => {
             className={`flex flex-col bg-white border-r border-gray-100 h-screen transition-all duration-300 ease-in-out shrink-0 z-50
             ${isExpanded ? "w-72" : "w-20"}`}
         >
-            {/* TOP HEADER Logo y Botón  */}
+            {/* TOP HEADER Logo y Botón */}
             <div className={`h-16 flex items-center border-b border-transparent shrink-0 px-5 
                 ${isExpanded ? "justify-between" : "justify-center"}`}>
 
@@ -163,7 +162,6 @@ const Sidebar: React.FC = () => {
                                                 </span>
                                             )}
 
-                                            {/* PUNTO AZUL INDICADOR Solo en modo expandido */}
                                             {isActive && isExpanded && (
                                                 <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-[#447ECA]"></div>
                                             )}
@@ -180,7 +178,6 @@ const Sidebar: React.FC = () => {
             <div className="shrink-0 border-t border-gray-100 p-5">
                 {isExpanded ? (
                     <div className="flex flex-col gap-4">
-                        {/* User Row */}
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-full bg-[#447ECA] text-white flex items-center justify-center font-bold text-sm shrink-0">
                                 {initialLetter}
@@ -190,7 +187,6 @@ const Sidebar: React.FC = () => {
                             </span>
                         </div>
 
-                        {/* Row Log Out */}
                         <button
                             onClick={handleLogout}
                             className="flex items-center gap-3 w-full text-gray-500 hover:text-gray-800 hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors group"
