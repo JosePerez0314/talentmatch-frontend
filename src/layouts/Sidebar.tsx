@@ -20,8 +20,10 @@ interface MenuSection {
     icon?: string | React.ComponentType<{ className?: string }>;
     titleClassName?: string;
     items: MenuItem[];
-    requiresAdmin?: boolean;
 }
+
+// Menu items visible only to admins get merged into their groups by role at render time.
+const ADMIN_PANEL_ITEM: MenuItem = { name: "Panel Admin", icon: Shield, path: "/admin" };
 
 // CONFIGURACIÓN DEL MENÚ
 const MENU_GROUPS: MenuSection[] = [
@@ -29,15 +31,6 @@ const MENU_GROUPS: MenuSection[] = [
         title: null,
         items: [
             { name: "Dashboard", icon: Icons.sidebar.dashboard, path: "/dashboard" },
-        ],
-    },
-    {
-        title: "ADMINISTRACIÓN",
-        icon: Shield,
-        titleClassName: "text-[#447ECA]",
-        requiresAdmin: true,
-        items: [
-            { name: "Panel Admin", icon: Shield, path: "/admin" },
         ],
     },
     {
@@ -117,9 +110,10 @@ const Sidebar: React.FC = () => {
             {/* NAVEGACIÓN */}
             <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-8">
                 {MENU_GROUPS.map((group, groupIndex) => {
-                    if (group.requiresAdmin && user?.role !== "ADMIN") {
-                        return null;
-                    }
+                    // Panel Admin sits inside the first group but only for admins.
+                    const items = groupIndex === 0 && user?.role === "ADMIN"
+                        ? [...group.items, ADMIN_PANEL_ITEM]
+                        : group.items;
 
                     return (
                         <div key={groupIndex} className="flex flex-col gap-1">
@@ -149,7 +143,7 @@ const Sidebar: React.FC = () => {
                             )}
 
                             {/* ITEMS DEL GRUPO */}
-                            {group.items.map((item) => {
+                            {items.map((item) => {
                                 const finalPath = (item.isDynamic && lastVacancyId)
                                     ? `${item.path}/${lastVacancyId}`
                                     : item.path;
