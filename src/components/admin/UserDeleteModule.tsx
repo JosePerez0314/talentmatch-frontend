@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, UserMinus, AlertTriangle } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
-import { AdminUser } from '../../types/admin.types';
+import { User } from '../../types/api.types';
+
+const getInitials = (name?: string): string =>
+    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
 
 export const UserDeleteModule: React.FC = () => {
-    const [users, setUsers] = useState<AdminUser[]>([]);
-    const [searchTerm, setSearchTerm] = useState<string>(''); // Filtro visual reactivo
+    const [users, setUsers] = useState<User[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const data = await adminService.getUsers(1, 50);
-                setUsers(Array.isArray(data) ? data : []);
+                setUsers(data.users ?? []);
             } catch (error) {
                 console.error("Error cargando usuarios:", error);
             }
@@ -19,8 +22,7 @@ export const UserDeleteModule: React.FC = () => {
         fetchUsers();
     }, []);
 
-    // Filtrado reactivo en UI
-    const filteredUsers = (Array.isArray(users) ? users : []).filter(user =>
+    const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -61,15 +63,14 @@ export const UserDeleteModule: React.FC = () => {
                 {filteredUsers.length === 0 ? (
                     <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
                 ) : (
-                    filteredUsers.map((user: AdminUser) => (
+                    filteredUsers.map((user) => (
                         <div
                             key={user.id}
                             className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4"
                         >
-                            {/* Información e Iniciales */}
                             <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                    {user.username?.substring(0, 2) || 'US'}
+                                    {getInitials(user.username)}
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-700 text-xs tracking-tight">{user.username}</p>
@@ -77,14 +78,13 @@ export const UserDeleteModule: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Badge del rol actual + Botón eliminar exacto del Figma */}
                             <div className="flex items-center gap-4 justify-end shrink-0">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'admin'
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'ADMIN'
                                     ? 'bg-blue-50 text-blue-600 border border-blue-100/50'
                                     : 'bg-gray-50 text-gray-500 border border-gray-100'
                                     }`}
                                 >
-                                    {user.role}
+                                    {user.role === 'ADMIN' ? 'Admin' : 'Usuario'}
                                 </span>
 
                                 <button

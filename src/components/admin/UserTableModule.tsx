@@ -1,20 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminService } from '../../services/api/admin.api';
-import { AdminUser } from '../../types/admin.types';
+import { adminService, AdminUsersPageMeta } from '../../services/api/admin.api';
+import { User } from '../../types/api.types';
+
+const EMPTY_META: AdminUsersPageMeta = { totalCount: 0, currentPage: 1, totalPages: 1 };
+
+const getInitials = (name?: string): string =>
+    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
+
+const formatDate = (iso?: string): string => {
+    if (!iso) return '-';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return parsed.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
 export const UserTableModule: React.FC = () => {
-    const [users, setUsers] = useState<AdminUser[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
+    const [meta, setMeta] = useState<AdminUsersPageMeta>(EMPTY_META);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [page, setPage] = useState<number>(1);
-    const [searchTerm, setSearchTerm] = useState<string>(''); // Filtro visual reactivo
+    const [searchTerm, setSearchTerm] = useState<string>('');
     const limit = 10;
 
     const fetchUsers = useCallback(async (pageNum: number) => {
         try {
             setIsLoading(true);
             const data = await adminService.getUsers(pageNum, limit);
-            setUsers(data || []);
+            setUsers(data.users ?? []);
+            setMeta(data.meta ?? EMPTY_META);
         } catch (error) {
             console.error("Error al cargar usuarios:", error);
         } finally {
@@ -26,8 +40,7 @@ export const UserTableModule: React.FC = () => {
         fetchUsers(page);
     }, [page, fetchUsers]);
 
-    // Filtrado en tiempo real sobre la data existente
-    const filteredUsers = (Array.isArray(users) ? users : []).filter(user =>
+    const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -62,56 +75,45 @@ export const UserTableModule: React.FC = () => {
                             <th className="px-8 py-3.5">Email</th>
                             <th className="px-8 py-3.5">Rol</th>
                             <th className="px-8 py-3.5">Fecha de creación</th>
-                            <th className="px-8 py-3.5">Último acceso</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={5} className="py-12 text-center">
+                                <td colSpan={4} className="py-12 text-center">
                                     <Loader2 className="animate-spin text-blue-500 mx-auto" size={24} />
                                 </td>
                             </tr>
                         ) : filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="py-8 text-center text-xs text-gray-400 font-medium">
-                                    No se encontraron usuarios matching con la búsqueda.
+                                <td colSpan={4} className="py-8 text-center text-xs text-gray-400 font-medium">
+                                    No se encontraron usuarios.
                                 </td>
                             </tr>
                         ) : (
                             filteredUsers.map((user) => (
                                 <tr key={user.id} className="hover:bg-gray-50/40 transition-colors">
-                                    {/* Columna Usuario con Avatar circular */}
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                                {user.avatar || user.username?.substring(0, 2) || 'US'}
+                                                {getInitials(user.username)}
                                             </div>
                                             <span className="text-xs font-semibold text-gray-700">{user.username}</span>
                                         </div>
                                     </td>
-                                    {/* Columna Email */}
                                     <td className="px-8 py-4 text-xs text-gray-500 font-medium">
                                         {user.email}
                                     </td>
-                                    {/* Columna Rol con Badges Estilizados */}
                                     <td className="px-8 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'admin'
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'ADMIN'
                                             ? 'bg-blue-50 text-blue-600 border border-blue-100/70'
                                             : 'bg-gray-50 text-gray-500 border border-gray-100'
                                             }`}>
-                                            {user.role}
+                                            {user.role === 'ADMIN' ? 'Admin' : 'Usuario'}
                                         </span>
                                     </td>
-                                    {/* Columna Fecha de Creación */}
                                     <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {/* @ts-ignore */}
-                                        {user.createdAt || '06 Jul 2026'}
-                                    </td>
-                                    {/* Columna Último Acceso */}
-                                    <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {/* @ts-ignore */}
-                                        {user.lastAccess || 'Hace 2 min'}
+                                        {formatDate(user.createdAt)}
                                     </td>
                                 </tr>
                             ))
@@ -122,10 +124,13 @@ export const UserTableModule: React.FC = () => {
 
             {/* Paginación limpia inferior */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-2">
-                <p className="text-xs font-semibold text-gray-400"></p>
+                <p className="text-xs font-semibold text-gray-400">
+                    Página {meta.currentPage} de {meta.totalPages} · {meta.totalCount} usuarios
+                </p>
                 <div className="flex gap-1.5">
                     <button
-                        onClick={() => setPage(p => p - 1)}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page <= 1 || isLoading}
                         className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
                         aria-label="Página anterior"
                     >
@@ -134,7 +139,8 @@ export const UserTableModule: React.FC = () => {
 
                     <button
                         onClick={() => setPage(p => p + 1)}
-                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 transition-colors text-gray-500"
+                        disabled={page >= meta.totalPages || isLoading}
+                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
                         aria-label="Página siguiente"
                     >
                         <ChevronRight size={16} />

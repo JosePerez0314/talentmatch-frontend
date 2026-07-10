@@ -1,55 +1,46 @@
-// src/services/api/admin.api.ts
-import { AdminUser } from '../../types/admin.types';
+import { apiClient } from "./apiClient";
+import { User, UserRole } from "../../types/api.types";
 
-// Datos temporales para pruebas
-const MOCK_USERS: AdminUser[] = [
-    { id: '1', username: 'Ana Garcia', email: 'ana@ejemplo.com', role: 'admin', avatar: 'AG', lastAccessed: '2026-07-07' },
-    { id: '2', username: 'Carlos Perez', email: 'carlos@ejemplo.com', role: 'user', avatar: 'CP', lastAccessed: '2026-07-06' },
-    { id: '3', username: 'Beatriz Solis', email: 'beatriz@ejemplo.com', role: 'user', avatar: 'BS', lastAccessed: '2026-07-05' },
-];
+// Shape from GET /api/admin/stats — see api-documentation §6.
+// Global counters, not scoped to the current user.
+export interface AdminStats {
+  usersCount: number;
+  candidatesCount: number;
+  positionsCount: number;
+  vacanciesCount: number;
+  activeVacancies: number;
+  closedVacancies: number;
+}
+
+// Shape from GET /api/admin/users — see api-documentation §6.
+export interface AdminUsersPageMeta {
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+export interface AdminUsersPage {
+  users: User[];
+  meta: AdminUsersPageMeta;
+}
 
 export const adminService = {
-    getStats: async (): Promise<any> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve({
-                    totalUsers: 145,
-                    admins: 4,
-                    standardUsers: 141,
-                    positions: 12,
-                    totalVacancies: 34,
-                    activeVacancies: 8,
-                    candidates: 256,
-                    evaluations: 89
-                });
-            }, 800);
-        });
-    },
+  getStats: (): Promise<AdminStats> =>
+    apiClient<AdminStats>("/admin/stats", { method: "GET" }),
 
-    getUsers: async (page: number, limit: number): Promise<AdminUser[]> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Fetching page ${page} with limit ${limit}`);
-                resolve(MOCK_USERS);
-            }, 500);
-        });
-    },
+  getUsers: (page: number = 1, limit: number = 50): Promise<AdminUsersPage> =>
+    apiClient<AdminUsersPage>(
+      `/admin/users?page=${page}&limit=${limit}`,
+      { method: "GET" },
+    ),
 
-    updateRole: async (userId: string, newRole: string): Promise<{ success: boolean }> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Rol de ${userId} actualizado a ${newRole}`);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
+  updateRole: (id: string | number, role: UserRole): Promise<User> =>
+    apiClient<User>(`/admin/users/${id}/role`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    }),
 
-    deleteUser: async (userId: string): Promise<{ success: boolean }> => {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                console.log(`Usuario ${userId} eliminado`);
-                resolve({ success: true });
-            }, 500);
-        });
-    }
+  deleteUser: (id: string | number): Promise<void> =>
+    apiClient<void>(`/admin/users/${id}`, { method: "DELETE" }),
 };
