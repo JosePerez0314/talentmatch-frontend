@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import AuthInput from "./AuthInput";
 import { AuthUiState, LoginCredentials } from "../../types/auth.types";
+import { isAdminShortcut } from "../../utils/loginShortcuts";
 
 interface LoginFormProps {
   inputs: LoginCredentials;
@@ -39,7 +40,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <AuthInput
           label="Usuario"
           name="email"
-          type="email"
+          // The browser's native type="email" validation demands an "@" and
+          // blocks submission before onSubmit ever runs — before
+          // resolveLoginEmail() gets a chance to expand the "admin" shortcut
+          // to admin@admin.ai. Relaxing to type="text" only while the value
+          // is exactly the shortcut lets that submission through; any other
+          // value still gets full email format validation.
+          type={isAdminShortcut(inputs.email) ? "text" : "email"}
           placeholder="Correo Electrónico"
           icon={<Mail className="w-5 h-5 text-gray-400" />}
           value={inputs.email}

@@ -12,7 +12,11 @@ interface RoleUpdateModuleProps {
 const getInitials = (name?: string): string =>
     (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
 
-export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoading, onSaved }) => {
+export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({
+    users,
+    isLoading,
+    onSaved,
+}) => {
     const [currentRoles, setCurrentRoles] = useState<Record<string, UserRole>>({});
     const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState<string>('');
@@ -20,9 +24,11 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
 
     // Sync the working copy of roles whenever the parent hands us a fresh users list.
     useEffect(() => {
-        const next: Record<string, UserRole> = {};
-        for (const u of users) next[u.id] = u.role;
-        setCurrentRoles(next);
+        const initialRoles = users.reduce<Record<string, UserRole>>((acc, user) => {
+            acc[user.id] = user.role;
+            return acc;
+        }, {});
+        setCurrentRoles(initialRoles);
     }, [users]);
 
     const handleRoleChange = (userId: string, newRole: UserRole) => {
@@ -58,7 +64,6 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm">
-            {/* Cabecera del módulo con Buscador */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-amber-50 text-amber-500 rounded-lg">
@@ -83,7 +88,6 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
                 </div>
             )}
 
-            {/* Listado de filas alineadas */}
             <div className="space-y-2.5">
                 {filteredUsers.length === 0 ? (
                     <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
@@ -93,10 +97,7 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
                         const saving = isSaving[user.id];
 
                         return (
-                            <div
-                                key={user.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4"
-                            >
+                            <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4">
                                 <div className="flex items-center gap-3 sm:w-1/3 min-w-[200px]">
                                     <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
                                         {getInitials(user.username)}
@@ -110,21 +111,18 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
                                     <div className="flex items-center gap-2.5 justify-end shrink-0">
                                         <select
                                             aria-label="Seleccionar nuevo rol"
-                                            value={currentRoles[user.id]}
+                                            value={currentRoles[user.id] || user.role}
                                             onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
                                             className="bg-gray-50/50 border border-gray-200 text-gray-600 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-300 cursor-pointer"
                                         >
-                                            <option value="ADMIN">Admin</option>
-                                            <option value="USER">Usuario</option>
+                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="USER">USER</option>
                                         </select>
 
                                         <button
                                             disabled={!isChanged || saving}
                                             onClick={() => handleSave(user.id)}
-                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged
-                                                    ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm'
-                                                    : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
-                                                }`}
+                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm' : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'}`}
                                         >
                                             {saving ? 'Guardando...' : 'Guardar'}
                                         </button>

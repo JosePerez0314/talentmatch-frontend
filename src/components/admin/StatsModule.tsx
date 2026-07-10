@@ -47,7 +47,6 @@ export const StatsModule: React.FC = () => {
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm w-full">
-            {/* Cabecera del módulo */}
             <div className="flex items-center gap-2.5 mb-6">
                 <div className="p-1.5 bg-blue-50 text-blue-500 rounded-lg">
                     <Activity size={16} strokeWidth={2.5} />
@@ -55,20 +54,17 @@ export const StatsModule: React.FC = () => {
                 <h2 className="text-sm font-bold text-gray-700 tracking-tight">Estadísticas del sistema</h2>
             </div>
 
-            {errorMessage ? (
-                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3">
+            {errorMessage && (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
                     {errorMessage}
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {stats.map((stat) => (
-                        <StatCard
-                            key={stat.id}
-                            {...stat}
-                        />
-                    ))}
-                </div>
             )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {stats.map((stat) => (
+                    <StatCard key={stat.id} {...stat} />
+                ))}
+            </div>
         </div>
     );
 };
