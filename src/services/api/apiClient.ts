@@ -5,11 +5,19 @@ const BASE_URL: string = import.meta.env.VITE_API_URL;
 export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
   raw?: boolean; // if is true, returns the full response object instead of just the data
   /**
-   * Opt out of the 401 session teardown. Required on the auth endpoints:
-   * `POST /users/login` answers 401 for a wrong password, which must surface as
-   * a form error, not wipe the session and bounce to /login.
+   * Marks a request as hitting a route the API docs list as not requiring a
+   * token (currently `/users/login` and `/users` register). Gates two things:
+   *
+   * 1. No stored token is attached. A stale or expired one sent to a public
+   *    route can trip a backend auth middleware scoped too broadly, or turn
+   *    the request into a CORS-preflighted one that a public route's CORS
+   *    config never expected — either way the request can be blocked before
+   *    credentials are even checked.
+   * 2. No 401 session teardown. `POST /users/login` answers 401 for a wrong
+   *    password, which must surface as a form error, not wipe the session
+   *    and bounce to /login.
    */
-  skipAuthRedirect?: boolean;
+  isPublicEndpoint?: boolean;
   headers?: Record<string, string> | HeadersInit;
 }
 
@@ -67,13 +75,15 @@ export const apiClient = async <T = unknown>(
       (options.headers as Record<string, string>) || {},
     );
 
-    const token = getStoredToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
+    if (!options.isPublicEndpoint) {
+      const token = getStoredToken();
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
     }
 
     // Keep our own options out of the fetch init.
-    const { raw, skipAuthRedirect, ...requestInit } = options;
+    const { raw, isPublicEndpoint, ...requestInit } = options;
 
     const config: RequestInit = {
       ...requestInit,
@@ -101,7 +111,7 @@ export const apiClient = async <T = unknown>(
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
-        if (!skipAuthRedirect) endExpiredSession();
+        if (!isPublicEndpoint) endExpiredSession();
 
         throw new ApiError(
           "Sesión expirada o no autorizada.",
