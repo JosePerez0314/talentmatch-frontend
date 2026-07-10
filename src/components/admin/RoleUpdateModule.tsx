@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserCheck, Loader2 } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
 // FIX: Cambiamos AdminUser por el tipo User oficial de la API
@@ -12,6 +12,7 @@ export const RoleUpdateModule: React.FC = () => {
     const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState<string>('');
 
+    // Sync the working copy of roles whenever the parent hands us a fresh users list.
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -41,10 +42,12 @@ export const RoleUpdateModule: React.FC = () => {
     const handleSave = async (userId: string) => {
         try {
             setIsSaving((prev) => ({ ...prev, [userId]: true }));
+            setErrorMessage(null);
             await adminService.updateRole(userId, currentRoles[userId]);
-            console.log(`Rol actualizado para ${userId}`);
+            onSaved();
         } catch (error) {
-            console.error("Error al actualizar:", error);
+            console.error("Error al actualizar rol:", error);
+            setErrorMessage("No se pudo actualizar el rol. Intenta nuevamente.");
         } finally {
             setIsSaving((prev) => ({ ...prev, [userId]: false }));
         }
@@ -96,7 +99,7 @@ export const RoleUpdateModule: React.FC = () => {
                             <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4">
                                 <div className="flex items-center gap-3 sm:w-1/3 min-w-[200px]">
                                     <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                        {user.username?.substring(0, 2) || 'US'}
+                                        {getInitials(user.username)}
                                     </div>
                                     <h4 className="text-xs font-bold text-gray-700 tracking-tight">{user.username}</h4>
                                 </div>

@@ -32,7 +32,7 @@ const CreateDepartment: React.FC = () => {
 
             if (err instanceof ApiError && err.data && typeof err.data === "object") {
                 const serverData = err.data as { message?: string; error?: string; details?: unknown };
-                console.log("DETALLE DEL ERROR:", JSON.stringify(serverData.details, null, 2));
+                console.debug("Zod validation details:", serverData.details);
                 const msg = serverData.message || serverData.error || JSON.stringify(serverData);
                 setError(`Error del Servidor: ${msg}`);
                 return;

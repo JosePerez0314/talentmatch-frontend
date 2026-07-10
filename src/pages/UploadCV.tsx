@@ -1,34 +1,33 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Components
 import UploadCVSuccess from "../components/Sections/UploadCVSuccess";
 
-// Services, Context & Assets
 import { Icons } from "../assets/icons";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { useAuth } from "../components/context/AuthContext";
+import { Vacancy, UploadResult } from "../types/api.types";
 
-const UploadCV = () => {
+type UiState = "idle" | "uploading" | "success";
+
+const UploadCV: React.FC = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { user } = useAuth();
 
-  // Estados
-  const [files, setFiles] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [error, setError] = useState(null);
-  const [uiState, setUiState] = useState("idle");
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
+  const [uploadResults, setUploadResults] = useState<UploadResult[]>([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uiState, setUiState] = useState<UiState>("idle");
 
-  // Vacantes disponibles para asociar los CVs
-  const [vacancies, setVacancies] = useState([]);
-  const [selectedVacancyId, setSelectedVacancyId] = useState("");
+  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
+  const [selectedVacancyId, setSelectedVacancyId] = useState<string>("");
 
-  // Contador para manejar bubbling de eventos drag
-  const dragCounter = useRef(0);
+  const dragCounter = useRef<number>(0);
 
-  // Carga las vacantes activas para poder asociar los CVs a una de ellas
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -44,8 +43,7 @@ const UploadCV = () => {
     return () => { cancelled = true; };
   }, []);
 
-  // --- Lógica de Negocio (Helpers) ---
-  const validateFiles = useCallback((fileList) => {
+  const validateFiles = useCallback((fileList: FileList | File[]): File[] => {
     const newFiles = Array.from(fileList);
     const hasInvalid = newFiles.some((file) => file.type !== "application/pdf");
 
@@ -58,42 +56,39 @@ const UploadCV = () => {
     return newFiles;
   }, []);
 
-  // --- Manejo Global de Drag & Drop ---
   useEffect(() => {
-    const handleDragEnter = (e) => {
+    const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       dragCounter.current += 1;
-      
-      // Activamos la UI si lo que arrastran son archivos
-      if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+
+      if (e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length > 0) {
         setIsDragging(true);
       }
     };
 
-    const handleDragLeave = (e) => {
+    const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       dragCounter.current -= 1;
-      
-      // Solo desactivamos cuando el contador llega a 0
+
       if (dragCounter.current === 0) {
         setIsDragging(false);
       }
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragging(false);
       dragCounter.current = 0;
 
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         const validated = validateFiles(e.dataTransfer.files);
         if (validated.length > 0) {
           setFiles((prev) => [...prev, ...validated]);
@@ -101,13 +96,11 @@ const UploadCV = () => {
       }
     };
 
-    // Adjuntamos los eventos al objeto windows
     window.addEventListener("dragenter", handleDragEnter);
     window.addEventListener("dragleave", handleDragLeave);
     window.addEventListener("dragover", handleDragOver);
     window.addEventListener("drop", handleDrop);
 
-    // Cleanup remueve los eventos cuando el componente se desmonta
     return () => {
       window.removeEventListener("dragenter", handleDragEnter);
       window.removeEventListener("dragleave", handleDragLeave);
@@ -116,16 +109,16 @@ const UploadCV = () => {
     };
   }, [validateFiles]);
 
-  // --- Handlers Manuales ---
-  const handleFileSelection = (e) => {
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
     const validated = validateFiles(e.target.files);
     if (validated.length === 0) return;
 
     setFiles((prev) => [...prev, ...validated]);
-    e.target.value = ""; 
+    e.target.value = "";
   };
 
-  const removeFile = (index) => {
+  const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -145,29 +138,35 @@ const UploadCV = () => {
     setUiState("uploading");
     setError(null);
 
+    const submittedNames = files.map((f) => f.name);
+
     try {
       const results = await vacanciesApi.uploadCVs(selectedVacancyId, files);
-      // La API procesa cada PDF independientemente (§4). Reportamos si alguno falló.
-      const failed = Array.isArray(results) ? results.filter((r) => r && r.success === false) : [];
-      if (failed.length > 0) {
-        setError(`${failed.length} de ${files.length} archivo(s) no pudieron procesarse.`);
-      }
+      const normalized = Array.isArray(results) ? results : [];
+      setUploadResults(normalized);
+      setUploadedFileNames(submittedNames);
       setUiState("success");
     } catch (err) {
       console.error("Fallo al subir:", err);
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Ocurrió un error al subir los archivos.");
       setUiState("idle");
     }
   };
 
   const handleReset = () => {
     setFiles([]);
+    setUploadResults([]);
+    setUploadedFileNames([]);
     setUiState("idle");
     setError(null);
   };
 
-  // --- Sub-componentes ---
-  const FileItem = ({ file, index }) => (
+  interface FileItemProps {
+    file: File;
+    index: number;
+  }
+
+  const FileItem: React.FC<FileItemProps> = ({ file, index }) => (
     <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 group">
       <div className="flex items-center gap-3">
         <img src={Icons.stats.vacantCreateBlue} alt="Check" className="w-5 h-5 object-contain" />
@@ -189,9 +188,16 @@ const UploadCV = () => {
     </div>
   );
 
-  // --- Renderizado Condicional: UI de Carga o Éxito ---
-  if (uiState === "success") return <UploadCVSuccess count={files.length} onReset={handleReset} />;
-  
+  if (uiState === "success") {
+    return (
+      <UploadCVSuccess
+        results={uploadResults}
+        fileNames={uploadedFileNames}
+        onReset={handleReset}
+      />
+    );
+  }
+
   if (uiState === "uploading") {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center animate-fade-in p-10">
@@ -204,10 +210,8 @@ const UploadCV = () => {
     );
   }
 
-  // --- Renderizado Normal ---
   return (
     <>
-      {/* OVERLAY GLOBAL DE DRAG & DROP */}
       {isDragging && (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#808080]/90 backdrop-blur-sm transition-all duration-300 pointer-events-none">
           <div className="border-4 border-white border-dashed rounded-[40px] flex flex-col items-center justify-center w-[90%] h-[90%] max-w-5xl animate-pulse">
@@ -270,7 +274,6 @@ const UploadCV = () => {
             </div>
           )}
 
-          {/* Caja estática */}
           <div className={`relative border-2 border-dashed rounded-[24px] flex flex-col items-center justify-center transition-all duration-300 mx-auto w-full bg-white border-gray-200 ${files.length > 0 ? "py-10 max-w-[90%]" : "py-12 max-w-[90%]"}`}>
             <div className="w-20 h-20 bg-[#DCF9FF] rounded-3xl flex items-center justify-center mb-8 border border-[#E9F7FF]">
               <img src={Icons.stats.vacantCreateBlue} alt="Documento" className="w-10 h-10 object-contain" />
@@ -286,7 +289,7 @@ const UploadCV = () => {
             />
 
             <button
-              onClick={() => fileInputRef.current.click()}
+              onClick={() => fileInputRef.current?.click()}
               className="bg-[#447ECA] text-white px-6 py-3 rounded-2xl font-black text-sm mb-5 hover:bg-[#356ab0] hover:shadow-lg active:scale-95 transition-all uppercase tracking-wider"
             >
               Seleccionar archivos PDF

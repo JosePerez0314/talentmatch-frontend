@@ -1,22 +1,11 @@
-// 1. Tipo estricto para controlar los 5 colores exactos solicitados para las tarjetas
+// Color palette for the 6 StatCards rendered inside the admin panel.
 export type StatCardColorType = 'azul' | 'morado' | 'verde' | 'amarillo' | 'rojo';
 
-// 2. Interfaz para las 8 tarjetas de métricas del "System Stats Module"
+// Shape rendered by StatCard; StatsModule builds these from GET /admin/stats.
 export interface StatItem {
     id: number;
     label: string;
     count: number;
-    icon: string; // Nombre del icono de la librería (ej: 'Users', 'Shield')
+    icon: string; // lucide-react icon name (e.g. 'Users', 'Shield')
     type: StatCardColorType;
-}
-
-// 3. Interfaz para el modelo de usuario utilizado en la tabla y los módulos de actualizar/eliminar
-export interface AdminUser {
-    id: string;
-    username: string;
-    email: string;
-    role: 'admin' | 'user';
-    avatar: string;
-    created?: string;
-    lastAccessed?: string;  // El '?' lo hace opcional
 }

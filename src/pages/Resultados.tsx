@@ -2,20 +2,30 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Icons } from "../assets/icons/index";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
-import CandidateMatchRow from "../components/cards/CandidateMatchRow.jsx";
+import CandidateMatchRow from "../components/cards/CandidateMatchRow";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
 import { vacanciesApi } from "../services/api/vacancies.api";
+import { MatchResult, Vacancy } from "../types/api.types";
 
-const Resultados = () => {
+type Notification = {
+    show: boolean;
+    message: string;
+    type: "success" | "error" | "info" | "";
+};
+
+const Resultados: React.FC = () => {
     const navigate = useNavigate();
-    const { id } = useParams(); // Este es el vacancyId
-    const [loading, setLoading] = useState(true);
-    const [candidates, setCandidates] = useState([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedCandidate, setSelectedCandidate] = useState(null);
-    const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+    const { id } = useParams<{ id: string }>();
+    const [loading, setLoading] = useState<boolean>(true);
+    const [candidates, setCandidates] = useState<MatchResult[]>([]);
+    const [vacancy, setVacancy] = useState<Vacancy | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [selectedCandidate, setSelectedCandidate] = useState<MatchResult | null>(null);
+    const [hiringMatchId, setHiringMatchId] = useState<number | null>(null);
+    const [notification, setNotification] = useState<Notification>({ show: false, message: "", type: "" });
 
     useEffect(() => {
+        let cancelled = false;
         const fetchResults = async () => {
             if (!id) {
                 setLoading(false);
@@ -24,46 +34,54 @@ const Resultados = () => {
 
             try {
                 setLoading(true);
-                const response = await vacanciesApi.getResults(id);
-                setCandidates(Array.isArray(response) ? response : []);
+                const [results, vac] = await Promise.all([
+                    vacanciesApi.getResults(id),
+                    vacanciesApi.getById(id).catch(() => null),
+                ]);
+                if (cancelled) return;
+                setCandidates(Array.isArray(results) ? results : []);
+                setVacancy(vac);
             } catch (error) {
                 console.error("Error al obtener candidatos:", error);
-                setCandidates([]);
+                if (!cancelled) setCandidates([]);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         fetchResults();
+        return () => { cancelled = true; };
     }, [id]);
 
-    // NUEVA FUNCIÓN: Maneja el cambio de estado y cierra la vacante según lo dicho por José
-    const handleStatusChange = async (matchId, newStatus) => {
+    const isClosed = vacancy?.status === "CLOSED";
+
+    const showNotification = (message: string, type: Notification["type"]) => {
+        setNotification({ show: true, message, type });
+        window.setTimeout(() => setNotification({ show: false, message: "", type: "" }), 5000);
+    };
+
+    const handleHire = async (match: MatchResult) => {
+        if (!id) return;
+        const confirmed = window.confirm(
+            "Contratar a este candidato cerrará la vacante. ¿Deseas continuar?",
+        );
+        if (!confirmed) return;
+
         try {
-            // 1. Feedback visual inmediato
-            setCandidates(prev => prev.map(c =>
-                (c.id === matchId)
-                    ? { ...c, candidate: { ...c.candidate, status: newStatus } }
-                    : c
-            ));
-
-            if (newStatus === "Contratado") {
-                console.log("Cerrando vacante...");
-                await vacanciesApi.updateStatus(id, "CLOSED");
-                // Mostrar alerta nativa estándar mientras integramos el componente visual
-                alert("¡Candidato contratado y vacante cerrada con éxito!");
-            } else {
-                alert(`Estado actualizado a: ${newStatus}`);
-            }
-
+            setHiringMatchId(match.id);
+            const updated = await vacanciesApi.updateStatus(id, "CLOSED");
+            setVacancy((prev) => (prev ? { ...prev, status: updated.status } : updated));
+            showNotification("Candidato contratado y vacante cerrada con éxito.", "success");
         } catch (error) {
-            console.error("Error al actualizar estados:", error);
-            alert("No se pudo guardar el cambio en el servidor.");
+            console.error("Error al cerrar la vacante:", error);
+            showNotification("No se pudo cerrar la vacante. Intenta de nuevo.", "error");
+        } finally {
+            setHiringMatchId(null);
         }
     };
 
-    const handleViewCandidate = (candidate) => {
-        setSelectedCandidate(candidate);
+    const handleViewCandidate = (match: MatchResult) => {
+        setSelectedCandidate(match);
         setIsModalOpen(true);
     };
 
@@ -72,20 +90,6 @@ const Resultados = () => {
     if (!id) {
         return (
             <div className="min-h-screen bg-[#F2F4F7] flex items-center justify-center p-6 animate-fade-in">
-                {/* NUEVO: Contenedor flotante de la notificación */}
-                {notification.show && (
-                    <div className={`fixed bottom-6 right-6 p-4 rounded-2xl shadow-xl z-50 text-white font-medium text-sm flex items-center gap-3 transition-all transform duration-300 ${notification.type === 'success' ? 'bg-green-600' :
-                        notification.type === 'error' ? 'bg-red-600' : 'bg-blue-600'
-                        }`}>
-                        <span>{notification.message}</span>
-                        <button
-                            onClick={() => setNotification({ show: false, message: "", type: "" })}
-                            className="text-white hover:text-gray-200 text-xs font-bold"
-                        >
-                            ✕
-                        </button>
-                    </div>
-                )}
                 <div className="bg-white p-12 rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-200/60 text-center max-w-md">
                     <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <img src={Icons.sidebar.historyVacant} className="w-10 h-10 opacity-40" alt="vacantes" />
@@ -107,6 +111,24 @@ const Resultados = () => {
 
     return (
         <div className="min-h-screen bg-[#F2F4F7] p-6 md:p-12 animate-fade-in">
+            {notification.show && (
+                <div className={`fixed bottom-6 right-6 p-4 rounded-2xl shadow-xl z-50 text-white font-medium text-sm flex items-center gap-3 transition-all transform duration-300 ${
+                    notification.type === "success"
+                        ? "bg-green-600"
+                        : notification.type === "error"
+                            ? "bg-red-600"
+                            : "bg-blue-600"
+                }`}>
+                    <span>{notification.message}</span>
+                    <button
+                        onClick={() => setNotification({ show: false, message: "", type: "" })}
+                        className="text-white hover:text-gray-200 text-xs font-bold"
+                    >
+                        ✕
+                    </button>
+                </div>
+            )}
+
             <div className="max-w-4xl mx-auto">
                 <header className="mb-10 flex flex-col gap-6">
                     <button
@@ -122,19 +144,26 @@ const Resultados = () => {
                         <p className="text-gray-400 text-[11px] font-bold uppercase tracking-[2px]">
                             Análisis de Vacantes • TalentMatch AI
                         </p>
+                        {isClosed && (
+                            <p className="mt-2 text-xs font-bold text-emerald-600 uppercase tracking-wider">
+                                Vacante cerrada
+                            </p>
+                        )}
                     </div>
                 </header>
 
                 <div className="bg-white rounded-[45px] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-gray-200/60 p-8 pb-12 transition-all">
-                    {candidates && candidates.length > 0 ? (
+                    {candidates.length > 0 ? (
                         <div className="w-full flex flex-col gap-2">
                             {candidates.map((c, idx) => (
-                                <div key={c.id || idx} className="relative">
+                                <div key={c.id ?? idx} className="relative">
                                     <CandidateMatchRow
                                         index={idx}
                                         resultData={c}
                                         onViewClick={() => handleViewCandidate(c)}
-                                        onStatusChange={handleStatusChange} // PASAMOS LA FUNCIÓN AQUÍ
+                                        onHire={() => handleHire(c)}
+                                        isHiring={hiringMatchId === c.id}
+                                        hireDisabled={isClosed}
                                     />
                                 </div>
                             ))}

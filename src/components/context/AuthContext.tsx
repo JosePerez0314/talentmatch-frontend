@@ -13,7 +13,12 @@ interface AuthContextType {
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+  const login = ({ email, token, role, username }: LoginSession) => {
+    const userData: SessionUser = {
+      email,
+      role,
+      username: deriveUsername(email, username),
+    };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserData | null>(() => {
@@ -25,14 +30,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Si no viene username, usamos el email como fallback
     const userData: UserData = { email, role, username: username || email.split('@')[0] };
     setUser(userData);
-    localStorage.setItem("tm_user", JSON.stringify(userData));
-    localStorage.setItem("token", token);
+    storeSession(userData, token);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("tm_user");
-    localStorage.removeItem("token");
+    clearStoredSession();
     window.location.href = "/login";
   };
 

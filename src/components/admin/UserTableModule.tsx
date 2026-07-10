@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
 // FIX: Cambiamos AdminUser por el tipo User oficial de la API
@@ -26,9 +26,12 @@ export const UserTableModule: React.FC = () => {
         }
     }, [limit]);
 
-    useEffect(() => {
-        fetchUsers(page);
-    }, [page, fetchUsers]);
+const formatDate = (iso?: string): string => {
+    if (!iso) return '-';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return '-';
+    return parsed.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
+};
 
     const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -110,7 +113,9 @@ export const UserTableModule: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-2">
-                <p className="text-xs font-semibold text-gray-400"></p>
+                <p className="text-xs font-semibold text-gray-400">
+                    Página {meta.currentPage} de {meta.totalPages} · {meta.totalCount} usuarios
+                </p>
                 <div className="flex gap-1.5">
                     <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500">
                         <ChevronLeft size={16} />
