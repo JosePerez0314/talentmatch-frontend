@@ -43,8 +43,10 @@ export interface Vacancy {
     startDate: string;
     endDate: string;
     status: VacancyStatus;
-    isDeleted: boolean; 
+    isDeleted: boolean;
     createdAt: string;
+    // GET /vacancies includes _count.candidates (see api-documentation.md §4)
+    _count?: { candidates: number };
 }
 
 export interface Candidate {
