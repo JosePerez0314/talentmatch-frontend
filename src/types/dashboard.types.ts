@@ -54,9 +54,3 @@ export interface MonthlyData {
   cvs: number;
   vacantes: number;
 }
-
-export interface DashboardStats {
-  metrics: DashboardMetric[];
-  vacancyStatuses: DashboardVacancyStatusCard[];
-  monthlyData: MonthlyData[];
-}

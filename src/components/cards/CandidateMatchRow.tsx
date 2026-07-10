@@ -1,26 +1,51 @@
 import React from "react";
 import { Icons } from "../../assets/icons/index";
-import StatusDropdown from "../ui/StatusDropdown";
+import { MatchResult } from "../../types/api.types";
 
-// CORRECCIÓN: Se cambia onStatusUpdate por onStatusChange para que coincida con la llamada interna
-const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) => {
-    // REFERENCIAS CORREGIDAS SEGÚN JSON DE POSTMAN
-    const person = resultData.candidate || {};
-    // El backend usa matchScore para el porcentaje
-    const score = resultData.matchScore || 0;
-    // Las habilidades están en normalizedCandidate.technicalSkills
-    const skills = resultData.normalizedCandidate?.technicalSkills || [];
-    const fileName = person.fileUrl ? person.fileUrl.split('/').pop() : "CV.pdf";
+interface NormalizedCandidate {
+    technicalSkills?: string[];
+}
 
-    // Extraemos el ID del candidato y su estado actual para la persistencia
-    const candidateId = person.id || person._id;
-    const currentStatus = person.status || "No contratado";
+// MatchResult on the results endpoint is enriched with normalizedCandidate
+// and the backend still returns fileUrl on the candidate — kept as widened
+// access to avoid a regression while the shared types catch up.
+type ResultData = MatchResult & {
+    normalizedCandidate?: NormalizedCandidate;
+    candidate?: MatchResult["candidate"] & { fileUrl?: string };
+};
 
-    const getMatchStyles = (s) => {
-        if (s <= 49) return { bg: "bg-[#EF5050]", text: "text-white" };
-        if (s <= 79) return { bg: "bg-[#F8C807]", text: "text-black" };
-        return { bg: "bg-[#00FA15]", text: "text-black" };
-    };
+interface CandidateMatchRowProps {
+    resultData: ResultData;
+    index: number;
+    onViewClick: () => void;
+    onHire?: () => void;
+    isHiring?: boolean;
+    hireDisabled?: boolean;
+}
+
+const getMatchStyles = (score: number): { bg: string; text: string } => {
+    if (score <= 49) return { bg: "bg-[#EF5050]", text: "text-white" };
+    if (score <= 79) return { bg: "bg-[#F8C807]", text: "text-black" };
+    return { bg: "bg-[#00FA15]", text: "text-black" };
+};
+
+const CandidateMatchRow: React.FC<CandidateMatchRowProps> = ({
+    resultData,
+    index,
+    onViewClick,
+    onHire,
+    isHiring = false,
+    hireDisabled = false,
+}) => {
+    const person = resultData.candidate;
+    const score = resultData.matchScore ?? 0;
+    const skills = resultData.normalizedCandidate?.technicalSkills ?? [];
+    const fileUrl = person?.resumeUrl ?? person?.fileUrl;
+    const fileName = fileUrl ? fileUrl.split("/").pop() : "CV.pdf";
+
+    const displayName = person?.fullName
+        ?? [person?.firstName, person?.lastName].filter(Boolean).join(" ")
+        ?? "Candidato";
 
     const { bg, text } = getMatchStyles(score);
 
@@ -30,12 +55,10 @@ const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) =
             onClick={onViewClick}
         >
 
-            {/* Index Number */}
             <div className="hidden md:block text-gray-900 font-bold text-sm">
                 {String(index + 1).padStart(2, '0')}
             </div>
 
-            {/* Score */}
             <div className="flex justify-center">
                 <div className={`${bg} ${text} w-16 h-16 rounded-[22px] flex flex-col items-center justify-center shadow-lg border border-black/10`}>
                     <span className="text-2xl font-black leading-none">{score}%</span>
@@ -43,13 +66,11 @@ const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) =
                 </div>
             </div>
 
-            {/* Info del candidato */}
             <div className="flex flex-col items-center md:items-start text-center md:text-left md:pl-4 min-w-0 overflow-hidden">
                 <span className="w-full text-gray-800 font-bold text-[15px] group-hover:text-[#447ECA] truncate">
-                    {person.fullName || "Candidato"}
+                    {displayName}
                 </span>
 
-                {/* Mapeo de Skills (technicalSkills del JSON) */}
                 <div className="flex flex-wrap gap-1 mt-1 mb-2">
                     {skills.slice(0, 3).map((skill, i) => (
                         <span key={i} className="px-2 py-0.5 bg-blue-50 text-[#447ECA] text-[9px] font-bold rounded-md uppercase border border-blue-100">
@@ -69,16 +90,17 @@ const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) =
                 </div>
             </div>
 
-            {/* Acciones */}
             <div
                 className="flex flex-wrap items-center justify-center md:justify-end gap-3 md:gap-4 mt-2 md:mt-0 flex-shrink-0"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Ahora onStatusChange está correctamente definido en las props */}
-                <StatusDropdown
-                    currentStatus={currentStatus}
-                    onStatusChange={(newStatus) => onStatusChange?.(candidateId, newStatus)}
-                />
+                <button
+                    onClick={() => onHire?.()}
+                    disabled={isHiring || hireDisabled}
+                    className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                    {isHiring ? "Contratando..." : "Contratar"}
+                </button>
 
                 <div className="flex gap-2">
                     <button
@@ -92,19 +114,22 @@ const CandidateMatchRow = ({ resultData, index, onViewClick, onStatusChange }) =
                             style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
                         />
                     </button>
-                    <a
-                        href={person.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors"
-                    >
-                        <img
-                            src={Icons.stats.uploadCv}
-                            className="w-5 h-5"
-                            alt="doc"
-                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
-                        />
-                    </a>
+                    {fileUrl && (
+                        <a
+                            href={fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <img
+                                src={Icons.stats.uploadCv}
+                                className="w-5 h-5"
+                                alt="doc"
+                                style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
+                            />
+                        </a>
+                    )}
                 </div>
             </div>
         </div>

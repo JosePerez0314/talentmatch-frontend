@@ -8,7 +8,7 @@ import { vacanciesApi, CreateVacancyInput } from "../services/api/vacancies.api"
 import { positionService } from "../services/api/positions.api";
 import { departmentsApi } from "../services/api/departments.api";
 import { ApiError } from "../services/api/apiClient";
-import { ApiErrorDetail } from "../types/api.types";
+import { ApiErrorDetail, Vacancy } from "../types/api.types";
 
 // Convierte los `details` de Zod (400) en un mensaje legible campo por campo.
 const formatApiError = (error: unknown, fallback: string): string => {
@@ -50,6 +50,7 @@ const CreateVacancy: React.FC = () => {
   const [isFetchingData, setIsFetchingData] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string>("");
   const [dateError, setDateError] = useState<string>("");
+  const [savedVacancy, setSavedVacancy] = useState<Vacancy | null>(null);
 
   // Catálogos dinámicos
   const [departmentsList, setDepartmentsList] = useState<Department[]>([]);
@@ -173,12 +174,11 @@ const CreateVacancy: React.FC = () => {
         status: "ACTIVE"
       };
 
-      if (isEditMode && id) {
-        await vacanciesApi.update(id, payload);
-      } else {
-        await vacanciesApi.create(payload);
-      }
+      const result = isEditMode && id
+        ? await vacanciesApi.update(id, payload)
+        : await vacanciesApi.create(payload);
 
+      setSavedVacancy(result);
       setUiState("success");
 
     } catch (error) {
@@ -190,8 +190,14 @@ const CreateVacancy: React.FC = () => {
   };
 
   if (uiState === "success") {
+    const displayId = savedVacancy?.id ?? (isEditMode && id ? id : undefined);
+    const vacancyCode = displayId !== undefined
+      ? `Vac-${String(displayId).padStart(3, "0")}`
+      : undefined;
+
     return (
       <VacancySuccess
+        vacancyCode={vacancyCode}
         onReset={() => {
           setUiState("form");
           if (isEditMode) {

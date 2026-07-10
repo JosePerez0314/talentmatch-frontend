@@ -1,84 +1,139 @@
-import React, { useState } from 'react';
-import { UserCheck, Search } from 'lucide-react';
-import { mockUsers } from './UserTableModule';
+import React, { useEffect, useState } from 'react';
+import { UserCheck, Loader2 } from 'lucide-react';
+import { adminService } from '../../services/api/admin.api';
+import { User, UserRole } from '../../types/api.types';
 
-export const RoleUpdateModule: React.FC = () => {
-    const [currentRoles, setCurrentRoles] = useState<Record<string, 'admin' | 'user'>>(
-        mockUsers.reduce((acc, user) => ({ ...acc, [user.id]: user.role }), {})
-    );
+interface RoleUpdateModuleProps {
+    users: User[];
+    isLoading: boolean;
+    onSaved: () => void;
+}
 
-    const handleRoleChange = (userId: string, newRole: 'admin' | 'user') => {
+const getInitials = (name?: string): string =>
+    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
+
+export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoading, onSaved }) => {
+    const [currentRoles, setCurrentRoles] = useState<Record<string, UserRole>>({});
+    const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Sync the working copy of roles whenever the parent hands us a fresh users list.
+    useEffect(() => {
+        const next: Record<string, UserRole> = {};
+        for (const u of users) next[u.id] = u.role;
+        setCurrentRoles(next);
+    }, [users]);
+
+    const handleRoleChange = (userId: string, newRole: UserRole) => {
         setCurrentRoles((prev) => ({ ...prev, [userId]: newRole }));
     };
 
+    const handleSave = async (userId: string) => {
+        try {
+            setIsSaving((prev) => ({ ...prev, [userId]: true }));
+            setErrorMessage(null);
+            await adminService.updateRole(userId, currentRoles[userId]);
+            onSaved();
+        } catch (error) {
+            console.error("Error al actualizar rol:", error);
+            setErrorMessage("No se pudo actualizar el rol. Intenta nuevamente.");
+        } finally {
+            setIsSaving((prev) => ({ ...prev, [userId]: false }));
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm flex justify-center items-center h-44">
+                <Loader2 className="animate-spin text-blue-500" size={26} />
+            </div>
+        );
+    }
+
+    const filteredUsers = users.filter(user =>
+        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-            {/* Cabecera con Buscador */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                <div className="flex items-center gap-2">
-                    <UserCheck size={16} className="text-amber-500" />
-                    <h2 className="text-sm font-semibold text-gray-700">Actualizar rol de usuario</h2>
+        <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm">
+            {/* Cabecera del módulo con Buscador */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 bg-amber-50 text-amber-500 rounded-lg">
+                        <UserCheck size={16} strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-sm font-bold text-gray-700 tracking-tight">Actualizar rol de usuario</h2>
                 </div>
-                <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <div>
                     <input
                         type="text"
                         placeholder="Buscar usuario..."
-                        className="w-full pl-9 pr-4 py-1.5 text-sm bg-gray-50/40 border border-gray-200/80 rounded-xl focus:outline-none"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="text-xs border border-gray-200/80 rounded-xl px-4 py-2 w-full sm:w-60 outline-none focus:border-blue-400 bg-gray-50/50 text-gray-700 transition-all placeholder:text-gray-400"
                     />
                 </div>
             </div>
 
-            {/* Lista de Filas de Usuarios */}
-            <div className="space-y-3">
-                {mockUsers.map((user) => {
-                    const isButtonEnabled = currentRoles[user.id] !== user.role;
+            {errorMessage && (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
+                    {errorMessage}
+                </div>
+            )}
 
-                    return (
-                        <div
-                            key={user.id}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4"
-                        >
-                            {/* Bloque Izquierdo: Avatar y Nombre únicamente */}
-                            <div className="flex items-center gap-3 min-w-[180px]">
-                                <div className="w-8 h-8 rounded-full bg-slate-500 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                                    {user.avatar}
+            {/* Listado de filas alineadas */}
+            <div className="space-y-2.5">
+                {filteredUsers.length === 0 ? (
+                    <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
+                ) : (
+                    filteredUsers.map((user) => {
+                        const isChanged = currentRoles[user.id] !== user.role;
+                        const saving = isSaving[user.id];
+
+                        return (
+                            <div
+                                key={user.id}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4"
+                            >
+                                <div className="flex items-center gap-3 sm:w-1/3 min-w-[200px]">
+                                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
+                                        {getInitials(user.username)}
+                                    </div>
+                                    <h4 className="text-xs font-bold text-gray-700 tracking-tight">{user.username}</h4>
                                 </div>
-                                <h4 className="text-xs sm:text-sm font-medium text-gray-800">{user.username}</h4>
-                            </div>
 
-                            {/* Bloque Derecho: Correo al lado, Select y Botón Guardar */}
-                            <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-end gap-3 sm:gap-8 w-full sm:w-auto">
-                                {/* El correo electrónico ahora se renderiza aquí de forma alineada en horizontal */}
-                                <p className="text-xs sm:text-sm text-gray-400 font-normal tracking-normal text-right sm:text-left">
-                                    {user.email}
-                                </p>
+                                <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <p className="text-xs text-gray-400 font-medium">{user.email}</p>
 
-                                <div className="flex items-center gap-3 justify-end">
-                                    <select
-                                        aria-label={`Cambiar rol para el usuario ${user.username}`}
-                                        value={currentRoles[user.id]}
-                                        onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'user')}
-                                        className="bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs font-medium text-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500/40 cursor-pointer"
-                                    >
-                                        <option value="admin">admin</option>
-                                        <option value="user">user</option>
-                                    </select>
+                                    <div className="flex items-center gap-2.5 justify-end shrink-0">
+                                        <select
+                                            aria-label="Seleccionar nuevo rol"
+                                            value={currentRoles[user.id]}
+                                            onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
+                                            className="bg-gray-50/50 border border-gray-200 text-gray-600 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-300 cursor-pointer"
+                                        >
+                                            <option value="ADMIN">Admin</option>
+                                            <option value="USER">Usuario</option>
+                                        </select>
 
-                                    <button
-                                        disabled={!isButtonEnabled}
-                                        className={`px-4 py-1.5 bg-[#f5d6b3] rounded-xl text-xs font-semibold text-amber-950 transition-all ${isButtonEnabled
-                                            ? 'opacity-100 hover:brightness-95 cursor-pointer shadow-sm'
-                                            : 'opacity-40 cursor-not-allowed text-amber-900/60'
-                                            }`}
-                                    >
-                                        Guardar
-                                    </button>
+                                        <button
+                                            disabled={!isChanged || saving}
+                                            onClick={() => handleSave(user.id)}
+                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged
+                                                    ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm'
+                                                    : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'
+                                                }`}
+                                        >
+                                            {saving ? 'Guardando...' : 'Guardar'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })
+                )}
             </div>
         </div>
     );

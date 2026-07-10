@@ -1,6 +1,10 @@
-# API Documentation — TalentMatch AI
+# Documentación de la API — TalentMatch AI
 
-**Generado a partir de:** `src/routes/`, `src/controllers/`, `src/validations/` y `prisma/schema.prisma`.
+> 🇬🇧 English version: [`../en/api-documentation.md`](../en/api-documentation.md)
+>
+> ⚠️ Este documento describe el **contrato del backend**, no el frontend. La fuente de verdad vive en el repositorio `talentmatch-backend`; esta copia es una referencia para el equipo de frontend y puede desincronizarse.
+
+**Generado a partir de:** `src/routes/`, `src/controllers/`, `src/validations/` y `prisma/schema.prisma` (del backend).
 **Base URL:** `/api`
 **Formato:** JSON (`Content-Type: application/json`), excepto los endpoints de subida de archivos (`multipart/form-data`).
 

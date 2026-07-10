@@ -48,24 +48,26 @@ const PositionHistory: React.FC = () => {
     // HANDLERS DEL CRUD (Eliminar y Duplicar)
     const handleDeletePosition = async (id: number | string) => {
         try {
+            setError("");
             await positionService.delete(id);
             // Actualización optimista de UI
             setPositions(prev => prev.filter(p => p.id !== id));
-        } catch (error) {
-            console.error("Error al eliminar", error);
-            alert("No se pudo eliminar la posición.");
+        } catch (err) {
+            console.error("Error al eliminar", err);
+            setError("No se pudo eliminar la posición.");
         }
     };
 
     const handleDuplicatePosition = async (id: number | string) => {
         try {
+            setError("");
             // POST /positions/duplicate/:id
             await positionService.duplicate(id);
             // Refrescamos para trae copia generada por el backend
             fetchPositions();
-        } catch (error) {
-            console.error("Error al duplicar", error);
-            alert("No se pudo duplicar la posición.");
+        } catch (err) {
+            console.error("Error al duplicar", err);
+            setError("No se pudo duplicar la posición.");
         }
     };
 

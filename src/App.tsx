@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./components/context/AuthContext";
 // Components
 import Sidebar from "./layouts/Sidebar";
 import SessionTimeoutGuard from "./components/ui/SessionTimeoutGuard";
+import { AdminRoute } from "./components/routes/AdminRoute";
 
 // Pages
 import Login from "./pages/Login";
@@ -25,18 +26,16 @@ import EvaluationsHistory from "./pages/EvaluationsHistory";
 import AdvancedResults from "./pages/AdvancedResults";
 import AdminPanel from "./pages/AdminPanel";
 
-// Componente de Rutas Protegidas con Validación de Sesión Real activa
-const ProtectedRoute: React.FC = () => {
-  const { user, loading } = useAuth();
 
-  // Pantalla de carga mientras se verifica el token/estado
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#F0F0F5]">
-        <div className="animate-pulse text-gray-400 font-medium">Verificando sesión...</div>
-      </div>
-    );
-  }
+// Layout para todas las rutas protegidas
+
+// Componente de Rutas Protegidas con Validación de Sesión Real activa
+
+const ProtectedRoute: React.FC = () => {
+  const { user } = useAuth();
+
+  // AuthProvider hydrates `user` from localStorage synchronously, so there is no
+  // async session check to wait on here.
 
   // Si no hay un usuario autenticado, rebota directo al login
   if (!user) {
@@ -59,13 +58,13 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Redirección automática de la raíz al Login al iniciar */}
+
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Ruta Pública */}
           <Route path="/login" element={<Login />} />
 
-          {/* RUTAS PRINCIPALES PROTEGIDAS */}
+
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
@@ -86,11 +85,18 @@ function App() {
             <Route path="/evaluations-history" element={<EvaluationsHistory />} />
             <Route path="/evaluations-history/:id" element={<EvaluationsHistory />} />
             <Route path="/advanced-results/:id" element={<AdvancedResults />} />
-            <Route path="/admin" element={<AdminPanel />} />
+
+
+            {/* RUTA EXCLUSIVA DE ADMINISTRADOR */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminPanel />} />
+            </Route>
           </Route>
+
 
           {/* Cualquier ruta desconocida rebota al Dashboard (si está autenticado pasará, si no, ProtectedRoute lo mandará a login) */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+
         </Routes>
       </Router>
     </AuthProvider>

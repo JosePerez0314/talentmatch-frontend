@@ -1,9 +1,31 @@
+import { clearStoredSession, getStoredToken } from "../session";
+
 const BASE_URL: string = import.meta.env.VITE_API_URL;
 
 export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
   raw?: boolean; // if is true, returns the full response object instead of just the data
+  /**
+   * Opt out of the 401 session teardown. Required on the auth endpoints:
+   * `POST /users/login` answers 401 for a wrong password, which must surface as
+   * a form error, not wipe the session and bounce to /login.
+   */
+  skipAuthRedirect?: boolean;
   headers?: Record<string, string> | HeadersInit;
 }
+
+const LOGIN_PATH = "/login";
+
+/**
+ * A 401 on an authenticated request means the token is gone or expired.
+ * Without this the caller just throws, every screen renders its own error, and
+ * the user stays stranded in an app that still looks signed in.
+ */
+const endExpiredSession = (): void => {
+  clearStoredSession();
+  if (window.location.pathname !== LOGIN_PATH) {
+    window.location.assign(LOGIN_PATH);
+  }
+};
 
 interface ApiResponse<T> {
   success: boolean;
@@ -45,13 +67,16 @@ export const apiClient = async <T = unknown>(
       (options.headers as Record<string, string>) || {},
     );
 
-    const token = localStorage.getItem("token");
+    const token = getStoredToken();
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
 
+    // Keep our own options out of the fetch init.
+    const { raw, skipAuthRedirect, ...requestInit } = options;
+
     const config: RequestInit = {
-      ...options,
+      ...requestInit,
       headers,
     };
 
@@ -76,6 +101,8 @@ export const apiClient = async <T = unknown>(
 
     if (!response.ok || !isSuccessFlag) {
       if (response.status === 401) {
+        if (!skipAuthRedirect) endExpiredSession();
+
         throw new ApiError(
           "Sesión expirada o no autorizada.",
           response.status,
@@ -98,7 +125,7 @@ export const apiClient = async <T = unknown>(
     }
 
     // If the comsumer wants the raw response, return it as is
-    if ((options as ApiClientOptions & { raw?: boolean }).raw) {
+    if (raw) {
       return standardResponse as T;
     }
 

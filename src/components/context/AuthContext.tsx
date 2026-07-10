@@ -1,79 +1,50 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import {
+  AuthContextValue,
+  LoginSession,
+  SessionUser,
+} from "../../types/auth.types";
+import {
+  clearStoredSession,
+  readStoredSession,
+  storeSession,
+} from "../../services/session";
 
-// Estructura de Objeto Usuario que guarda localStorage
-export interface UserData {
-  username: string;
-  email: string;
-  loginDate: string;
-}
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-// contrato de todo lo que expone AuthContext
-interface AuthContextType {
-  user: UserData | null;
-  loading: boolean;
-  login: (email: string, token: string) => void;
-  logout: () => void;
-}
+/** The API never returns a username, so we derive one from the email local-part. */
+const deriveUsername = (email: string, username?: string): string =>
+  username?.trim() || email.split("@")[0];
 
-// Tipado el contexto inicial 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<SessionUser | null>(readStoredSession);
 
-// Tipado propiedades de componente
-interface AuthProviderProps {
-  children: ReactNode;
-}
+  const login = ({ email, token, role, username }: LoginSession) => {
+    const userData: SessionUser = {
+      email,
+      role,
+      username: deriveUsername(email, username),
+    };
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // estado del usuario
-  const [user, setUser] = useState<UserData | null>(() => {
-    try {
-      const savedUser = localStorage.getItem("tm_user");
-      return savedUser ? (JSON.parse(savedUser) as UserData) : null;
-    } catch (error) {
-      console.error("Error leyendo el localStorage:", error);
-      return null;
-    }
-  });
-
-  const [loading, setLoading] = useState<boolean>(false);
-
-  const login = (email: string, token: string): void => {
-    setLoading(true);
-    try {
-      const username = email.split('@')[0];
-
-      const userData: UserData = {
-        username,
-        email,
-        loginDate: new Date().toISOString()
-      };
-
-      setUser(userData);
-
-      localStorage.setItem("tm_user", JSON.stringify(userData));
-      localStorage.setItem("token", token);
-    } finally {
-      setLoading(false);
-    }
+    setUser(userData);
+    storeSession(userData, token);
   };
 
-  const logout = (): void => {
+  const logout = () => {
     setUser(null);
-    localStorage.removeItem("tm_user");
-    localStorage.removeItem("token");
+    clearStoredSession();
+    window.location.href = "/login";
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth debe usarse dentro de un AuthProvider");
-  }
+  if (!context) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return context;
 };
