@@ -1,8 +1,8 @@
 import { apiClient } from "./apiClient";
 import { User, UserRole } from "../../types/api.types";
 
-// Shape from GET /api/admin/stats — see api-documentation §6.
-// Global counters, not scoped to the current user.
+// --- TIPADOS DE RESPUESTA SEGÚN DOCUMENTACIÓN DE LA API ---
+
 export interface AdminStats {
   usersCount: number;
   candidatesCount: number;
@@ -12,35 +12,48 @@ export interface AdminStats {
   closedVacancies: number;
 }
 
-// Shape from GET /api/admin/users — see api-documentation §6.
 export interface AdminUsersPageMeta {
   totalCount: number;
   currentPage: number;
   totalPages: number;
 }
 
-export interface AdminUsersPage {
+export interface AdminUsersResponse {
   users: User[];
   meta: AdminUsersPageMeta;
 }
 
+// --- SERVICIO DE ADMINISTRACIÓN ---
+
 export const adminService = {
-  getStats: (): Promise<AdminStats> =>
-    apiClient<AdminStats>("/admin/stats", { method: "GET" }),
+  // GET /api/admin/stats
+  getStats: async (): Promise<AdminStats> => {
+    return apiClient<AdminStats>('/admin/stats', {
+      method: 'GET',
+    });
+  },
 
-  getUsers: (page: number = 1, limit: number = 50): Promise<AdminUsersPage> =>
-    apiClient<AdminUsersPage>(
-      `/admin/users?page=${page}&limit=${limit}`,
-      { method: "GET" },
-    ),
+  // GET /api/admin/users
+  getUsers: async (page: number = 1, limit: number = 50): Promise<AdminUsersResponse> => {
+    return apiClient<AdminUsersResponse>(`/admin/users?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  },
 
-  updateRole: (id: string | number, role: UserRole): Promise<User> =>
-    apiClient<User>(`/admin/users/${id}/role`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role }),
-    }),
+  // PUT /api/admin/users/:id/role
+  // Nota: La documentación marca PUT, no PATCH para el cambio de rol.
+  updateRole: async (userId: string | number, newRole: UserRole): Promise<User> => {
+    return apiClient<User>(`/admin/users/${userId}/role`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: newRole }),
+    });
+  },
 
-  deleteUser: (id: string | number): Promise<void> =>
-    apiClient<void>(`/admin/users/${id}`, { method: "DELETE" }),
+  // DELETE /api/admin/users/:id
+  deleteUser: async (userId: string | number): Promise<void> => {
+    return apiClient<void>(`/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
 };

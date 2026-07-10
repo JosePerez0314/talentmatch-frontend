@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { AdminUsersPageMeta } from '../../services/api/admin.api';
 import { User } from '../../types/api.types';
+import { AdminUsersPageMeta } from '../../services/api/admin.api';
 
 interface UserTableModuleProps {
     users: User[];
@@ -10,9 +10,6 @@ interface UserTableModuleProps {
     isLoading: boolean;
     onPageChange: (page: number) => void;
 }
-
-const getInitials = (name?: string): string =>
-    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
 
 const formatDate = (iso?: string): string => {
     if (!iso) return '-';
@@ -37,7 +34,6 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
 
     return (
         <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm overflow-hidden">
-            {/* Cabecera idéntica al diseño con Buscador */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2.5">
                     <div className="p-1.5 bg-blue-50 text-blue-500 rounded-lg">
@@ -56,7 +52,6 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                 </div>
             </div>
 
-            {/* Tabla con las columnas solicitadas */}
             <div className="overflow-x-auto -mx-8">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50/70 border-y border-gray-100 text-gray-400 text-[11px] uppercase font-bold tracking-wider">
@@ -86,7 +81,7 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                                     <td className="px-8 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                                {getInitials(user.username)}
+                                                {user.username?.substring(0, 2) || 'US'}
                                             </div>
                                             <span className="text-xs font-semibold text-gray-700">{user.username}</span>
                                         </div>
@@ -95,11 +90,8 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                                         {user.email}
                                     </td>
                                     <td className="px-8 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${user.role === 'ADMIN'
-                                            ? 'bg-blue-50 text-blue-600 border border-blue-100/70'
-                                            : 'bg-gray-50 text-gray-500 border border-gray-100'
-                                            }`}>
-                                            {user.role === 'ADMIN' ? 'Admin' : 'Usuario'}
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-blue-50 text-blue-600 border border-blue-100/70' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                                            {user.role}
                                         </span>
                                     </td>
                                     <td className="px-8 py-4 text-xs text-gray-400 font-medium">
@@ -112,7 +104,6 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                 </table>
             </div>
 
-            {/* Paginación limpia inferior */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-2">
                 <p className="text-xs font-semibold text-gray-400">
                     Página {meta.currentPage} de {meta.totalPages} · {meta.totalCount} usuarios
@@ -120,18 +111,15 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                 <div className="flex gap-1.5">
                     <button
                         onClick={() => onPageChange(Math.max(1, page - 1))}
-                        disabled={page <= 1 || isLoading}
+                        disabled={page <= 1}
                         className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
-                        aria-label="Página anterior"
                     >
                         <ChevronLeft size={16} />
                     </button>
-
                     <button
                         onClick={() => onPageChange(page + 1)}
-                        disabled={page >= meta.totalPages || isLoading}
+                        disabled={page >= meta.totalPages}
                         className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
-                        aria-label="Página siguiente"
                     >
                         <ChevronRight size={16} />
                     </button>
