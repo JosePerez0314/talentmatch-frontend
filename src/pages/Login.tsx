@@ -10,6 +10,7 @@ import { ApiError } from "../services/api/apiClient";
 import { AuthUiState, LoginCredentials } from "../types/auth.types";
 import { UserRole } from "../types/api.types";
 import { Icons } from "../assets/icons/index";
+import { resolveLoginEmail } from "../utils/loginShortcuts";
 
 interface LocationState {
   sessionExpired?: boolean;
@@ -63,7 +64,11 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const { token, user } = await authService.login(inputs);
+      const credentials: LoginCredentials = {
+        ...inputs,
+        email: resolveLoginEmail(inputs.email),
+      };
+      const { token, user } = await authService.login(credentials);
 
       if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 

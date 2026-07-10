@@ -11,7 +11,8 @@ export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
    * 1. No stored token is attached. A stale or expired one sent to a public
    *    route can trip a backend auth middleware scoped too broadly, or turn
    *    the request into a CORS-preflighted one that a public route's CORS
-   *    config never expected.
+   *    config never expected — either way the request can be blocked before
+   *    credentials are even checked.
    * 2. No 401 session teardown. `POST /users/login` answers 401 for a wrong
    *    password, which must surface as a form error, not wipe the session
    *    and hard-navigate away from the form the user is looking at.
