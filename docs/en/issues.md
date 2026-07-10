@@ -16,6 +16,7 @@
 | **P1** | Breaks one concrete functional flow (create/list/upload).           |
 | **P2** | Secondary screen unconnected or degraded.                          |
 | **P3** | UI/UX polish and code quality.                                     |
+| **P4** | Sprint close-out and housekeeping (nothing blocking).              |
 
 ## Detailed documents per priority
 
@@ -27,6 +28,7 @@ This file is the **general index**. The detailed write-up of each issue (exact s
 | [`issues/P1.md`](./issues/P1.md) | **P1** — broken flows      | 4 (vacancies), 5 (CV upload), 6 (results/candidates)         | 🔨 In progress               |
 | [`issues/P2.md`](./issues/P2.md) | **P2** — secondary screens | 7 (dashboard), 8 (admin), 9 (auth/role)                      | 🔨 In progress (9.1, 9.3 ✅) |
 | [`issues/P3.md`](./issues/P3.md) | **P3** — polish            | 10 (UI/UX and quality)                                       | ⏳ Pending                   |
+| [`issues/P4.md`](./issues/P4.md) | **P4** — close-out         | 11 (sprint close-out)                                        | ⏳ Pending                   |
 
 ## Current state
 

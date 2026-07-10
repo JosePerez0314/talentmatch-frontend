@@ -16,6 +16,7 @@
 | **P1** | Rompe un flujo funcional concreto (crear/listar/subir).                       |
 | **P2** | Pantalla secundaria sin conectar o degradada.                                 |
 | **P3** | Pulido de UI/UX y calidad de código.                                          |
+| **P4** | Cierre de sprint y housekeeping (nada bloqueante).                            |
 
 ## Documentos detallados por prioridad
 
@@ -27,6 +28,7 @@ Este archivo es el **índice general**. El desarrollo detallado de cada issue (p
 | [`issues/P1.md`](./issues/P1.md) | **P1** — flujos rotos          | 4 (vacantes), 5 (carga CVs), 6 (resultados/candidatos) | 🔨 En curso                |
 | [`issues/P2.md`](./issues/P2.md) | **P2** — pantallas secundarias | 7 (dashboard), 8 (admin), 9 (auth/rol)                 | 🔨 En curso (9.1, 9.3 ✅)  |
 | [`issues/P3.md`](./issues/P3.md) | **P3** — pulido                | 10 (UI/UX y calidad)                                   | ⏳ Pendiente               |
+| [`issues/P4.md`](./issues/P4.md) | **P4** — cierre y housekeeping | 11 (cierre de sprint)                                  | ⏳ Pendiente               |
 
 ## Estado actual
 
