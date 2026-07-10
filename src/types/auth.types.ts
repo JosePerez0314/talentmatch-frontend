@@ -33,8 +33,8 @@ export interface LoginResponse {
 // Session shapes — what the UI stores and reads. Deliberately not the wire shape.
 // ---------------------------------------------------------------------------
 
-/** Role as the UI stores it. `normalizeRole` in Login.tsx is the only boundary. */
-export type SessionRole = "admin" | "user";
+/** Role as the UI stores it. Matches the backend enum verbatim — no casing translation. */
+export type SessionRole = UserRole;
 
 /**
  * What we persist under `tm_user`. `username` is derived from the email

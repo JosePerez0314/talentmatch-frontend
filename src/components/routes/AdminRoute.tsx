@@ -7,8 +7,7 @@ export const AdminRoute: React.FC = () => {
     // Si no hay usuario, manda al login
     if (!user) return <Navigate to="/login" replace />;
 
-    // `SessionUser.role` is already normalized to lowercase by Login.tsx.
-    if (user.role !== 'admin') return <Navigate to="/dashboard" replace />;
+    if (user.role !== 'ADMIN') return <Navigate to="/dashboard" replace />;
 
     return <Outlet />;
 };

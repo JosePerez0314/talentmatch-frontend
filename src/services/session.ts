@@ -31,7 +31,7 @@ export const readStoredSession = (): SessionUser | null => {
     const parsed = JSON.parse(rawUser) as Partial<SessionUser> | null;
 
     if (!parsed?.email || !parsed?.username) return invalidate();
-    if (parsed.role !== "admin" && parsed.role !== "user") return invalidate();
+    if (parsed.role !== "ADMIN" && parsed.role !== "USER") return invalidate();
 
     return { email: parsed.email, role: parsed.role, username: parsed.username };
   } catch {

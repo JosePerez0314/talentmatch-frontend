@@ -10,7 +10,8 @@ import { useAuth } from "../components/context/AuthContext";
 // Services & Assets & Types
 import { authService } from "../services/api/auth.api";
 import { ApiError } from "../services/api/apiClient";
-import { AuthUiState, LoginCredentials, SessionRole } from "../types/auth.types";
+import { AuthUiState, LoginCredentials } from "../types/auth.types";
+import { UserRole } from "../types/api.types";
 import { Icons } from "../assets/icons/index";
 
 interface LocationState {
@@ -21,9 +22,9 @@ const INVALID_CREDENTIALS_MESSAGE = "Credenciales incorrectas.";
 const SERVER_ERROR_MESSAGE =
   "No pudimos contactar con el servidor. Inténtalo de nuevo.";
 
-/** The API returns the role uppercased (`ADMIN` / `USER`); the session stores it lowercased. */
-const normalizeRole = (role: string | undefined): SessionRole =>
-  role?.toLowerCase() === "admin" ? "admin" : "user";
+/** Anything the API returns that isn't the ADMIN enum value is a regular USER. */
+const asRole = (role: string | undefined): UserRole =>
+  role === "ADMIN" ? "ADMIN" : "USER";
 
 /** Only a 400/401 means the credentials were wrong; anything else is our fault, not the user's. */
 const resolveErrorMessage = (error: unknown): string => {
@@ -72,10 +73,10 @@ const Login: React.FC = () => {
 
       if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 
-      const role = normalizeRole(user?.role);
+      const role = asRole(user?.role);
       login({ email: user?.email ?? inputs.email, token, role });
 
-      navigate(role === "admin" ? "/admin" : "/dashboard");
+      navigate(role === "ADMIN" ? "/admin" : "/dashboard");
     } catch (error) {
       setErrorMessage(resolveErrorMessage(error));
       setUiState("error");

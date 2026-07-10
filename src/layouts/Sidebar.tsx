@@ -117,7 +117,7 @@ const Sidebar: React.FC = () => {
             {/* NAVEGACIÓN */}
             <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-8">
                 {MENU_GROUPS.map((group, groupIndex) => {
-                    if (group.requiresAdmin && user?.role !== "admin") {
+                    if (group.requiresAdmin && user?.role !== "ADMIN") {
                         return null;
                     }
 

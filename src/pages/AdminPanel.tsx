@@ -41,7 +41,7 @@ const AdminPanel: React.FC = () => {
     const refetch = useCallback(() => fetchUsers(page), [fetchUsers, page]);
 
     const displayName = user?.username ?? '—';
-    const roleLabel = user?.role === 'admin' ? 'admin' : (user?.role ?? '—');
+    const roleLabel = user?.role === 'ADMIN' ? 'Admin' : 'Usuario';
 
     return (
         <div className="p-12 bg-[#f8fafc] min-h-screen space-y-6 overflow-y-auto">
