@@ -64,9 +64,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
             className="absolute right-4 top-[42px] text-gray-400 hover:text-gray-600 transition-colors"
           >
             {showPassword ? (
-              <Eye className="w-5 h-5" />
-            ) : (
               <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
             )}
           </button>
         </div>
