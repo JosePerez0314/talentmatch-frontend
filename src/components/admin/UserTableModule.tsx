@@ -1,30 +1,15 @@
 import React, { useState } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminService } from '../../services/api/admin.api';
-// FIX: Cambiamos AdminUser por el tipo User oficial de la API
 import { User } from '../../types/api.types';
+import { AdminUsersPageMeta } from '../../services/api/admin.api';
 
-export const UserTableModule: React.FC = () => {
-    // FIX: Tipamos con User oficial
-    const [users, setUsers] = useState<User[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [page, setPage] = useState<number>(1);
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const limit = 10;
-
-    const fetchUsers = useCallback(async (pageNum: number) => {
-        try {
-            setIsLoading(true);
-            const response = await adminService.getUsers(pageNum, limit);
-            
-            const usersArray = response?.users || [];
-            setUsers(usersArray);
-        } catch (error) {
-            console.error("Error al cargar usuarios:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [limit]);
+interface UserTableModuleProps {
+    users: User[];
+    meta: AdminUsersPageMeta;
+    page: number;
+    isLoading: boolean;
+    onPageChange: (page: number) => void;
+}
 
 const formatDate = (iso?: string): string => {
     if (!iso) return '-';
@@ -32,6 +17,15 @@ const formatDate = (iso?: string): string => {
     if (Number.isNaN(parsed.getTime())) return '-';
     return parsed.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
 };
+
+export const UserTableModule: React.FC<UserTableModuleProps> = ({
+    users,
+    meta,
+    page,
+    isLoading,
+    onPageChange,
+}) => {
+    const [searchTerm, setSearchTerm] = useState<string>('');
 
     const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -96,14 +90,12 @@ const formatDate = (iso?: string): string => {
                                         {user.email}
                                     </td>
                                     <td className="px-8 py-4">
-                                        {/* FIX: user.role es oficialmente 'ADMIN' o 'USER', la comparación ya no arroja error */}
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-blue-50 text-blue-600 border border-blue-100/70' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
                                             {user.role}
                                         </span>
                                     </td>
                                     <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {/* FIX: Se corrigió createdAt en lugar de invented date */}
-                                        {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                        {formatDate(user.createdAt)}
                                     </td>
                                 </tr>
                             ))
@@ -117,10 +109,18 @@ const formatDate = (iso?: string): string => {
                     Página {meta.currentPage} de {meta.totalPages} · {meta.totalCount} usuarios
                 </p>
                 <div className="flex gap-1.5">
-                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500">
+                    <button
+                        onClick={() => onPageChange(Math.max(1, page - 1))}
+                        disabled={page <= 1}
+                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
+                    >
                         <ChevronLeft size={16} />
                     </button>
-                    <button onClick={() => setPage(p => p + 1)} className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 transition-colors text-gray-500">
+                    <button
+                        onClick={() => onPageChange(page + 1)}
+                        disabled={page >= meta.totalPages}
+                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
+                    >
                         <ChevronRight size={16} />
                     </button>
                 </div>

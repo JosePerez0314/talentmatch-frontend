@@ -25,19 +25,7 @@ export const StatsModule: React.FC = () => {
                 setIsLoading(true);
                 setErrorMessage(null);
                 const data = await adminService.getStats();
-
-                if (data) {
-            
-                    const formattedStats: StatItem[] = [
-                        { id: 1, label: 'Total usuarios', count: data.usersCount || 0, icon: 'Users', type: 'azul' },
-                        { id: 2, label: 'Candidatos Indexados', count: data.candidatesCount || 0, icon: 'Users', type: 'morado' },
-                        { id: 3, label: 'Posiciones Creadas', count: data.positionsCount || 0, icon: 'Briefcase', type: 'amarillo' },
-                        { id: 4, label: 'Vacantes Totales', count: data.vacanciesCount || 0, icon: 'FileText', type: 'rojo' },
-                        { id: 5, label: 'Vacantes Activas', count: data.activeVacancies || 0, icon: 'CheckCircle2', type: 'verde' },
-                        { id: 6, label: 'Vacantes Cerradas', count: data.closedVacancies || 0, icon: 'Archive', type: 'morado' }
-                    ];
-                    setStats(formattedStats);
-                }
+                setStats(buildStatItems(data));
             } catch (error) {
                 console.error("Error al cargar las estadísticas:", error);
                 setErrorMessage("No se pudieron cargar las estadísticas del sistema.");
@@ -65,6 +53,12 @@ export const StatsModule: React.FC = () => {
                 </div>
                 <h2 className="text-sm font-bold text-gray-700 tracking-tight">Estadísticas del sistema</h2>
             </div>
+
+            {errorMessage && (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
+                    {errorMessage}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {stats.map((stat) => (

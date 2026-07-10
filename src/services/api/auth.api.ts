@@ -6,25 +6,23 @@ import {
 } from "../../types/auth.types";
 
 export const authService = {
-  // POST /users/login
-  // `skipAuthRedirect`: a 401 here means "wrong email or password", not an
-  // expired session, so apiClient must not tear the session down and redirect.
+  // POST /users/login — public route, no token required.
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
     return apiClient<LoginResponse>("/users/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
-      skipAuthRedirect: true,
+      isPublicEndpoint: true,
     });
   },
 
-  // POST /users/
+  // POST /users/ — public route, no token required.
   register: async (data: RegisterCredentials): Promise<LoginResponse> => {
     return apiClient<LoginResponse>("/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-      skipAuthRedirect: true,
+      isPublicEndpoint: true,
     });
   },
 };

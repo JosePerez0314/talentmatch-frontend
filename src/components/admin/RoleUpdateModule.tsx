@@ -1,41 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { UserCheck, Loader2 } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
-// FIX: Cambiamos AdminUser por el tipo User oficial de la API
-import { User } from '../../types/api.types'; 
+import { User, UserRole } from '../../types/api.types';
 
-export const RoleUpdateModule: React.FC = () => {
-    // FIX: Tipamos con User oficial
-    const [users, setUsers] = useState<User[]>([]);
-    const [currentRoles, setCurrentRoles] = useState<Record<string, 'ADMIN' | 'USER'>>({});
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+interface RoleUpdateModuleProps {
+    users: User[];
+    isLoading: boolean;
+    onSaved: () => void;
+}
+
+const getInitials = (name?: string): string =>
+    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
+
+export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({
+    users,
+    isLoading,
+    onSaved,
+}) => {
+    const [currentRoles, setCurrentRoles] = useState<Record<string, UserRole>>({});
     const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     // Sync the working copy of roles whenever the parent hands us a fresh users list.
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setIsLoading(true);
-                const response = await adminService.getUsers(1, 50);
-                
-                const usersArray = response?.users || [];
-                setUsers(usersArray); // Ya no hay error de tipos aquí
+        const initialRoles = users.reduce<Record<string, UserRole>>((acc, user) => {
+            acc[user.id] = user.role;
+            return acc;
+        }, {});
+        setCurrentRoles(initialRoles);
+    }, [users]);
 
-                const initialRoles = usersArray.reduce((acc: any, user: User) => ({
-                    ...acc, [user.id]: user.role
-                }), {});
-                setCurrentRoles(initialRoles);
-            } catch (error) {
-                console.error("Error al cargar usuarios:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchUsers();
-    }, []);
-
-    const handleRoleChange = (userId: string, newRole: 'ADMIN' | 'USER') => {
+    const handleRoleChange = (userId: string, newRole: UserRole) => {
         setCurrentRoles((prev) => ({ ...prev, [userId]: newRole }));
     };
 
@@ -86,12 +82,17 @@ export const RoleUpdateModule: React.FC = () => {
                 </div>
             </div>
 
+            {errorMessage && (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
+                    {errorMessage}
+                </div>
+            )}
+
             <div className="space-y-2.5">
                 {filteredUsers.length === 0 ? (
                     <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
                 ) : (
                     filteredUsers.map((user) => {
-                        // FIX: Ahora isChanged funciona porque ambos son 'ADMIN' | 'USER'
                         const isChanged = currentRoles[user.id] !== user.role;
                         const saving = isSaving[user.id];
 
@@ -111,7 +112,7 @@ export const RoleUpdateModule: React.FC = () => {
                                         <select
                                             aria-label="Seleccionar nuevo rol"
                                             value={currentRoles[user.id] || user.role}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value as 'ADMIN' | 'USER')}
+                                            onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
                                             className="bg-gray-50/50 border border-gray-200 text-gray-600 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-300 cursor-pointer"
                                         >
                                             <option value="ADMIN">ADMIN</option>

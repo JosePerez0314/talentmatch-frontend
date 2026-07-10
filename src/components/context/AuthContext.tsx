@@ -1,17 +1,23 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { UserRole } from "../../types/api.types"; // <-- Importamos la fuente de verdad
+import {
+  AuthContextValue,
+  LoginSession,
+  SessionUser,
+} from "../../types/auth.types";
+import {
+  clearStoredSession,
+  readStoredSession,
+  storeSession,
+} from "../../services/session";
 
-export interface UserData {
-  email: string;
-  role: UserRole; // <-- Usamos el tipado oficial ('ADMIN' | 'USER')
-  username?: string;
-}
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-interface AuthContextType {
-  user: UserData | null;
-  login: (email: string, token: string, role: UserRole, username?: string) => void;
-  logout: () => void;
-}
+/** The API never returns a username, so we derive one from the email local-part. */
+const deriveUsername = (email: string, username?: string): string =>
+  username?.trim() || email.split("@")[0];
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<SessionUser | null>(readStoredSession);
 
   const login = ({ email, token, role, username }: LoginSession) => {
     const userData: SessionUser = {
@@ -20,15 +26,6 @@ interface AuthContextType {
       username: deriveUsername(email, username),
     };
 
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserData | null>(() => {
-    const savedUser = localStorage.getItem("tm_user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
-  const login = (email: string, token: string, role: UserRole, username?: string) => {
-    // Si no viene username, usamos el email como fallback
-    const userData: UserData = { email, role, username: username || email.split('@')[0] };
     setUser(userData);
     storeSession(userData, token);
   };

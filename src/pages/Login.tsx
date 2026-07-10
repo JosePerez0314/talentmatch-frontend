@@ -5,7 +5,10 @@ import { Loader2 } from "lucide-react";
 import Footer from "../layouts/Footer";
 import LoginForm from "../components/ui/LoginForm";
 import { useAuth } from "../components/context/AuthContext";
-import { authService, LoginCredentials } from "../services/api/auth.api";
+import { authService } from "../services/api/auth.api";
+import { ApiError } from "../services/api/apiClient";
+import { AuthUiState, LoginCredentials } from "../types/auth.types";
+import { UserRole } from "../types/api.types";
 import { Icons } from "../assets/icons/index";
 
 interface LocationState {
@@ -60,27 +63,18 @@ const Login: React.FC = () => {
     setUiState("loading");
 
     try {
-      const data: any = await authService.login(inputs);
+      const { token, user } = await authService.login(inputs);
 
-      if (data) {
-        const token = data.token;
-        const email = data.user?.email || inputs.email;
-        const role = (data.user?.role || 'USER').toUpperCase(); 
+      if (!token) throw new Error("El servidor no devolvió un token de acceso.");
 
-        if (!token) throw new Error("El servidor no devolvió un token.");
+      const role = asRole(user?.role);
+      const email = user?.email || inputs.email;
 
-        login(email, token, role as 'ADMIN' | 'USER');
-
-        if (role === 'ADMIN') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
-        throw new Error("No se recibieron datos del servidor.");
-      }
-    } catch (error: any) {
-      console.error("Fallo de Autenticación:", error.message);
+      login({ email, token, role });
+      navigate(role === "ADMIN" ? "/admin" : "/dashboard");
+    } catch (error) {
+      console.error("Fallo de Autenticación:", error);
+      setErrorMessage(resolveErrorMessage(error));
       setUiState("error");
     }
   };

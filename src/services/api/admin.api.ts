@@ -3,7 +3,7 @@ import { User, UserRole } from "../../types/api.types";
 
 // --- TIPADOS DE RESPUESTA SEGÚN DOCUMENTACIÓN DE LA API ---
 
-export interface AdminStatsResponse {
+export interface AdminStats {
   usersCount: number;
   candidatesCount: number;
   positionsCount: number;
@@ -12,21 +12,23 @@ export interface AdminStatsResponse {
   closedVacancies: number;
 }
 
+export interface AdminUsersPageMeta {
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+}
+
 export interface AdminUsersResponse {
   users: User[];
-  meta: {
-    totalCount: number;
-    currentPage: number;
-    totalPages: number;
-  };
+  meta: AdminUsersPageMeta;
 }
 
 // --- SERVICIO DE ADMINISTRACIÓN ---
 
 export const adminService = {
   // GET /api/admin/stats
-  getStats: async (): Promise<AdminStatsResponse> => {
-    return apiClient<AdminStatsResponse>('/admin/stats', {
+  getStats: async (): Promise<AdminStats> => {
+    return apiClient<AdminStats>('/admin/stats', {
       method: 'GET',
     });
   },
