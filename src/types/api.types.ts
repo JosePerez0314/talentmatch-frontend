@@ -95,11 +95,4 @@ export interface UploadResult {
     error?: string;
 }
 
-export interface AuthResponse {
-    token?: string;
-    user?: { id: string | number; email: string; role: string };
-    data?: {
-        token?: string;
-        user?: { id: string | number; email: string; role: string };
-    };
-}
+// Auth contracts live in ./auth.types.ts
