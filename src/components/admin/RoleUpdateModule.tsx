@@ -1,37 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { UserCheck, Loader2 } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
 import { User, UserRole } from '../../types/api.types';
 
+interface RoleUpdateModuleProps {
+    users: User[];
+    isLoading: boolean;
+    onSaved: () => void;
+}
+
 const getInitials = (name?: string): string =>
     (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
 
-export const RoleUpdateModule: React.FC = () => {
-    const [users, setUsers] = useState<User[]>([]);
+export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoading, onSaved }) => {
     const [currentRoles, setCurrentRoles] = useState<Record<string, UserRole>>({});
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
     const [searchTerm, setSearchTerm] = useState<string>('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+    // Sync the working copy of roles whenever the parent hands us a fresh users list.
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setIsLoading(true);
-                const data = await adminService.getUsers(1, 50);
-                const list = data.users ?? [];
-                setUsers(list);
-
-                const initialRoles: Record<string, UserRole> = {};
-                for (const u of list) initialRoles[u.id] = u.role;
-                setCurrentRoles(initialRoles);
-            } catch (error) {
-                console.error("Error al cargar usuarios:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchUsers();
-    }, []);
+        const next: Record<string, UserRole> = {};
+        for (const u of users) next[u.id] = u.role;
+        setCurrentRoles(next);
+    }, [users]);
 
     const handleRoleChange = (userId: string, newRole: UserRole) => {
         setCurrentRoles((prev) => ({ ...prev, [userId]: newRole }));
@@ -40,9 +32,12 @@ export const RoleUpdateModule: React.FC = () => {
     const handleSave = async (userId: string) => {
         try {
             setIsSaving((prev) => ({ ...prev, [userId]: true }));
+            setErrorMessage(null);
             await adminService.updateRole(userId, currentRoles[userId]);
+            onSaved();
         } catch (error) {
-            console.error("Error al actualizar:", error);
+            console.error("Error al actualizar rol:", error);
+            setErrorMessage("No se pudo actualizar el rol. Intenta nuevamente.");
         } finally {
             setIsSaving((prev) => ({ ...prev, [userId]: false }));
         }
@@ -81,6 +76,12 @@ export const RoleUpdateModule: React.FC = () => {
                     />
                 </div>
             </div>
+
+            {errorMessage && (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
+                    {errorMessage}
+                </div>
+            )}
 
             {/* Listado de filas alineadas */}
             <div className="space-y-2.5">

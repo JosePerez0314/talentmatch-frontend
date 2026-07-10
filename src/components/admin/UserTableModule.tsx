@@ -1,9 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Users, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { adminService, AdminUsersPageMeta } from '../../services/api/admin.api';
+import { AdminUsersPageMeta } from '../../services/api/admin.api';
 import { User } from '../../types/api.types';
 
-const EMPTY_META: AdminUsersPageMeta = { totalCount: 0, currentPage: 1, totalPages: 1 };
+interface UserTableModuleProps {
+    users: User[];
+    meta: AdminUsersPageMeta;
+    page: number;
+    isLoading: boolean;
+    onPageChange: (page: number) => void;
+}
 
 const getInitials = (name?: string): string =>
     (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
@@ -15,30 +21,14 @@ const formatDate = (iso?: string): string => {
     return parsed.toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-export const UserTableModule: React.FC = () => {
-    const [users, setUsers] = useState<User[]>([]);
-    const [meta, setMeta] = useState<AdminUsersPageMeta>(EMPTY_META);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [page, setPage] = useState<number>(1);
+export const UserTableModule: React.FC<UserTableModuleProps> = ({
+    users,
+    meta,
+    page,
+    isLoading,
+    onPageChange,
+}) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const limit = 10;
-
-    const fetchUsers = useCallback(async (pageNum: number) => {
-        try {
-            setIsLoading(true);
-            const data = await adminService.getUsers(pageNum, limit);
-            setUsers(data.users ?? []);
-            setMeta(data.meta ?? EMPTY_META);
-        } catch (error) {
-            console.error("Error al cargar usuarios:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [limit]);
-
-    useEffect(() => {
-        fetchUsers(page);
-    }, [page, fetchUsers]);
 
     const filteredUsers = users.filter(user =>
         user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,7 +119,7 @@ export const UserTableModule: React.FC = () => {
                 </p>
                 <div className="flex gap-1.5">
                     <button
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        onClick={() => onPageChange(Math.max(1, page - 1))}
                         disabled={page <= 1 || isLoading}
                         className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
                         aria-label="Página anterior"
@@ -138,7 +128,7 @@ export const UserTableModule: React.FC = () => {
                     </button>
 
                     <button
-                        onClick={() => setPage(p => p + 1)}
+                        onClick={() => onPageChange(page + 1)}
                         disabled={page >= meta.totalPages || isLoading}
                         className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
                         aria-label="Página siguiente"

@@ -17,15 +17,18 @@ const buildStatItems = (data: AdminStats): StatItem[] => [
 export const StatsModule: React.FC = () => {
     const [stats, setStats] = useState<StatItem[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
                 setIsLoading(true);
+                setErrorMessage(null);
                 const data = await adminService.getStats();
                 setStats(buildStatItems(data));
             } catch (error) {
                 console.error("Error al cargar las estadísticas:", error);
+                setErrorMessage("No se pudieron cargar las estadísticas del sistema.");
             } finally {
                 setIsLoading(false);
             }
@@ -52,15 +55,20 @@ export const StatsModule: React.FC = () => {
                 <h2 className="text-sm font-bold text-gray-700 tracking-tight">Estadísticas del sistema</h2>
             </div>
 
-            {/* Grid adaptativo exacto de 4 columnas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {stats.map((stat) => (
-                    <StatCard
-                        key={stat.id}
-                        {...stat}
-                    />
-                ))}
-            </div>
+            {errorMessage ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3">
+                    {errorMessage}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {stats.map((stat) => (
+                        <StatCard
+                            key={stat.id}
+                            {...stat}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
