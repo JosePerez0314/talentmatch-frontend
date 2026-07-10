@@ -50,6 +50,7 @@ const DepartmentHistory: React.FC = () => {
     // MANEJADOR ASÍNCRONO: PUT /departments/:id
     const handleSaveEdit = async (id: string, newName: string) => {
         try {
+            setError(null);
             await departmentsApi.update(id, { name: newName });
 
             // Sincronización del estado local inmediato tras el éxito en base de datos
@@ -57,13 +58,15 @@ const DepartmentHistory: React.FC = () => {
             setEditModalDept(null);
         } catch (err) {
             const errorObj = err as Error;
-            alert(`Error al actualizar el departamento: ${errorObj.message}`);
+            console.error("Error al actualizar el departamento:", err);
+            setError(`No se pudo actualizar el departamento: ${errorObj.message}`);
         }
     };
 
     // MANEJADOR ASÍNCRONO: DELETE /departments/:id
     const handleConfirmDelete = async (id: string) => {
         try {
+            setError(null);
             await departmentsApi.delete(id);
 
             // Filtramos el registro del estado local para no forzar un refetch innecesario
@@ -71,7 +74,8 @@ const DepartmentHistory: React.FC = () => {
             setDeleteModalDept(null);
         } catch (err) {
             const errorObj = err as Error;
-            alert(`Error al eliminar el departamento: ${errorObj.message}`);
+            console.error("Error al eliminar el departamento:", err);
+            setError(`No se pudo eliminar el departamento: ${errorObj.message}`);
         }
     };
 

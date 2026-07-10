@@ -17,6 +17,7 @@ const VacancyHistory: React.FC = () => {
     const navigate = useNavigate();
     const [vacancies, setVacancies] = useState<Vacancy[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     // Control del Menú Kebab
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -65,12 +66,13 @@ const VacancyHistory: React.FC = () => {
     // CONEXIÓN PATCH /vacancies/:id/status
     const handleConfirmStatusChange = async (id: number, status: VacancyStatus) => {
         try {
+            setErrorMessage(null);
             await vacanciesApi.updateStatus(id, status);
             // Actualizacion
             setVacancies(prev => prev.map(v => v.id === id ? { ...v, status } : v));
         } catch (error) {
             console.error("Error al actualizar el estado de la vacante:", error);
-            alert("Ocurrió un error al actualizar el estado.");
+            setErrorMessage("No se pudo actualizar el estado de la vacante.");
         }
     };
 
@@ -78,12 +80,13 @@ const VacancyHistory: React.FC = () => {
     const handleDeleteVacancy = async (id: number) => {
         if (window.confirm("¿Estás seguro de que deseas eliminar esta vacante de forma permanente?")) {
             try {
+                setErrorMessage(null);
                 await vacanciesApi.delete(id);
                 setVacancies(prev => prev.filter(v => v.id !== id));
                 closeMenu();
             } catch (error) {
                 console.error("Error al eliminar la vacante:", error);
-                alert("Ocurrió un error al intentar eliminar la vacante.");
+                setErrorMessage("No se pudo eliminar la vacante.");
             }
         }
     };
@@ -150,6 +153,12 @@ const VacancyHistory: React.FC = () => {
                     Volver
                 </button>
             </div>
+
+            {errorMessage && (
+                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-semibold p-4">
+                    {errorMessage}
+                </div>
+            )}
 
             <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-8 pb-4">
