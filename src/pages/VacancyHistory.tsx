@@ -44,9 +44,10 @@ const VacancyHistory: React.FC = () => {
         fetchVacancies();
     }, []);
 
+    // FUNCIÓN CORREGIDA SIN CONFLICTOS DE RUTA
     const handleViewResults = (id: number) => {
         localStorage.setItem("lastVacancyId", String(id));
-        navigate(`/resultados/${id}`);
+        navigate(`/advanced-results/${id}`);
     };
 
     const toggleMenu = (id: number, e: React.MouseEvent) => {
