@@ -68,7 +68,8 @@ export interface Candidate {
 export interface MatchResult {
     id: number;
     vacancyId: number;
-    candidateId: number;
+    // Not present in the real GET /vacancies/:id/results payload — only candidate.id is (see last-changes.md)
+    candidateId?: number;
     candidate?: Candidate;
     matchScore: number; 
     evaluatedAt?: string; 

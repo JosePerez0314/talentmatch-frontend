@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Sparkles, Layers, Calendar, Eye, Upload, Search, Download } from "lucide-react";
+import { ArrowLeft, Sparkles, Layers, Calendar, Eye, Upload, Search, Download, X, FileText, BarChart2 } from "lucide-react";
 
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
 import { vacanciesApi } from "../services/api/vacancies.api";
@@ -37,6 +37,24 @@ const getStatusStyle = (status: string): string => {
     }
 };
 
+const AVATAR_PALETTES = [
+    { bg: "#DCF9FF", text: "#447ECA" },
+    { bg: "#E8F5E9", text: "#2E7D32" },
+    { bg: "#EDE7F6", text: "#512DA8" },
+    { bg: "#FFF3E0", text: "#E65100" },
+    { bg: "#FCE4EC", text: "#AD1457" },
+    { bg: "#E3F2FD", text: "#1565C0" },
+    { bg: "#F3E5F5", text: "#6A1B9A" },
+    { bg: "#E8EAF6", text: "#283593" },
+];
+
+const getAvatarStyle = (idx: number) => AVATAR_PALETTES[idx % AVATAR_PALETTES.length];
+
+interface UploadQueueItem {
+    name: string;
+    status: "pending" | "done" | "failed";
+}
+
 const AdvancedResults: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
@@ -54,6 +72,7 @@ const AdvancedResults: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [showDropzone, setShowDropzone] = useState<boolean>(false);
     const [isDragging, setIsDragging] = useState<boolean>(false);
+    const [uploadQueue, setUploadQueue] = useState<UploadQueueItem[]>([]);
     const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -61,21 +80,30 @@ const AdvancedResults: React.FC = () => {
     const allCandidates: Candidate[] = localCandidates;
 
     const loadData = useCallback(async (vacancyId: string) => {
-        const [results, vac] = await Promise.all([
+        const [results, vac, allVacancies] = await Promise.all([
             vacanciesApi.getResults(vacancyId),
             vacanciesApi.getById(vacancyId).catch(() => null),
+            vacanciesApi.getAll().catch(() => []),
         ]);
         setEvaluatedCandidates(Array.isArray(results) ? results : []);
-        setVacancy(vac);
-        // If the backend returns candidates on getById, use them as the source of truth for Section 1
-        if (vac?.candidates && vac.candidates.length > 0) {
-            setLocalCandidates(vac.candidates);
-        }
-        return vac;
+        // GET /vacancies/:id doesn't document returning `position`/`candidates` (only the list
+        // endpoint does, per api-documentation.md §4), so prefer the matching list entry when found.
+        const vacancyFromList = allVacancies.find(v => String(v.id) === String(vacancyId));
+        const resolvedVacancy = vacancyFromList ?? vac;
+        setVacancy(resolvedVacancy);
+        // Always reset (never leave a previous vacancy's candidates showing when this one has none)
+        setLocalCandidates(resolvedVacancy?.candidates ?? []);
+        return resolvedVacancy;
     }, []);
 
     useEffect(() => {
         let cancelled = false;
+        // AdvancedResults is reused by the router across /advanced-results/:id navigations
+        // (only the param changes), so per-vacancy UI state must be reset explicitly here.
+        setCandidateStatuses(new Map());
+        setSearchQuery("");
+        setSelectedMatch(null);
+        setIsModalOpen(false);
         (async () => {
             if (!id) { setLoading(false); return; }
             try {
@@ -107,10 +135,17 @@ const AdvancedResults: React.FC = () => {
     // without relying on getById returning the candidates array.
     const handleFilesUpload = async (files: FileList | null) => {
         if (!files || files.length === 0 || !id) return;
+        const fileArr = Array.from(files);
         setError(null);
         setIsUploading(true);
+        setUploadQueue(fileArr.map(f => ({ name: f.name, status: "pending" })));
         try {
-            const results: UploadResult[] = await vacanciesApi.uploadCVs(id, Array.from(files));
+            const results: UploadResult[] = await vacanciesApi.uploadCVs(id, fileArr);
+            // Assumes the backend returns one UploadResult per file, in the same order it received them
+            setUploadQueue(fileArr.map((f, i) => ({
+                name: f.name,
+                status: results[i]?.success ? "done" : "failed",
+            })));
             const uploaded: Candidate[] = results.flatMap(r =>
                 r.success && r.data ? [r.data] : []
             );
@@ -122,16 +157,24 @@ const AdvancedResults: React.FC = () => {
             }
             const failed = results.filter(r => !r.success);
             if (failed.length > 0) {
-                const reasons = failed.map(r => r.message ?? r.error ?? "Error desconocido").join(" | ");
+                const reasons = failed.map(r => {
+                    // `error` carries the real failure detail; `message` is often a fixed generic string
+                    if (r.error && r.message && r.error !== r.message) return `${r.error} (${r.message})`;
+                    return r.error ?? r.message ?? "Error desconocido";
+                }).join(" | ");
                 setError(
                     uploaded.length > 0
                         ? `${uploaded.length} CV(s) procesado(s). ${failed.length} falló: ${reasons}`
                         : `No se pudo procesar el CV: ${reasons}`
                 );
             }
-            setShowDropzone(false);
+            setTimeout(() => {
+                setShowDropzone(false);
+                setUploadQueue([]);
+            }, 900);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error al subir los CVs.");
+            setUploadQueue([]);
         } finally {
             setIsUploading(false);
         }
@@ -169,6 +212,15 @@ const AdvancedResults: React.FC = () => {
         );
 
     const isClosed = vacancy?.status === "CLOSED";
+    const hasPendingCandidates = allCandidates.some(
+        c => !evaluatedCandidates.some(m => m.candidate?.id === c.id)
+    );
+    const recalculateDisabledReason =
+        allCandidates.length === 0
+            ? "Sube al menos un CV para calcular"
+            : !hasPendingCandidates
+                ? "Todos los candidatos ya fueron evaluados. Sube un nuevo CV para recalcular."
+                : undefined;
 
     if (loading) {
         return (
@@ -208,14 +260,16 @@ const AdvancedResults: React.FC = () => {
                         </p>
                     </div>
 
-                    <button
-                        onClick={handleRecalculate}
-                        disabled={isRecalculating || isClosed}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-[#447ECA] text-white rounded-xl font-bold shadow-sm hover:bg-[#3669ab] transition-all text-xs shrink-0 disabled:opacity-40"
-                    >
-                        <Sparkles size={14} />
-                        {isRecalculating ? "Recalculando..." : "Recalcular MatchScore (IA)"}
-                    </button>
+                    <div title={recalculateDisabledReason} className="shrink-0">
+                        <button
+                            onClick={handleRecalculate}
+                            disabled={isRecalculating || isClosed || allCandidates.length === 0 || !hasPendingCandidates}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-[#447ECA] text-white rounded-xl font-bold shadow-sm hover:bg-[#3669ab] transition-all text-xs disabled:opacity-40"
+                        >
+                            <Sparkles size={14} />
+                            {isRecalculating ? "Recalculando..." : "Recalcular MatchScore (IA)"}
+                        </button>
+                    </div>
                 </header>
 
                 {error && (
@@ -283,32 +337,62 @@ const AdvancedResults: React.FC = () => {
                             placeholder="Buscar candidato por nombre o rol..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#447ECA] transition-colors"
+                            className="w-full pl-9 pr-8 py-2 bg-[#F8FAFC] border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#447ECA] transition-colors"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-2.5 top-2.5 text-gray-400 hover:text-gray-600"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
 
                     {/* Dropzone */}
                     {showDropzone && (
-                        <div
-                            onClick={() => fileInputRef.current?.click()}
-                            onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-                            onDragLeave={() => setIsDragging(false)}
-                            onDrop={e => {
-                                e.preventDefault();
-                                setIsDragging(false);
-                                handleFilesUpload(e.dataTransfer.files);
-                            }}
-                            className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer mb-3 flex flex-col items-center gap-2 transition-all ${isDragging
-                                ? "border-[#447ECA] bg-[#F0F7FF]"
-                                : "border-gray-200 bg-[#F8FAFC] hover:bg-[#F1F5F9]"
-                                }`}
-                        >
-                            <Upload className="text-gray-300" size={24} />
-                            <p className="text-sm text-gray-500">
-                                Arrastra PDFs aquí o{" "}
-                                <span className="text-[#447ECA] font-bold">haz clic para seleccionar</span>
-                            </p>
-                            <p className="text-[11px] text-gray-400">Solo archivos PDF</p>
+                        <div className="mb-3">
+                            <div
+                                onClick={() => !isUploading && fileInputRef.current?.click()}
+                                onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                                onDragLeave={() => setIsDragging(false)}
+                                onDrop={e => {
+                                    e.preventDefault();
+                                    setIsDragging(false);
+                                    handleFilesUpload(e.dataTransfer.files);
+                                }}
+                                className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer flex flex-col items-center gap-2 transition-all ${isDragging
+                                    ? "border-[#447ECA] bg-[#F0F7FF]"
+                                    : "border-gray-200 bg-[#F8FAFC] hover:bg-[#F1F5F9]"
+                                    }`}
+                            >
+                                <Upload className="text-gray-300" size={24} />
+                                <p className="text-sm text-gray-500">
+                                    Arrastra PDFs aquí o{" "}
+                                    <span className="text-[#447ECA] font-bold">haz clic para seleccionar</span>
+                                </p>
+                                <p className="text-[11px] text-gray-400">Solo archivos PDF</p>
+                            </div>
+
+                            {uploadQueue.length > 0 && (
+                                <div className="mt-3 space-y-1.5">
+                                    {uploadQueue.map((q, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-sm">
+                                            <FileText size={13} className="text-gray-400 shrink-0" />
+                                            <span className="flex-1 truncate text-gray-600 text-xs">{q.name}</span>
+                                            {q.status === "done" && (
+                                                <span className="text-xs text-green-600 shrink-0">✓ Procesado</span>
+                                            )}
+                                            {q.status === "failed" && (
+                                                <span className="text-xs text-red-500 shrink-0">✗ Falló</span>
+                                            )}
+                                            {q.status === "pending" && (
+                                                <span className="w-3 h-3 border-2 border-[#447ECA] border-t-transparent rounded-full animate-spin shrink-0" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -320,35 +404,58 @@ const AdvancedResults: React.FC = () => {
                                 : "Ningún candidato coincide con la búsqueda."}
                         </p>
                     ) : (
-                        <div className="divide-y divide-gray-50">
-                            {filteredAll.map((c, idx) => (
-                                <div key={c.id ?? idx} className="flex items-center gap-3 py-3">
-                                    <div className="w-9 h-9 rounded-full bg-[#DCF9FF] text-[#447ECA] font-bold flex items-center justify-center text-xs shrink-0">
-                                        {getInitials(c.fullName ?? "?")}
+                        <div
+                            className="divide-y divide-gray-50 overflow-y-auto"
+                            style={{ maxHeight: filteredAll.length > 5 ? "320px" : undefined }}
+                        >
+                            {filteredAll.map((c, idx) => {
+                                const avatarStyle = getAvatarStyle(idx);
+                                return (
+                                    <div key={c.id ?? idx} className="flex items-center gap-3 py-3">
+                                        <div
+                                            className="w-9 h-9 rounded-full font-bold flex items-center justify-center text-xs shrink-0"
+                                            style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
+                                        >
+                                            {getInitials(c.fullName ?? "?")}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-gray-800 truncate">
+                                                {c.fullName ?? "—"}
+                                            </p>
+                                            {c.niche && (
+                                                <p className="text-xs text-gray-400 truncate">{c.niche}</p>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-1 text-gray-400 text-xs shrink-0">
+                                            <Calendar size={12} />
+                                            {formatDate(c.createdAt ?? c.indexedAt)}
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-semibold text-gray-800 truncate">
-                                            {c.fullName ?? "—"}
-                                        </p>
-                                        {c.niche && (
-                                            <p className="text-xs text-gray-400 truncate">{c.niche}</p>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-1 text-gray-400 text-xs shrink-0">
-                                        <Calendar size={12} />
-                                        {formatDate(c.createdAt ?? c.indexedAt)}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
                     <p className="text-xs text-gray-400 mt-3">
-                        {filteredAll.length} candidato{filteredAll.length !== 1 ? "s" : ""}
+                        {lq ? `${filteredAll.length} de ${allCandidates.length}` : filteredAll.length} candidato{filteredAll.length !== 1 ? "s" : ""}
                     </p>
                 </section>
 
+                {/* CALCULATING OVERLAY */}
+                {isRecalculating && (
+                    <div className="rounded-2xl p-12 flex flex-col items-center justify-center gap-5" style={{ backgroundColor: "#2d2d2d" }}>
+                        <div className="text-center space-y-1">
+                            <p className="text-white text-base font-medium">Calculando MatchScores (IA)</p>
+                            <p className="text-gray-400 text-sm">
+                                Evaluando {allCandidates.length} candidato{allCandidates.length !== 1 ? "s" : ""} para {vacancy?.title}…
+                            </p>
+                        </div>
+                        <div className="w-9 h-9 border-4 border-[#447ECA] border-t-transparent rounded-full animate-spin" />
+                    </div>
+                )}
+
                 {/* SECTION 2: EVALUATED CANDIDATES (with match scores) */}
+                {!isRecalculating && (
                 <section className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-start justify-between mb-1">
                         <div>
@@ -363,7 +470,7 @@ const AdvancedResults: React.FC = () => {
                             </p>
                         </div>
                         <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg shrink-0">
-                            <Upload size={12} />
+                            <BarChart2 size={12} />
                             {vacancy?.position?.role ?? "—"}
                         </span>
                     </div>
@@ -389,12 +496,22 @@ const AdvancedResults: React.FC = () => {
                                 const person = m.candidate;
                                 const score = m.matchScore ?? 0;
                                 const scoreColor = getScoreColor(score);
-                                const candidateStatus = candidateStatuses.get(m.candidateId) ?? "NO_CONTRATADO";
+                                const lightText = score < 50;
+                                const avatarStyle = getAvatarStyle(idx);
+                                const candidateStatus = candidateStatuses.get(m.id) ?? "NO_CONTRATADO";
 
                                 return (
                                     <div key={m.id ?? idx} className="flex items-center gap-3 py-3.5">
+                                        {/* Rank */}
+                                        <span className="text-gray-300 text-xs w-4 text-center shrink-0 select-none tabular-nums">
+                                            {idx + 1}
+                                        </span>
+
                                         {/* Avatar */}
-                                        <div className="w-9 h-9 rounded-full bg-[#DCF9FF] text-[#447ECA] font-bold flex items-center justify-center text-xs shrink-0">
+                                        <div
+                                            className="w-9 h-9 rounded-full font-bold flex items-center justify-center text-xs shrink-0"
+                                            style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
+                                        >
                                             {getInitials(person?.fullName ?? "?")}
                                         </div>
 
@@ -405,7 +522,10 @@ const AdvancedResults: React.FC = () => {
                                             </p>
                                             <p className="text-xs text-gray-400 truncate">{person?.email ?? ""}</p>
                                             {person?.niche && (
-                                                <span className="inline-block mt-1 px-2 py-0.5 bg-[#EAF7FF] text-[#447ECA] rounded-full text-[10px] font-bold">
+                                                <span
+                                                    className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                    style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
+                                                >
                                                     {person.niche}
                                                 </span>
                                             )}
@@ -418,7 +538,7 @@ const AdvancedResults: React.FC = () => {
                                         {/* Status selector */}
                                         <select
                                             value={candidateStatus}
-                                            onChange={e => handleUpdateStatus(m.candidateId, e.target.value)}
+                                            onChange={e => handleUpdateStatus(m.id, e.target.value)}
                                             className={`text-xs font-semibold px-2.5 py-1.5 rounded-xl border focus:outline-none transition-all cursor-pointer shrink-0 ${getStatusStyle(candidateStatus)}`}
                                         >
                                             <option value="NO_CONTRATADO">No Contratado</option>
@@ -428,14 +548,15 @@ const AdvancedResults: React.FC = () => {
 
                                         {/* Match score badge */}
                                         <div
-                                            className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-bold text-xs"
-                                            style={{
-                                                backgroundColor: `${scoreColor}22`,
-                                                color: scoreColor,
-                                                border: `2px solid ${scoreColor}`,
-                                            }}
+                                            className="w-14 h-14 rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm"
+                                            style={{ backgroundColor: scoreColor }}
                                         >
-                                            {score}%
+                                            <span className={`text-sm leading-none font-bold ${lightText ? "text-white" : "text-gray-800"}`}>
+                                                {score}%
+                                            </span>
+                                            <span className={`text-[9px] mt-0.5 ${lightText ? "text-white/70" : "text-gray-600"}`}>
+                                                Match
+                                            </span>
                                         </div>
 
                                         {/* View profile */}
@@ -467,6 +588,7 @@ const AdvancedResults: React.FC = () => {
                         </div>
                     )}
                 </section>
+                )}
             </div>
 
             <CandidateDetailsModal
