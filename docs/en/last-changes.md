@@ -4,6 +4,82 @@
 
 ---
 
+## Vacancy results UI redesign + auto-evaluation bug fix
+
+**Branch:** `fix/vacancy-results-ui` (not yet merged into `features`)
+**Date:** 2026-07-12
+
+### Context
+
+`src/pages/AdvancedResults.tsx` was rebuilt from a three-column card grid into a two-section row layout, and a real bug was fixed along the way: uploading a CV used to trigger an automatic AI evaluation, with no way to add candidates to a vacancy without also scoring them.
+
+### Section 1 vs. Section 2 split
+
+- **Section 1 — "Candidatos de esta Vacante":** every candidate uploaded for the vacancy, no match score. Includes a search box (filters by `fullName`/`niche`), a collapsible drag-and-drop dropzone, and a hidden `<input type="file" multiple accept=".pdf">` wired through `fileInputRef`.
+- **Section 2 — "Evaluaciones":** only candidates that have gone through AI scoring (`MatchResult[]`), sorted by `matchScore` descending, filtered by the same search query.
+
+`allCandidates` (Section 1) now comes from `localCandidates` state, not from `evaluatedCandidates` — the two lists are independent and can be out of sync (e.g. 10 uploaded, 3 evaluated).
+
+### Auto-evaluation bug fix
+
+Previously, uploading CVs implicitly called `vacanciesApi.evaluateCandidates()` right after `uploadCVs()`, forcing a scoring pass on every upload. `handleFilesUpload` now only calls `vacanciesApi.uploadCVs(id, files)` and reads candidates directly out of the response:
+
+```typescript
+const results: UploadResult[] = await vacanciesApi.uploadCVs(id, Array.from(files));
+const uploaded: Candidate[] = results.flatMap(r => r.success && r.data ? [r.data] : []);
+setLocalCandidates(prev => {
+    const existingIds = new Set(prev.map(c => c.id));
+    return [...prev, ...uploaded.filter(c => !existingIds.has(c.id))];
+});
+```
+
+Candidates appear in Section 1 immediately, deduplicated by `id`. Evaluation is now only triggered explicitly via the "Recalcular MatchScore (IA)" button (`handleRecalculate` → `vacanciesApi.evaluateCandidates(id)` → reload).
+
+Per-file upload failures are surfaced from the `UploadResult[]` response (`r.message ?? r.error`) instead of being silently dropped.
+
+### Hire flow removed, replaced by a local status dropdown
+
+`handleHire` (which called `vacanciesApi.updateStatus(id, "CLOSED")` behind a `window.confirm`, closing the vacancy) was deleted along with the `hiring` state and the "Contratar" button. In its place, each evaluated candidate row now has a `<select>` (No Contratado / Contactar / Contratado) backed by **local component state only** (`candidateStatuses: Map<number, string>`, via `handleUpdateStatus`) — it is not persisted to the backend. There is no longer a UI path on this page that closes the vacancy or calls `updateStatus`.
+
+### Score display
+
+The full SVG `CircularProgress` component (radius/stroke/circumference math, animated `strokeDashoffset`) was removed. Match score is now a small colored badge (`w-12 h-12` circle with a border), computed by `getScoreColor`:
+
+- `>= 80` → `#00FA15` (green)
+- `>= 50` → `#F8C807` (yellow)
+- `< 50` → `#EF5050` (red)
+
+Same thresholds as before, just a different visual treatment.
+
+### Navigation fixes
+
+- The back button changed from `navigate(-1)` to `navigate("/vacancy-history")` (explicit target instead of relying on browser history).
+- `src/pages/VacancyHistory.tsx` `handleViewResults` changed `navigate(`/resultados/${id}`)` → `navigate(`/advanced-results/${id}`)` — `/resultados/:id` is not a route in `App.tsx`; candidates clicking "Ver resultados" from the vacancy history list were hitting the catch-all redirect to `/dashboard` instead of the results page.
+
+### Type addition
+
+`src/types/api.types.ts` — `Vacancy` gained an optional `candidates?: Candidate[]` field:
+
+```typescript
+// GET /vacancies includes _count.candidates and the full candidates array (see api-documentation.md §4)
+_count?: { candidates: number };
+candidates?: Candidate[];
+```
+
+`loadData` now seeds `localCandidates` from `vac.candidates` when `getById` returns it, so Section 1 can populate from the backend directly and not only from upload responses. **This assumes the backend's `GET /vacancies/:id` response actually includes a `candidates` array — not yet confirmed against `api-documentation.md`.**
+
+### New vacancy info row
+
+A stats grid (`grid-cols-2 md:grid-cols-4`) was added between the header and Section 1, showing position role, department, `availableSlots`, and `startDate`/`endDate` (via a new `formatVacancyDate` helper, `DD/MM/YYYY`).
+
+### Other
+
+- New `getInitials`, `formatDate`, `formatVacancyDate`, `getStatusStyle` helpers.
+- Each evaluated row now has a "Descargar CV" link when `candidate.resumeUrl` is present.
+- The "Selecciona una vacante" empty state (shown when there is no `:id` route param) was removed.
+
+---
+
 ## Build unblocked + documentation restructured into `docs/`
 
 **Branch:** `features`
