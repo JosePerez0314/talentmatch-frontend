@@ -45,8 +45,9 @@ export interface Vacancy {
     status: VacancyStatus;
     isDeleted: boolean;
     createdAt: string;
-    // GET /vacancies includes _count.candidates (see api-documentation.md §4)
+    // GET /vacancies includes _count.candidates and the full candidates array (see api-documentation.md §4)
     _count?: { candidates: number };
+    candidates?: Candidate[];
 }
 
 export interface Candidate {
@@ -67,7 +68,8 @@ export interface Candidate {
 export interface MatchResult {
     id: number;
     vacancyId: number;
-    candidateId: number;
+    // Not present in the real GET /vacancies/:id/results payload — only candidate.id is (see last-changes.md)
+    candidateId?: number;
     candidate?: Candidate;
     matchScore: number; 
     evaluatedAt?: string; 

@@ -4,6 +4,82 @@
 
 ---
 
+## Rediseño de la UI de resultados de vacante + fix del bug de auto-evaluación
+
+**Rama:** `fix/vacancy-results-ui` (aún no fusionada a `features`)
+**Fecha:** 2026-07-12
+
+### Contexto
+
+`src/pages/AdvancedResults.tsx` se reconstruyó, pasando de una grilla de tarjetas de tres columnas a un layout de dos secciones en filas, y de paso se corrigió un bug real: subir un CV disparaba automáticamente una evaluación por IA, sin ninguna forma de añadir candidatos a una vacante sin también puntuarlos.
+
+### División entre Sección 1 y Sección 2
+
+- **Sección 1 — "Candidatos de esta Vacante":** todos los candidatos subidos para la vacante, sin match score. Incluye un buscador (filtra por `fullName`/`niche`), una dropzone de arrastrar-y-soltar colapsable, y un `<input type="file" multiple accept=".pdf">` oculto conectado mediante `fileInputRef`.
+- **Sección 2 — "Evaluaciones":** solo los candidatos que pasaron por el scoring de IA (`MatchResult[]`), ordenados por `matchScore` descendente, filtrados con la misma búsqueda.
+
+`allCandidates` (Sección 1) ahora proviene del estado `localCandidates`, no de `evaluatedCandidates` — ambas listas son independientes y pueden estar desincronizadas (p. ej. 10 subidos, 3 evaluados).
+
+### Fix del bug de auto-evaluación
+
+Antes, subir CVs llamaba implícitamente a `vacanciesApi.evaluateCandidates()` justo después de `uploadCVs()`, forzando una pasada de scoring en cada subida. `handleFilesUpload` ahora solo llama a `vacanciesApi.uploadCVs(id, files)` y lee los candidatos directamente de la respuesta:
+
+```typescript
+const results: UploadResult[] = await vacanciesApi.uploadCVs(id, Array.from(files));
+const uploaded: Candidate[] = results.flatMap(r => r.success && r.data ? [r.data] : []);
+setLocalCandidates(prev => {
+    const existingIds = new Set(prev.map(c => c.id));
+    return [...prev, ...uploaded.filter(c => !existingIds.has(c.id))];
+});
+```
+
+Los candidatos aparecen en la Sección 1 de inmediato, deduplicados por `id`. La evaluación ahora solo se dispara explícitamente con el botón "Recalcular MatchScore (IA)" (`handleRecalculate` → `vacanciesApi.evaluateCandidates(id)` → recarga).
+
+Los fallos por archivo se muestran ahora a partir de la respuesta `UploadResult[]` (`r.message ?? r.error`) en lugar de descartarse silenciosamente.
+
+### Flujo de contratación eliminado, reemplazado por un selector de estado local
+
+`handleHire` (que llamaba a `vacanciesApi.updateStatus(id, "CLOSED")` tras un `window.confirm`, cerrando la vacante) se eliminó junto con el estado `hiring` y el botón "Contratar". En su lugar, cada fila de candidato evaluado tiene ahora un `<select>` (No Contratado / Contactar / Contratado) respaldado **solo por estado local del componente** (`candidateStatuses: Map<number, string>`, vía `handleUpdateStatus`) — no se persiste al backend. Ya no existe en esta pantalla ningún camino de UI que cierre la vacante o llame a `updateStatus`.
+
+### Visualización del score
+
+Se eliminó el componente `CircularProgress` en SVG completo (cálculos de radio/grosor/circunferencia, `strokeDashoffset` animado). El match score ahora es una insignia pequeña de color (círculo `w-12 h-12` con borde), calculada por `getScoreColor`:
+
+- `>= 80` → `#00FA15` (verde)
+- `>= 50` → `#F8C807` (amarillo)
+- `< 50` → `#EF5050` (rojo)
+
+Mismos umbrales que antes, solo cambia el tratamiento visual.
+
+### Fixes de navegación
+
+- El botón de volver cambió de `navigate(-1)` a `navigate("/vacancy-history")` (destino explícito en vez de depender del historial del navegador).
+- En `src/pages/VacancyHistory.tsx`, `handleViewResults` cambió `navigate(`/resultados/${id}`)` → `navigate(`/advanced-results/${id}`)` — `/resultados/:id` no es una ruta en `App.tsx`; al hacer clic en "Ver resultados" desde el historial de vacantes, los usuarios caían en el redirect catch-all hacia `/dashboard` en vez de la página de resultados.
+
+### Adición de tipo
+
+`src/types/api.types.ts` — `Vacancy` ganó un campo opcional `candidates?: Candidate[]`:
+
+```typescript
+// GET /vacancies includes _count.candidates and the full candidates array (see api-documentation.md §4)
+_count?: { candidates: number };
+candidates?: Candidate[];
+```
+
+`loadData` ahora inicializa `localCandidates` a partir de `vac.candidates` cuando `getById` lo devuelve, para que la Sección 1 pueda poblarse directamente desde el backend y no solo desde las respuestas de subida. **Esto asume que la respuesta real de `GET /vacancies/:id` del backend incluye un arreglo `candidates` — aún no confirmado contra `api-documentation.md`.**
+
+### Nueva fila de información de la vacante
+
+Se añadió una grilla de estadísticas (`grid-cols-2 md:grid-cols-4`) entre el header y la Sección 1, mostrando el rol de la posición, el departamento, `availableSlots`, y `startDate`/`endDate` (vía un nuevo helper `formatVacancyDate`, `DD/MM/YYYY`).
+
+### Otros cambios
+
+- Nuevos helpers `getInitials`, `formatDate`, `formatVacancyDate`, `getStatusStyle`.
+- Cada fila evaluada ahora tiene un enlace "Descargar CV" cuando `candidate.resumeUrl` está presente.
+- Se eliminó el estado vacío "Selecciona una vacante" (que se mostraba cuando no había parámetro `:id` en la ruta).
+
+---
+
 ## Build desbloqueado + documentación reestructurada en `docs/`
 
 **Rama:** `features`
