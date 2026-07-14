@@ -4,7 +4,7 @@
 
 This folder holds every document describing the TalentMatch AI **frontend**: what it is, how it's built, what's broken, and what to do next. Each document has a mirror in `docs/es/`.
 
-**Last full verification against the source code: 2026-07-09.**
+**Last full verification against the source code: 2026-07-14.**
 
 ---
 
@@ -15,7 +15,7 @@ This folder holds every document describing the TalentMatch AI **frontend**: wha
 | Understand the project from zero               | [`front-documentation.md`](./front-documentation.md) |
 | Call the backend                               | [`api-documentation.md`](./api-documentation.md)     |
 | Know what's broken right now                   | [`bugs.md`](./bugs.md)                               |
-| Pick up the next task                          | [`issues.md`](./issues.md) → `issues/P0–P3.md`       |
+| Pick up the next task                          | [`issues.md`](./issues.md) → [`issues/`](./issues/)  |
 | Find out what changed recently and why         | [`last-changes.md`](./last-changes.md)               |
 
 ---
@@ -24,7 +24,7 @@ This folder holds every document describing the TalentMatch AI **frontend**: wha
 
 ### 📘 [`front-documentation.md`](./front-documentation.md)
 
-**The main reference.** Describes the frontend's *actual* state, verified against the source: real technology stack, folder layout, routing and route guards, the hand-rolled `fetch` client and how it unwraps the backend envelope, authentication and the session watchdog, the API service layer, the type model, and a page-by-page inventory of which screens are genuinely connected to the API and which still run on mock data.
+**The main reference.** Describes the frontend's *actual* state, verified against the source: real technology stack, folder layout, routing and route guards, the hand-rolled `fetch` client and how it unwraps the backend envelope, authentication and the session watchdog, the API service layer, the type model, and a page-by-page inventory of which screens are connected to the API and any caveats worth knowing.
 
 Start here. It also lists the technical debt and the conventions new code must follow.
 
@@ -36,36 +36,36 @@ Start here. It also lists the technical debt and the conventions new code must f
 
 ### 🐞 [`bugs.md`](./bugs.md)
 
-**The bug inventory**, swept over every route in `src/App.tsx`. Grouped into critical functional bugs, unconnected (mock) screens, UI/UX/responsive problems, and code-quality items. Includes an appendix of already-resolved bugs so they don't get reopened, and a section on **what the tooling does not catch** (a green build does not mean a correct UI).
+**The bug inventory**, swept over every route in `src/App.tsx`. Every screen is now wired to the real API — what remains is a short list of **minor, non-blocking** items: confirmed code bugs, a couple of duplicated/partially-orphaned screens, dead code, stale comments, and environment/config gaps. Includes an appendix of already-resolved bugs so they don't get reopened, and a section on **what the tooling does not catch** (a green build does not mean a correct UI).
 
 The premise throughout: the backend is finished and correct, so everything here is frontend work.
 
 ### 🗂️ [`issues.md`](./issues.md)
 
-**The prioritized backlog index.** The same problems as `bugs.md`, but grouped by *flow* (data layer, routing, positions, vacancies, uploads, results, dashboard, admin, auth, polish) and ordered P0 → P3. Each EPIC links to its detailed write-up:
+**The backlog index.** Points to per-screen QA plans in [`issues/`](./issues/) — each one documents that screen's data flow, identified bugs, and a full test checklist (including Figma-alignment review: margins, typography, responsive behavior). Screens without a dedicated plan yet are cross-referenced to the relevant section of `bugs.md`.
 
-| File                             | Priority                   | Contents                                             | Status                       |
-| -------------------------------- | -------------------------- | ---------------------------------------------------- | ---------------------------- |
-| [`issues/P0.md`](./issues/P0.md) | **P0** — blockers          | EPIC 1 (data layer), 2 (routing), 3 (create position) | ✅ Closed (historical record) |
-| [`issues/P1.md`](./issues/P1.md) | **P1** — broken flows      | EPIC 4 (vacancies), 5 (CV upload), 6 (results)        | 🔨 In progress               |
-| [`issues/P2.md`](./issues/P2.md) | **P2** — secondary screens | EPIC 7 (dashboard), 8 (admin), 9 (auth/role)          | 🔨 In progress               |
-| [`issues/P3.md`](./issues/P3.md) | **P3** — polish            | EPIC 10 (UI/UX and code quality)                      | ⏳ Pending                   |
+| File                                                          | Screen                  |
+| ---------------------------------------------------------------- | -------------------------- |
+| [`issues/dashboard.md`](./issues/dashboard.md)                  | Dashboard                 |
+| [`issues/admin-panel.md`](./issues/admin-panel.md)              | Admin Panel               |
+| [`issues/position-history.md`](./issues/position-history.md)   | Position History          |
+| [`issues/vacancy-history.md`](./issues/vacancy-history.md)     | Vacancy History           |
+| [`issues/department-history.md`](./issues/department-history.md) | Department History      |
+| [`issues/candidates-history.md`](./issues/candidates-history.md) | Candidates History      |
+| [`issues/evaluations-history.md`](./issues/evaluations-history.md) | Evaluations            |
 
-Each detailed file gives exact files, line numbers, code snippets, and acceptance criteria.
+> The earlier `issues/P0.md`–`P3.md` EPIC-based backlog was replaced by these per-screen plans on 2026-07-13 — those files no longer exist in this repo.
 
 ### 📋 [`last-changes.md`](./last-changes.md)
 
-**The engineering log**, newest first. Explains not just *what* changed but *why* — the API alignment audit, the envelope-unwrapping cleanup, the P0 fixes, and the most recent session (build unblocked, docs restructured).
+**The engineering log**, newest first. Explains not just *what* changed but *why* — the API alignment audit, the envelope-unwrapping cleanup, the earlier P0 fixes, the admin/dashboard real-API rewiring, and the most recent documentation refresh.
 
 ---
 
 ## Current state at a glance
 
-- ✅ **Working end to end:** Login, Departments (create + CRUD history), Create Position, Positions/Vacancies/CVs histories.
-- 🟡 **Connected, pending work:** New/Edit Vacancy, Upload CV, Results.
-- 🔴 **No real API:** Dashboard, Advanced Results, Candidates History, Evaluations, Admin Panel.
-
-⚠️ **The trap to know about:** `src/services/api/admin.api.ts` exists and the Admin Panel *looks* connected — but the service is a simulation (`MOCK_USERS` + `setTimeout`) that never calls `apiClient`. See [`bugs.md §1.1`](./bugs.md) and [`issues/P2.md §8.1`](./issues/P2.md).
+- ✅ **Every screen calls the real API.** No screen remains mocked (previously: Dashboard and the Admin Panel ran on fake data — both are now wired to `dashboardService`/`adminService`).
+- ⚠️ **Minor caveats, not blockers:** New/Edit Vacancy ignores a reset callback on its success screen; two pairs of overlapping/partially-unlinked legacy screens (`Resultados` vs. `AdvancedResults`, `CVHistory` vs. `CandidatesHistory`); a handful of dead code and stale comments. Full detail in [`bugs.md`](./bugs.md).
 
 ---
 

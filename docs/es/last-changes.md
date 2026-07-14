@@ -4,6 +4,31 @@
 
 ---
 
+## Actualización completa de la documentación contra el código actual
+
+**Rama:** `main`
+**Fecha:** 2026-07-14
+
+### Contexto
+
+`front-documentation.md`, `bugs.md` e `issues.md` se habían verificado por última vez el 2026-07-09, pero el código avanzó bastante después (commits `bea453c`…`f670013`, 2026-07-08 → 2026-07-13): el Dashboard y el Panel Admin pasaron de ser 100 % mock a llamar a la API real, `admin.api.ts` se reescribió sobre `apiClient`, se agregó un nuevo `CreateUserModule`, la pantalla de resultados de vacante se rediseñó (`AdvancedResults.tsx`) con manejo del estado `PAUSED` y un guard de recálculo, el link de admin en el Sidebar pasó a filtrarse por rol, y `apiClient` dejó de adjuntar un token guardado a los endpoints públicos de auth. Nada de esto estaba reflejado en la documentación.
+
+Por separado, el commit `docs(issues): replace P0/P2 with per-screen issue plans in Spanish` (`f670013`) borró `issues/P0.md` y `issues/P2.md` (además de los ya desaparecidos `P1.md`/`P3.md`) y los reemplazó por 7 planes de QA nuevos por pantalla — pero solo escribió contenido en `docs/es/issues/`; los equivalentes en inglés en `docs/en/issues/` quedaron como archivos vacíos (0 bytes), e `issues.md` en ambos idiomas seguía enlazando a los `P0.md`–`P3.md` ya eliminados.
+
+### Qué cambió
+
+- **`front-documentation.md` (en+es):** reescrito de punta a punta tras una auditoría fresca del código fuente. Todas las pantallas se muestran ahora conectadas a la API real (ya no quedan pantallas mock); documenta el mecanismo `isPublicEndpoint` de `apiClient.ts`, el casing de rol ya unificado en mayúsculas (la antigua desalineación `admin/user` vs. `ADMIN/USER` ya no existe), el nuevo módulo `session.ts`, y el inventario de archivos actual (incluyendo código muerto recién detectado: `DemoCredential.jsx`, `EmptyVacancyState.tsx`, `utils/dashboardConfig.js`, el mecanismo vestigial `isDynamic` del Sidebar, y una carpeta anidada `src/src/vite-env.d.ts`).
+- **`bugs.md` (en+es):** reescrito como una lista mucho más corta, explícitamente **menor/no bloqueante**, ya que todas las pantallas funcionan de punta a punta. Hallazgos nuevos: `VacancySuccess.tsx` ignora en silencio su prop `onReset`; `CandidateMatchRow.tsx` (usado solo por la pantalla legacy `Resultados.tsx`) lee `normalizedCandidate` como objeto en vez de parsear el string JSON documentado; dos pares de pantallas están duplicadas y parcialmente sin enlazar desde la UI (`Resultados` vs. `AdvancedResults`, `CVHistory` vs. `CandidatesHistory`); estados de candidato como `"CONTACTADO"`/`"NO_CONTRATADO"` existen solo en estado local del componente y nunca se persisten; `apiClient` sigue sin fallback para `VITE_API_URL` y no hay `.env.example` comprometido.
+- **`issues.md` (en+es):** reescrito para eliminar toda referencia a los `P0.md`–`P3.md` borrados, e indexar en su lugar los 7 planes de QA por pantalla, más una tabla que referencia las pantallas sin plan propio todavía a la sección correspondiente de `bugs.md`.
+- **`issues/*.md` (en):** los 7 archivos estaban vacíos; se tradujeron íntegramente desde sus equivalentes en español (`dashboard.md`, `admin-panel.md`, `position-history.md`, `vacancy-history.md`, `department-history.md`, `candidates-history.md`, `evaluations-history.md`).
+- **`README.md` (raíz, en, es):** se actualizaron los diagramas de estructura de carpetas y las descripciones de documentos para reflejar el layout de `issues/` por pantalla en vez de la vieja estructura de EPICs `P0–P3`, y se refrescó el resumen de "estado actual de un vistazo".
+
+### Enfoque de verificación
+
+Se hizo una lectura completa del código fuente de cada archivo bajo `src/` (páginas, componentes, servicios, tipos, layouts) más greps dirigidos de `console.log`, `alert(`, `MOCK_`, `TODO`/`FIXME`, `any` y `@ts-ignore` — confirmando cero mocks, cero `console.log`, cero `any`, y solo dos ocurrencias de `@ts-ignore` en todo el código base.
+
+---
+
 ## Rediseño de la UI de resultados de vacante + fix del bug de auto-evaluación
 
 **Rama:** `fix/vacancy-results-ui` (aún no fusionada a `features`)

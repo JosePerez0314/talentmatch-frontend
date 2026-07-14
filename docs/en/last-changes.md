@@ -4,6 +4,31 @@
 
 ---
 
+## Full documentation refresh against current code
+
+**Branch:** `main`
+**Date:** 2026-07-14
+
+### Context
+
+`front-documentation.md`, `bugs.md`, and `issues.md` were last verified on 2026-07-09, but the code moved on significantly afterward (commits `bea453c`…`f670013`, 2026-07-08 → 2026-07-13): the Dashboard and Admin Panel went from 100%-mock to real API calls, `admin.api.ts` was rewritten on top of `apiClient`, a new `CreateUserModule` was added, the vacancy-results screen was redesigned (`AdvancedResults.tsx`) with `PAUSED`-status handling and a recalculate guard, the Sidebar's admin link became role-filtered, and `apiClient` stopped attaching a stored token to public auth endpoints. None of this had been reflected in the docs.
+
+Separately, the `docs(issues): replace P0/P2 with per-screen issue plans in Spanish` commit (`f670013`) deleted `issues/P0.md` and `issues/P2.md` (as well as the already-gone `P1.md`/`P3.md`) and replaced them with 7 new per-screen QA plans — but only wrote content in `docs/es/issues/`; the English counterparts in `docs/en/issues/` were left as empty (0-byte) files, and `issues.md` in both languages still linked to the deleted `P0.md`–`P3.md`.
+
+### What changed
+
+- **`front-documentation.md` (en+es):** rewritten end to end against a fresh source audit. Every page now shows as connected to the real API (no more mock screens); documents the `isPublicEndpoint` mechanism in `apiClient.ts`, the now-unified uppercase role casing (the earlier `admin/user` vs. `ADMIN/USER` mismatch no longer exists), the new `session.ts` module, and the current file inventory (including newly-found dead code: `DemoCredential.jsx`, `EmptyVacancyState.tsx`, `utils/dashboardConfig.js`, the vestigial `isDynamic` Sidebar mechanism, and a nested `src/src/vite-env.d.ts`).
+- **`bugs.md` (en+es):** rewritten as a much shorter, explicitly **minor/non-blocking** bug list, since every screen now works end to end. New findings: `VacancySuccess.tsx` silently ignores its `onReset` prop; `CandidateMatchRow.tsx` (used only by the legacy `Resultados.tsx` screen) reads `normalizedCandidate` as an object instead of parsing the documented JSON string; two screen pairs are duplicated and partially unlinked from the UI (`Resultados` vs. `AdvancedResults`, `CVHistory` vs. `CandidatesHistory`); candidate statuses like `"CONTACTADO"`/`"NO_CONTRATADO"` exist only in local component state and are never persisted; `apiClient` still has no `VITE_API_URL` fallback and no `.env.example` is committed.
+- **`issues.md` (en+es):** rewritten to drop every reference to the deleted `P0.md`–`P3.md` and instead index the 7 per-screen QA plans, plus a table cross-referencing screens that don't have a dedicated plan yet to the relevant `bugs.md` section.
+- **`issues/*.md` (en):** all 7 files were empty; translated in full from their Spanish counterparts (`dashboard.md`, `admin-panel.md`, `position-history.md`, `vacancy-history.md`, `department-history.md`, `candidates-history.md`, `evaluations-history.md`).
+- **`README.md` (root, en, es):** updated the folder-structure diagrams and document descriptions to reflect the per-screen `issues/` layout instead of the old `P0–P3` EPIC structure, and refreshed the "current state at a glance" summary.
+
+### Verification approach
+
+A full source read was done for every file under `src/` (pages, components, services, types, layouts) plus targeted greps for `console.log`, `alert(`, `MOCK_`, `TODO`/`FIXME`, `any`, and `@ts-ignore` — confirming zero mocks, zero `console.log`, zero `any`, and only two `@ts-ignore` occurrences remain anywhere in the codebase.
+
+---
+
 ## Vacancy results UI redesign + auto-evaluation bug fix
 
 **Branch:** `fix/vacancy-results-ui` (not yet merged into `features`)

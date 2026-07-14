@@ -1,43 +1,55 @@
-# 🗂️ Backlog de Issues por Flujo — TalentMatch Frontend
+# 🗂️ Backlog de Issues — TalentMatch Frontend
 
-> Complementa a [`bugs.md`](./bugs.md). Aquí los bugs se **agrupan por flujo** siguiendo la [`api-documentation.md`](./api-documentation.md) y se ordenan de **más importante a menos**.
+> Complementa a [`bugs.md`](./bugs.md). Aquí se agrupan los issues **por pantalla**, con un plan de arquitectura de datos, bugs identificados y un checklist de pruebas de QA (incluida alineación con Figma).
 >
 > 🇬🇧 English version: [`../en/issues.md`](../en/issues.md)
 >
 > **Premisa:** el backend está terminado y correcto. Todo lo de abajo es trabajo de frontend.
 >
-> **Última verificación contra el código: 2026-07-09.**
+> **Última verificación contra el código: 2026-07-14.**
 
-## Leyenda de prioridad
+## Qué cambió respecto a versiones anteriores
 
-| Nivel  | Significado                                                                                              |
-| ------ | -------------------------------------------------------------------------------------------------------- |
-| **P0** | Bugs invisibles (la UI promete datos que la API no entrega) y validación del sprint anterior. Hacer primero. |
-| **P2** | Pantalla polida, paginación consistente, endpoints huérfanos y housekeeping. Nada bloquea.               |
+Los backlogs anteriores (`issues/P0.md`–`P3.md`, organizados por EPICs) fueron **reemplazados el 2026-07-13** por planes de QA por pantalla — ya no existen `P0.md`–`P3.md` en este repositorio (si ves un enlace a ellos en algún documento viejo, está roto: usa las tablas de abajo). El sprint P0–P3 original ya está cerrado; el foco actual es una revisión de alineación con Figma (márgenes, responsive, checklist de pruebas) pantalla por pantalla.
 
-Los backlogs anteriores (P0–P4 con los EPICs 1–11) fueron reemplazados el 2026-07-09 tras cerrar el sprint P0/P1/P2/P3 y hacer un review completo de la app. La historia sigue disponible en `git log` — este índice refleja únicamente el trabajo pendiente **hoy**.
+## Planes de QA por pantalla
 
-## Documentos detallados por prioridad
+Cada archivo documenta: arquitectura/flujo de datos, bugs identificados (overflow del menú kebab, nombre de usuario en blanco, manejo del estado `PAUSED`, accesibilidad táctil, inconsistencias de márgenes) y un checklist completo de pruebas.
 
-| Archivo                          | Prioridad                          | EPICs                                                              | Estado       |
-| -------------------------------- | ---------------------------------- | ------------------------------------------------------------------ | ------------ |
-| [`issues/P0.md`](./issues/P0.md) | **P0** — bloqueantes               | 12 (datos que la UI promete y no llegan), 13 (validación del sprint) | ⏳ Pendiente |
-| [`issues/P2.md`](./issues/P2.md) | **P2** — polish y housekeeping     | 14 (robustez UI), 15 (responsive), 16 (paginación), 17 (endpoints huérfanos), 18 (housekeeping) | ⏳ Pendiente |
+| Archivo                                              | Pantalla                  | Ruta(s)                                              |
+| ------------------------------------------------------- | ---------------------------- | -------------------------------------------------------- |
+| [`issues/dashboard.md`](./issues/dashboard.md)         | Dashboard                   | `/dashboard`                                             |
+| [`issues/admin-panel.md`](./issues/admin-panel.md)     | Panel Admin                 | `/admin`                                                 |
+| [`issues/position-history.md`](./issues/position-history.md) | Historial de Posiciones | `/position-history`                                      |
+| [`issues/vacancy-history.md`](./issues/vacancy-history.md) | Historial de Vacantes    | `/vacancy-history`                                       |
+| [`issues/department-history.md`](./issues/department-history.md) | Historial de Departamentos | `/department-history`                             |
+| [`issues/candidates-history.md`](./issues/candidates-history.md) | Historial de Candidatos | `/candidates-history`                               |
+| [`issues/evaluations-history.md`](./issues/evaluations-history.md) | Evaluaciones           | `/evaluations-history`                                    |
+
+## Pantallas sin un plan de QA dedicado todavía
+
+Estas pantallas no tienen un archivo de QA por pantalla propio. Sus bugs de código conocidos están en [`bugs.md`](./bugs.md):
+
+| Pantalla                     | Ruta(s)                                            | Ver en `bugs.md`         |
+| ------------------------------ | ----------------------------------------------------- | ---------------------------- |
+| Login                        | `/login`                                             | —                             |
+| Nueva/Editar Vacante         | `/vacancy`, `/vacancy/edit/:id`                       | §1.1 (`onReset` ignorado)     |
+| Subir CV                     | `/uploadcv`                                          | —                             |
+| Historial de CVs (legacy)    | `/cv-history`                                        | §2.2 (pantalla duplicada)     |
+| Resultados (legacy)          | `/resultados`, `/resultados/:id`                      | §1.2, §2.1                    |
+| Resultados Avanzados         | `/advanced-results/:id`                               | §1.3 (estados no persistidos) |
+| Crear Posición               | `/position`                                          | —                             |
+| Crear Departamento           | `/department`                                        | —                             |
+
+## Bugs de código transversales
+
+Los bugs que no son específicos de un margen/responsive de una pantalla, sino de lógica (props ignorados, parsing, código muerto, configuración), viven en [`bugs.md`](./bugs.md) — no se duplican aquí. Incluyen: el prop `onReset` ignorado en `VacancySuccess`, el bug de parsing en `CandidateMatchRow` (pantalla legacy), las pantallas duplicadas (`Resultados`/`AdvancedResults`, `CVHistory`/`CandidatesHistory`), componentes huérfanos, y la falta de fallback/`.env.example` para `VITE_API_URL`.
 
 ## Estado actual
 
-**Sprint anterior (commits `80263da`…`f6feba2`, 2026-07-08 → 2026-07-09):** cerrado a nivel de código pero **sin verificar en navegador** (ver P0 13.1). Los flujos principales están conectados: dashboard sobre `/dashboard`, panel admin sobre `/admin/*`, carga/listado/edición de vacantes y posiciones, resultados de matching, autenticación con rol.
+**Todas las pantallas están conectadas a la API real** (ver `front-documentation.md §8`). El trabajo pendiente es de dos tipos:
 
-**Foco actual:** los bugs invisibles del review — `CandidateDetailsModal` con 6 barras a cero, `HistoryTable` con el link de CV muerto, y el copy engañoso del botón "Contratar". Ninguno rompe el compile ni el build, pero minan la confianza en lo que la UI muestra al usuario.
+1. **QA de alineación con Figma** (márgenes, tipografía, responsive) — cubierto por los 7 planes de pantalla arriba.
+2. **Limpieza de bugs menores y deuda técnica** — cubierto por `bugs.md`.
 
-## Resumen rápido de prioridades
-
-| EPIC | Flujo                                    | Prioridad | Estado       | Depende de                    |
-| ---- | ---------------------------------------- | --------- | ------------ | ----------------------------- |
-| 12   | Datos que la UI promete y no llegan      | **P0**    | ⏳ Pendiente | Contrato del backend (12.1)   |
-| 13   | Validación del sprint anterior            | **P0**    | ⏳ Pendiente | Dev server + backend en vivo  |
-| 14   | Robustez UI (labels, fallbacks)          | **P2**    | ⏳ Pendiente | —                             |
-| 15   | Dashboard responsive                     | **P2**    | ⏳ Pendiente | —                             |
-| 16   | Paginación consistente                   | **P2**    | ⏳ Pendiente | —                             |
-| 17   | Endpoints huérfanos (register, candidates/:id) | **P2** | ⏳ Pendiente | Decisión de producto        |
-| 18   | Deuda pre-existente + housekeeping       | **P2**    | ⏳ Pendiente | —                             |
+Ninguno de los dos bloquea el uso normal de la aplicación.
