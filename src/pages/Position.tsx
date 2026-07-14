@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+import { CheckCircle, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 
 // Components & Services
 import PillInput from "../components/ui/PillInput";
@@ -181,23 +181,26 @@ const Position: React.FC = () => {
   const renderStepperHeader = () => {
     const steps = ["Método de Entrada", "Detalles del Rol", "Habilidades", "Educación e Idiomas"];
     return (
-      <div className="mb-10 w-full">
-        <div className="flex items-center w-full mb-6">
+      <div className="mb-7">
+        <div className="flex items-center gap-0">
           {steps.map((_, i) => {
             const stepNum = i + 1;
             const isActive = currentStep === stepNum;
             const isCompleted = currentStep > stepNum;
             return (
               <React.Fragment key={stepNum}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${isCompleted ? "bg-[#447ECA] text-white border-[2px] border-[#447ECA]" : isActive ? "bg-white border-[2px] border-[#447ECA] text-[#447ECA]" : "bg-white border-[2px] border-gray-200 text-gray-300"}`}>
-                  {isCompleted ? <Check size={18} strokeWidth={3} /> : stepNum}
+                <div
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs shrink-0 transition-all duration-300 ${isCompleted ? "bg-[#447ECA] text-white" : isActive ? "border-2 text-[#447ECA] bg-white" : "border border-gray-200 text-gray-300 bg-white"}`}
+                  style={isActive ? { borderColor: '#447ECA' } : undefined}
+                >
+                  {isCompleted ? <CheckCircle size={13} /> : stepNum}
                 </div>
-                {stepNum < steps.length && <div className={`flex-1 h-[2px] mx-3 transition-all duration-300 rounded-full ${isCompleted ? "bg-[#447ECA]" : "bg-gray-200"}`} />}
+                {stepNum < steps.length && <div className={`flex-1 h-0.5 mx-1 transition-all duration-500 ${isCompleted ? "bg-[#447ECA]" : "bg-gray-200"}`} />}
               </React.Fragment>
             );
           })}
         </div>
-        <p className="text-[13px] text-gray-400 font-medium">Paso {currentStep} de 4: <span className="text-[#447ECA] ml-1">{steps[currentStep - 1]}</span></p>
+        <p className="text-xs text-gray-400 mt-3">Paso {currentStep} de 4: <span className="text-[#447ECA] ml-1">{steps[currentStep - 1]}</span></p>
       </div>
     );
   };
@@ -205,9 +208,12 @@ const Position: React.FC = () => {
   const renderAiBanner = () => {
     if (!isAiMode) return null;
     return (
-      <div className="bg-[#F0F7FF] border border-[#D1E9FF] rounded-xl p-4 flex items-center gap-3 mb-8">
-        <Sparkles className="text-[#447ECA]" size={20} />
-        <p className="text-sm text-[#447ECA] font-medium"><strong className="mr-1">AI Auto-filled —</strong> Revisa y edita los campos antes de continuar.</p>
+      <div
+        className="flex items-center gap-2.5 px-4 py-3 rounded-xl mb-5"
+        style={{ backgroundColor: '#EFF6FF', border: '1px solid #BFDBFE' }}
+      >
+        <Sparkles size={14} style={{ color: '#447ECA' }} className="flex-shrink-0" />
+        <p className="text-xs" style={{ color: '#1E40AF' }}><strong>✨ AI Auto-filled</strong> — Revisa y edita los campos antes de continuar.</p>
       </div>
     );
   };
@@ -234,8 +240,8 @@ const Position: React.FC = () => {
   }
 
   return (
-    <div className="p-6 md:p-10 animate-fade-in max-w-5xl mx-auto min-h-screen flex flex-col">
-      <div className="bg-white rounded-[32px] p-8 md:p-12 shadow-sm border border-gray-100 flex-1 flex flex-col relative">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm p-6 relative">
 
         {/* Notificación Global de Error */}
         {apiError && (
@@ -246,21 +252,21 @@ const Position: React.FC = () => {
 
         {renderStepperHeader()}
 
-        <div className="flex-1 mt-4">
+        <div className="mt-4">
           {currentStep === 1 && (
             <div className="animate-fade-in space-y-8">
               <div>
-                <h1 className="text-2xl font-medium text-gray-900 mb-1">Nueva Posición</h1>
+                <h2 className="text-gray-800 mb-1">Nueva Posición</h2>
                 <p className="text-gray-400 text-sm">Selecciona el departamento y elige cómo quieres completar los datos del puesto.</p>
               </div>
 
-              <div className="flex flex-col gap-2 max-w-xl">
+              <div className="flex flex-col gap-2">
                 <label htmlFor="departmentSelect" className="text-[13px] font-medium text-gray-700">Departamento <span className="text-red-500">*</span></label>
                 <select
                   id="departmentSelect"
                   value={formData.departmentId}
                   onChange={e => setFormData({ ...formData, departmentId: e.target.value })}
-                  className="w-full p-4 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 text-sm text-[#334155]"
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg outline-none focus:border-[#447ECA] text-sm text-[#334155] transition-colors"
                 >
                   <option value="" disabled>Selecciona un departamento...</option>
                   {departments.map(dept => (
@@ -273,17 +279,29 @@ const Position: React.FC = () => {
               <div className="flex flex-col gap-3">
                 <label className="text-[13px] font-medium text-gray-700">Método de ingreso de datos</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div onClick={() => setEntryMethod("manual")} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${entryMethod === "manual" ? "border-[#447ECA] bg-[#F0F7FF]" : "border-gray-100 hover:border-gray-200"}`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${entryMethod === "manual" ? "bg-[#447ECA] text-white" : "bg-gray-100 text-gray-500"}`}><PenLine size={18} /></div>
-                      <div><h3 className={`font-medium ${entryMethod === "manual" ? "text-[#447ECA]" : "text-gray-700"}`}>Completar manualmente</h3><p className="text-xs text-gray-400 mt-1">Ingresa nombre, habilidades y descripción.</p></div>
+                  <div onClick={() => setEntryMethod("manual")} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${entryMethod === "manual" ? "border-[#447ECA] bg-[#EFF6FF]" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: entryMethod === "manual" ? '#BFDBFE' : '#F0F0F5' }}>
+                        <PenLine size={16} style={{ color: entryMethod === "manual" ? '#447ECA' : '#9CA3AF' }} />
+                      </div>
+                      <div>
+                        <p className={`text-sm mb-0.5 ${entryMethod === "manual" ? "text-[#447ECA]" : "text-gray-700"}`}>Completar manualmente</p>
+                        <p className="text-xs text-gray-400 leading-relaxed">Ingresa nombre, habilidades y descripción.</p>
+                      </div>
                     </div>
+                    <div className={`w-full h-0.5 rounded-full mt-4 transition-all ${entryMethod === "manual" ? "bg-[#447ECA]" : "bg-transparent"}`} />
                   </div>
-                  <div onClick={() => setEntryMethod("ai")} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${entryMethod === "ai" ? "border-[#447ECA] bg-[#F0F7FF]" : "border-gray-100 hover:border-gray-200"}`}>
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${entryMethod === "ai" ? "bg-[#447ECA] text-white" : "bg-gray-100 text-gray-500"}`}><Sparkles size={18} /></div>
-                      <div><h3 className={`font-medium ${entryMethod === "ai" ? "text-[#447ECA]" : "text-gray-700"}`}>Autocompletar con IA</h3><p className="text-xs text-gray-400 mt-1">Sube el PDF y la IA extraerá los campos.</p></div>
+                  <div onClick={() => setEntryMethod("ai")} className={`p-5 rounded-2xl border-2 cursor-pointer transition-all ${entryMethod === "ai" ? "border-[#447ECA] bg-[#EFF6FF]" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: entryMethod === "ai" ? '#BFDBFE' : '#F0F0F5' }}>
+                        <Sparkles size={16} style={{ color: entryMethod === "ai" ? '#447ECA' : '#9CA3AF' }} />
+                      </div>
+                      <div>
+                        <p className={`text-sm mb-0.5 ${entryMethod === "ai" ? "text-[#447ECA]" : "text-gray-700"}`}>Autocompletar con IA</p>
+                        <p className="text-xs text-gray-400 leading-relaxed">Sube el PDF y la IA extraerá los campos.</p>
+                      </div>
                     </div>
+                    <div className={`w-full h-0.5 rounded-full mt-4 transition-all ${entryMethod === "ai" ? "bg-[#447ECA]" : "bg-transparent"}`} />
                   </div>
                 </div>
               </div>
@@ -291,7 +309,7 @@ const Position: React.FC = () => {
               {entryMethod === "ai" && (
                 <div className="mt-8 animate-slide-up">
                   {!file ? (
-                    <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDragging ? "border-[#447ECA] bg-[#F0F7FF]" : "border-gray-200 hover:border-gray-300"}`}>
+                    <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} onClick={() => fileInputRef.current?.click()} className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDragging ? "border-[#447ECA] bg-[#EFF6FF]" : "border-gray-200 hover:border-gray-300"}`}>
                       <UploadCloud className="text-gray-400 mb-3" size={32} />
                       <p className="text-sm text-[#447ECA] font-medium mb-1">Haz clic para subir <span className="text-gray-500 font-normal">o arrastra el archivo aquí</span></p>
                       <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept=".pdf" className="hidden" />
@@ -310,20 +328,20 @@ const Position: React.FC = () => {
           {currentStep === 2 && (
             <div className="animate-slide-up">
               {renderAiBanner()}
-              <h2 className="text-xl font-medium text-gray-900 mb-8">Detalles del Rol</h2>
+              <h2 className="text-gray-800 mb-5">Detalles del Rol</h2>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
                 <div className="space-y-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Nombre del puesto <span className="text-red-500">*</span></label>
-                    <input type="text" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="text" value={formData.role} onChange={e => setFormData({ ...formData, role: e.target.value })} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-[#447ECA] transition-colors" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Años de experiencia requerida</label>
-                    <input type="number" min="0" value={formData.yearsOfExperience} onChange={e => setFormData({ ...formData, yearsOfExperience: Number(e.target.value) })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="number" min="0" value={formData.yearsOfExperience} onChange={e => setFormData({ ...formData, yearsOfExperience: Number(e.target.value) })} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-[#447ECA] transition-colors" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Descripción del puesto <span className="text-red-500">*</span></label>
-                    <textarea rows={5} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA] resize-none" />
+                    <textarea rows={5} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-[#447ECA] resize-none transition-colors" />
                   </div>
                 </div>
               </div>
@@ -333,7 +351,7 @@ const Position: React.FC = () => {
           {currentStep === 3 && (
             <div className="animate-slide-up">
               {renderAiBanner()}
-              <h2 className="text-xl font-medium text-gray-900 mb-8">Habilidades y cualificaciones</h2>
+              <h2 className="text-gray-800 mb-5">Habilidades y cualificaciones</h2>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
                 <div className="space-y-6">
                   <PillInput label="Habilidades técnicas obligatorias *" id="technicalSkills" theme="green" pills={formData.technicalSkills} tempValue={tempInputs.technicalSkills} hasAttemptedSubmit={hasAttemptedSubmit} placeholder="Ej: React, Python..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
@@ -347,12 +365,12 @@ const Position: React.FC = () => {
           {currentStep === 4 && (
             <div className="animate-slide-up">
               {renderAiBanner()}
-              <h2 className="text-xl font-medium text-gray-900 mb-8">Educación e Idiomas</h2>
+              <h2 className="text-gray-800 mb-5">Educación e Idiomas</h2>
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
                 <div className="space-y-6">
                   <div className="flex flex-col gap-2">
                     <label className="text-[13px] font-medium text-gray-700">Nivel de educación mínimo <span className="text-red-500">*</span></label>
-                    <select value={formData.educationLevel} onChange={e => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]">
+                    <select value={formData.educationLevel} onChange={e => setFormData({ ...formData, educationLevel: e.target.value })} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-[#447ECA] transition-colors">
                       <option value="">Selecciona...</option>
                       <option value="NONE">Ninguno</option>
                       <option value="HIGH_SCHOOL">Bachiller</option>
@@ -368,7 +386,7 @@ const Position: React.FC = () => {
                       Área de estudio
                       {!["NONE", "HIGH_SCHOOL", ""].includes(formData.educationLevel) && <span className="text-red-500"> *</span>}
                     </label>
-                    <input type="text" value={formData.educationArea} onChange={e => setFormData({ ...formData, educationArea: e.target.value })} className="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm outline-none focus:border-[#447ECA]" />
+                    <input type="text" value={formData.educationArea} onChange={e => setFormData({ ...formData, educationArea: e.target.value })} className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm outline-none focus:border-[#447ECA] transition-colors" />
                   </div>
                   <PillInput label="Idiomas" id="languages" theme="green" pills={formData.languages} tempValue={tempInputs.languages} placeholder="Ej: Inglés..." onAddPill={(id, v) => handlePill(id as keyof CreatePositionInput, v, 'add')} onRemovePill={(id, i) => handlePill(id as keyof CreatePositionInput, null, 'remove', i)} onChangeTemp={(id, v) => setTempInputs({ ...tempInputs, [id]: v })} />
                 </div>
@@ -377,34 +395,51 @@ const Position: React.FC = () => {
           )}
         </div>
 
-        {/* FOOTER WIZARD */}
-        <div className="mt-12 pt-6 border-t border-gray-100 flex items-center justify-between">
-          <button
-            aria-label="Volver al paso anterior"
-            onClick={() => currentStep > 1 ? prevStep() : navigate("/dashboard")}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 text-gray-600 font-medium hover:bg-gray-50 transition-colors text-sm"
-          >
-            <ChevronLeft size={18} /> Atrás
-          </button>
+      </div>
 
-          {currentStep === 1 && entryMethod === "ai" && file ? (
-            <button onClick={processWithAI} className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#3669ab] transition-colors shadow-sm active:scale-95 text-sm">
-              <Sparkles size={18} /> Analizar Perfil con IA
-            </button>
-          ) : currentStep < 4 ? (
-            <button
-              aria-label="Avanzar al siguiente paso"
-              onClick={nextStep}
-              className="flex items-center gap-2 bg-[#A4BDE4] hover:bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold transition-colors shadow-sm active:scale-95 text-sm"
-            >
-              Continuar <ChevronRight size={18} />
-            </button>
-          ) : (
-            <button onClick={handleSubmitFinal} disabled={isLoading} className="flex items-center gap-2 bg-[#447ECA] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#3669ab] transition-colors shadow-sm active:scale-95 text-sm disabled:opacity-50">
-              {isLoading ? "Creando..." : "Crear Posición"} <ChevronRight size={18} />
-            </button>
-          )}
-        </div>
+      {/* FOOTER WIZARD */}
+      <div className="mt-4 flex items-center justify-between">
+        <button
+          aria-label="Volver al paso anterior"
+          onClick={() => currentStep > 1 ? prevStep() : navigate("/dashboard")}
+          className="flex items-center gap-2 px-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 transition-colors"
+        >
+          <ChevronLeft size={15} /> Atrás
+        </button>
+
+        {currentStep === 1 && entryMethod === "ai" && file ? (
+          <button
+            onClick={processWithAI}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm text-white rounded-xl transition-colors"
+            style={{ backgroundColor: '#447ECA' }}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3a6bb8')}
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = '#447ECA')}
+          >
+            <Sparkles size={15} /> Analizar Perfil con IA
+          </button>
+        ) : currentStep < 4 ? (
+          <button
+            aria-label="Avanzar al siguiente paso"
+            onClick={nextStep}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm text-white rounded-xl transition-colors"
+            style={{ backgroundColor: '#447ECA' }}
+            onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3a6bb8')}
+            onMouseOut={e => (e.currentTarget.style.backgroundColor = '#447ECA')}
+          >
+            Continuar <ChevronRight size={15} />
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmitFinal}
+            disabled={isLoading}
+            className="flex items-center gap-2 px-6 py-2.5 text-sm text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#447ECA' }}
+            onMouseOver={e => { if (!isLoading) e.currentTarget.style.backgroundColor = '#3a6bb8'; }}
+            onMouseOut={e => { e.currentTarget.style.backgroundColor = '#447ECA'; }}
+          >
+            {isLoading ? "Creando..." : "Crear Posición"} <ChevronRight size={15} />
+          </button>
+        )}
       </div>
     </div>
   );

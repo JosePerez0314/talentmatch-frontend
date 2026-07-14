@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, NavLink, Link } from "react-router-dom";
-import { Shield } from "lucide-react";
+import { Shield, PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 
 // Assets
 import { Icons } from "../assets/icons/index";
 // Components
 import { useAuth } from "../components/context/AuthContext";
 
-// TIPADOS CORREGIDOS para admitir componentes de íconos
 interface MenuItem {
     name: string;
     icon: string | React.ComponentType<{ className?: string }>;
@@ -22,10 +21,8 @@ interface MenuSection {
     items: MenuItem[];
 }
 
-// Menu items visible only to admins get merged into their groups by role at render time.
 const ADMIN_PANEL_ITEM: MenuItem = { name: "Panel Admin", icon: Shield, path: "/admin" };
 
-// CONFIGURACIÓN DEL MENÚ
 const MENU_GROUPS: MenuSection[] = [
     {
         title: null,
@@ -36,18 +33,18 @@ const MENU_GROUPS: MenuSection[] = [
     {
         title: "ACCIONES RÁPIDAS",
         items: [
-            { name: "Nueva Posición", icon: Icons.sidebar.positionCreate, path: "/position" },
-            { name: "Nueva Vacante", icon: Icons.sidebar.vacant, path: "/vacancy" },
-            { name: "Nuevo Departamento", icon: Icons.sidebar.departament, path: "/department" },
+            { name: "Nueva Posición",     icon: Icons.sidebar.positionCreate, path: "/position" },
+            { name: "Nueva Vacante",      icon: Icons.sidebar.vacant,         path: "/vacancy" },
+            { name: "Nuevo Departamento", icon: Icons.sidebar.departament,    path: "/department" },
         ],
     },
     {
         title: "REGISTROS",
         items: [
-            { name: "Posiciones", icon: Icons.sidebar.historyPosition, path: "/position-history" },
-            { name: "Candidatos", icon: Icons.sidebar.candidates, path: "/candidates-history" },
-            { name: "Vacantes", icon: Icons.sidebar.historyVacant, path: "/vacancy-history" },
-            { name: "Departamentos", icon: Icons.sidebar.layersHisDepart, path: "/department-history" },
+            { name: "Posiciones",    icon: Icons.sidebar.historyPosition,  path: "/position-history" },
+            { name: "Candidatos",   icon: Icons.sidebar.candidates,        path: "/candidates-history" },
+            { name: "Vacantes",     icon: Icons.sidebar.historyVacant,     path: "/vacancy-history" },
+            { name: "Departamentos", icon: Icons.sidebar.layersHisDepart,  path: "/department-history" },
         ],
     },
     {
@@ -78,49 +75,47 @@ const Sidebar: React.FC = () => {
     return (
         <aside
             className={`flex flex-col bg-white border-r border-gray-100 h-screen transition-all duration-300 ease-in-out shrink-0 z-50
-            ${isExpanded ? "w-72" : "w-20"}`}
+            ${isExpanded ? "w-56" : "w-[60px]"}`}
         >
-            {/* TOP HEADER Logo y Botón */}
-            <div className={`h-16 flex items-center border-b border-transparent shrink-0 px-5 
+            {/* Header */}
+            <div className={`h-14 flex items-center border-b border-gray-100 shrink-0 px-3 gap-2 overflow-hidden
                 ${isExpanded ? "justify-between" : "justify-center"}`}>
 
                 {isExpanded && (
-                    <Link to="/dashboard" className="hover:opacity-80 transition-opacity">
+                    <Link to="/dashboard" className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
                         <img
                             src={Icons.logos.small}
                             alt="TalentMatch AI"
-                            className="h-8 w-auto object-contain"
+                            className="h-7 object-contain object-left"
                         />
                     </Link>
                 )}
 
                 <button
                     onClick={toggleSidebar}
-                    className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-400 focus:outline-none"
+                    className="flex-shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none"
                     title={isExpanded ? "Colapsar menú" : "Expandir menú"}
                 >
-                    <img
-                        src={isExpanded ? Icons.sidebar.panelClose : Icons.sidebar.panelOpen}
-                        alt="Toggle Sidebar"
-                        className="w-5 h-5 opacity-60"
-                    />
+                    {isExpanded
+                        ? <PanelLeftClose size={17} />
+                        : <PanelLeftOpen size={17} />
+                    }
                 </button>
             </div>
 
-            {/* NAVEGACIÓN */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar py-6 px-4 space-y-8">
+            {/* Nav */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-3">
                 {MENU_GROUPS.map((group, groupIndex) => {
-                    // Panel Admin sits inside the first group but only for admins.
                     const items = groupIndex === 0 && user?.role === "ADMIN"
                         ? [...group.items, ADMIN_PANEL_ITEM]
                         : group.items;
 
                     return (
-                        <div key={groupIndex} className="flex flex-col gap-1">
+                        <div key={groupIndex} className={groupIndex > 0 ? "mt-1" : ""}>
 
-                            {/* HEADER DE SECCIÓN */}
+                            {/* Section heading — expanded */}
                             {group.title && isExpanded && (
-                                <h3 className={`px-3 mb-2 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${group.titleClassName || "text-gray-400"}`}>
+                                <h3 className={`px-4 pt-3 pb-1 text-[10px] uppercase tracking-widest flex items-center gap-1.5 select-none ${group.titleClassName || "text-gray-400"}`}>
                                     {group.icon && (
                                         typeof group.icon === "string" ? (
                                             <img
@@ -130,7 +125,6 @@ const Sidebar: React.FC = () => {
                                                 style={{ filter: 'invert(46%) sepia(48%) saturate(545%) hue-rotate(174deg) brightness(92%) contrast(90%)' }}
                                             />
                                         ) : (
-                                            // Usamos React.createElement para renderizar el componente de la librería de forma segura
                                             React.createElement(group.icon, { className: "w-3.5 h-3.5 text-[#447ECA]" })
                                         )
                                     )}
@@ -138,11 +132,12 @@ const Sidebar: React.FC = () => {
                                 </h3>
                             )}
 
+                            {/* Section divider — collapsed */}
                             {group.title && !isExpanded && (
-                                <div className="w-8 h-px bg-gray-100 mx-auto mb-2 mt-4"></div>
+                                <div className="mx-3 my-2 border-t border-gray-100" />
                             )}
 
-                            {/* ITEMS DEL GRUPO */}
+                            {/* Items */}
                             {items.map((item) => {
                                 const finalPath = (item.isDynamic && lastVacancyId)
                                     ? `${item.path}/${lastVacancyId}`
@@ -152,15 +147,15 @@ const Sidebar: React.FC = () => {
                                     <NavLink
                                         key={item.name}
                                         to={finalPath}
+                                        title={!isExpanded ? item.name : undefined}
                                         className={({ isActive }) => `
-                                relative flex items-center rounded-xl font-medium transition-all group
-                                ${isExpanded ? "px-3 py-2.5 gap-3 text-sm" : "justify-center p-3 w-12 h-12 mx-auto"}
-                                ${isActive
-                                                ? "bg-[#EAF7FF] text-[#447ECA]"
+                                            relative flex items-center gap-3 mx-2 my-0.5 rounded-lg transition-colors
+                                            ${isExpanded ? "px-3 py-2.5 text-sm" : "justify-center p-3"}
+                                            ${isActive
+                                                ? "bg-[#DCF9FF] text-[#447ECA]"
                                                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
                                             }
-                            `}
-                                        title={!isExpanded ? item.name : undefined}
+                                        `}
                                     >
                                         {({ isActive }) => (
                                             <>
@@ -168,17 +163,16 @@ const Sidebar: React.FC = () => {
                                                     <img
                                                         src={item.icon}
                                                         alt=""
-                                                        className={`object-contain transition-all duration-300
-                                                ${isExpanded ? "w-5 h-5" : "w-6 h-6"}
-                                                ${isActive ? "opacity-100" : "opacity-50 grayscale"}`}
-                                                        style={isActive && !item.icon.includes('blue') ? { filter: 'invert(46%) sepia(48%) saturate(545%) hue-rotate(174deg) brightness(92%) contrast(90%)' } : {}}
+                                                        className="w-[17px] h-[17px] object-contain flex-shrink-0 transition-all duration-300"
+                                                        style={isActive
+                                                            ? (!item.icon.includes('blue') ? { filter: 'invert(46%) sepia(48%) saturate(545%) hue-rotate(174deg) brightness(92%) contrast(90%)' } : {})
+                                                            : { filter: 'grayscale(1)', opacity: 0.5 }
+                                                        }
                                                     />
                                                 ) : (
-                                                    // Usamos React.createElement también para los ítems individuales
                                                     React.createElement(item.icon, {
-                                                        className: `transition-all duration-300 
-                                                ${isExpanded ? "w-5 h-5" : "w-6 h-6"} 
-                                                ${isActive ? "text-[#447ECA]" : "text-gray-400 group-hover:text-gray-600"}`
+                                                        className: `w-[17px] h-[17px] flex-shrink-0 transition-all duration-300
+                                                            ${isActive ? "text-[#447ECA]" : "text-gray-400 group-hover:text-gray-600"}`
                                                     })
                                                 )}
 
@@ -189,7 +183,7 @@ const Sidebar: React.FC = () => {
                                                 )}
 
                                                 {isActive && isExpanded && (
-                                                    <div className="absolute right-3 w-1.5 h-1.5 rounded-full bg-[#447ECA]"></div>
+                                                    <span className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0 bg-[#447ECA]" />
                                                 )}
                                             </>
                                         )}
@@ -201,44 +195,36 @@ const Sidebar: React.FC = () => {
                 })}
             </div>
 
-            {/* FOOTER SIDEBAR */}
-            <div className="shrink-0 border-t border-gray-100 p-5">
-                {isExpanded ? (
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#447ECA] text-white flex items-center justify-center font-bold text-sm shrink-0">
-                                {initialLetter}
-                            </div>
-                            <span className="text-base font-medium text-[#447ECA] truncate">
-                                {displayName}
-                            </span>
-                        </div>
-
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 w-full text-gray-500 hover:text-gray-800 hover:bg-gray-50 p-2 -ml-2 rounded-xl transition-colors group"
-                            title="Cerrar sesión"
+            {/* Footer */}
+            <div className={`shrink-0 border-t border-gray-100 ${isExpanded ? "p-3 space-y-1" : "p-2 space-y-1"}`}>
+                {isExpanded && (
+                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg">
+                        <div
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-xs text-white flex-shrink-0"
+                            style={{ backgroundColor: '#447ECA' }}
                         >
-                            <img
-                                src={Icons.auth.logOut}
-                                alt="Logout"
-                                className="w-5 h-5 opacity-60 group-hover:opacity-100 transition-all"
-                            />
-                            <span className="text-sm font-medium">Cerrar sesión</span>
-                        </button>
+                            {initialLetter}
+                        </div>
+                        <span className="text-xs text-gray-600 truncate">{displayName}</span>
                     </div>
+                )}
+
+                {isExpanded ? (
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 w-full px-2 py-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors text-sm"
+                        title="Cerrar sesión"
+                    >
+                        <LogOut size={15} />
+                        <span>Cerrar sesión</span>
+                    </button>
                 ) : (
                     <button
                         onClick={handleLogout}
-                        className="w-12 h-12 mx-auto flex items-center justify-center rounded-xl bg-gray-50 hover:bg-red-50 group transition-colors"
+                        className="flex justify-center w-full p-2.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                         title="Cerrar sesión"
                     >
-                        <img
-                            src={Icons.auth.logOut}
-                            alt="Logout"
-                            className="w-5 h-5 opacity-50 group-hover:opacity-100 transition-all"
-                            style={{ filter: 'grayscale(1)' }}
-                        />
+                        <LogOut size={15} />
                     </button>
                 )}
             </div>
