@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Sparkles, Layers, Calendar, Eye, Upload, Search, Download, X, FileText, BarChart2 } from "lucide-react";
 
-import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
+import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { departmentsApi } from "../services/api/departments.api";
 import { Candidate, MatchResult, UploadResult, Vacancy } from "../types/api.types";
@@ -212,6 +212,7 @@ const AdvancedResults: React.FC = () => {
         );
 
     const isClosed = vacancy?.status === "CLOSED";
+    const isPaused = vacancy?.status === "PAUSED";
     const hasPendingCandidates = allCandidates.some(
         c => !evaluatedCandidates.some(m => m.candidate?.id === c.id)
     );
@@ -248,8 +249,12 @@ const AdvancedResults: React.FC = () => {
                             <h1 className="text-lg font-bold text-gray-800">
                                 {vacancy?.title ?? "—"}
                             </h1>
-                            <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full ${isClosed ? "bg-slate-200 text-slate-600" : "bg-[#DCFCE7] text-[#16A34A]"}`}>
-                                {isClosed ? "Cerrada" : "Abierta"}
+                            <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full ${
+                                isClosed ? "bg-slate-200 text-slate-600"
+                                : isPaused ? "bg-amber-100 text-amber-700"
+                                : "bg-[#DCFCE7] text-[#16A34A]"
+                            }`}>
+                                {isClosed ? "Cerrada" : isPaused ? "Pausada" : "Abierta"}
                             </span>
                         </div>
                         <p className="text-gray-400 text-xs font-medium mt-0.5 flex items-center gap-1.5 justify-center">
@@ -263,7 +268,7 @@ const AdvancedResults: React.FC = () => {
                     <div title={recalculateDisabledReason} className="shrink-0">
                         <button
                             onClick={handleRecalculate}
-                            disabled={isRecalculating || isClosed || allCandidates.length === 0 || !hasPendingCandidates}
+                            disabled={isRecalculating || isClosed || isPaused || allCandidates.length === 0 || !hasPendingCandidates}
                             className="flex items-center gap-2 px-4 py-2.5 bg-[#447ECA] text-white rounded-xl font-bold shadow-sm hover:bg-[#3669ab] transition-all text-xs disabled:opacity-40"
                         >
                             <Sparkles size={14} />
