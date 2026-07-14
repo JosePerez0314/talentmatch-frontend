@@ -18,7 +18,7 @@ export interface User {
 
 export interface Position {
     id: number;
-    departmentId: number; 
+    departmentId: number;
     department?: Department;
     role: string;
     yearsOfExperience: number;
@@ -29,7 +29,7 @@ export interface Position {
     languages: string[];
     educationLevel: EducationLevel | string;
     educationArea?: string;
-    isDeleted?: boolean; 
+    isDeleted?: boolean;
     createdAt?: string;
 }
 
@@ -57,22 +57,63 @@ export interface Candidate {
     fullName?: string;
     email: string;
     phone?: string;
-    resumeUrl?: string;
+    fileUrl?: string;      // CV URL returned by GET /vacancies/:id/results
+    resumeUrl?: string;    // legacy field kept for backward compat
     skills?: string[];
-    niche?: string; 
-    status: CandidateStatus;
-    indexedAt?: string; 
+    niche?: string;
+    status?: CandidateStatus;
+    indexedAt?: string;
     createdAt?: string;
+    applications?: unknown[];
+}
+
+// Structured candidate data extracted by the AI evaluation engine.
+// The API returns this as a serialized JSON string inside MatchResult.normalizedCandidate.
+// Parse with JSON.parse() before use.
+export interface NormalizedCandidateAiAnalysis {
+    rawTextSummary?: string;
+    redFlags?: string;
+    projectHighlights?: string[];
+}
+
+export interface NormalizedCandidate {
+    fullName?: string;
+    email?: string;
+    role?: string;
+    yearsOfExperience?: number;
+    yearsExperience?: number;
+    technicalSkills?: string[];
+    optionalTechnicalSkills?: string[];
+    softSkills?: string[];
+    description?: string;
+    educationLevel?: string;
+    educationArea?: string;
+    languages?: string[];
+    aiAnalysis?: NormalizedCandidateAiAnalysis;
 }
 
 export interface MatchResult {
     id: number;
-    vacancyId: number;
-    // Not present in the real GET /vacancies/:id/results payload — only candidate.id is (see last-changes.md)
+    vacancyId?: number;
     candidateId?: number;
     candidate?: Candidate;
-    matchScore: number; 
-    evaluatedAt?: string; 
+    matchScore: number;
+    evaluatedAt?: string;
+    createdAt?: string;
+    // Top-level AI fields returned directly on the result object
+    summary?: string;
+    redFlags?: string;
+    // Per-category scores — present only when the backend ran the full AI evaluation
+    hardSkillsScore?: number;
+    experienceScore?: number;
+    roleScore?: number;
+    languagesScore?: number;
+    educationScore?: number;
+    softSkillsScore?: number;
+    // matchReasoning kept for backward compat with older responses
+    matchReasoning?: string;
+    // Serialized JSON string — must be JSON.parse()'d before use
+    normalizedCandidate?: string;
 }
 
 // INTERFACES DE RESPUESTA HTTP

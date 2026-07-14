@@ -1,26 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { Department } from "../types/department.types";
-import { FiLayers, FiMoreVertical, FiEdit2, FiTrash2, FiClock } from "react-icons/fi";
+import { Layers, MoreVertical, Pencil, Trash2, Clock } from "lucide-react";
 
-// Importamos el servicio real de la API
 import { departmentsApi } from "../services/api/departments.api";
 
 import EditDepartmentModal from "../components/modals/EditDepartmentModal";
 import DeleteDepartmentModal from "../components/modals/DeleteDepartmentModal";
 
 const DepartmentHistory: React.FC = () => {
-    // Estado inicial vacío para llenarse con los datos del backend
     const [departments, setDepartments] = useState<Department[]>([]);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-    // Estados de control de flujo asíncrono
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     const [editModalDept, setEditModalDept] = useState<Department | null>(null);
     const [deleteModalDept, setDeleteModalDept] = useState<Department | null>(null);
 
-    // FUNCIÓN CENTRAL: GET /departments/
     const fetchDepartments = async () => {
         try {
             setLoading(true);
@@ -35,10 +31,7 @@ const DepartmentHistory: React.FC = () => {
         }
     };
 
-    // Efecto de montaje para sincronizar los datos al cargar la pantalla
-    useEffect(() => {
-        fetchDepartments();
-    }, []);
+    useEffect(() => { fetchDepartments(); }, []);
 
     const toggleMenu = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -47,137 +40,160 @@ const DepartmentHistory: React.FC = () => {
 
     const closeMenu = () => setOpenMenuId(null);
 
-    // MANEJADOR ASÍNCRONO: PUT /departments/:id
     const handleSaveEdit = async (id: string, newName: string) => {
         try {
             setError(null);
             await departmentsApi.update(id, { name: newName });
-
-            // Sincronización del estado local inmediato tras el éxito en base de datos
             setDepartments(prev => prev.map(d => d.id === id ? { ...d, name: newName } : d));
             setEditModalDept(null);
         } catch (err) {
             const errorObj = err as Error;
-            console.error("Error al actualizar el departamento:", err);
             setError(`No se pudo actualizar el departamento: ${errorObj.message}`);
         }
     };
 
-    // MANEJADOR ASÍNCRONO: DELETE /departments/:id
     const handleConfirmDelete = async (id: string) => {
         try {
             setError(null);
             await departmentsApi.delete(id);
-
-            // Filtramos el registro del estado local para no forzar un refetch innecesario
             setDepartments(prev => prev.filter(d => d.id !== id));
             setDeleteModalDept(null);
         } catch (err) {
             const errorObj = err as Error;
-            console.error("Error al eliminar el departamento:", err);
             setError(`No se pudo eliminar el departamento: ${errorObj.message}`);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#F0F2F5] p-10" onClick={closeMenu}>
-            <div className="max-w-5xl mx-auto">
-                <header className="mb-8">
-                    <h1 className="text-3xl font-medium text-[#1E293B] tracking-tight">Departamentos</h1>
-                    <p className="text-gray-400 text-sm mt-1">Gestiona las áreas de tu organización y las posiciones vinculadas a cada una.</p>
-                </header>
+        <div className="p-4 md:p-8 max-w-3xl mx-auto" onClick={closeMenu}>
 
-                <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-8 py-5 border-b border-gray-100 bg-white flex justify-between items-center">
-                        <span className="text-gray-400 text-[11px] font-black uppercase tracking-[2px]">
-                            {loading ? "Cargando..." : `${departments.length} DEPARTAMENTOS`}
-                        </span>
-                        {loading && (
-                            <span className="text-xs text-[#447ECA] font-medium animate-pulse">
-                                Sincronizando con la API...
-                            </span>
-                        )}
+            {/* Header */}
+            <div className="mb-6">
+                <h1 className="text-gray-800">Departamentos</h1>
+                <p className="text-gray-400 text-sm mt-0.5">
+                    Gestiona las áreas de tu organización y las posiciones vinculadas a cada una.
+                </p>
+            </div>
+
+            {error && (
+                <div className="mb-5 p-3 text-sm font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl">
+                    {error}
+                </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && departments.length === 0 && !error && (
+                <div className="bg-white rounded-2xl shadow-sm p-16 flex flex-col items-center gap-4 text-center">
+                    <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                        style={{ backgroundColor: '#DCF9FF' }}
+                    >
+                        <Layers size={24} style={{ color: '#447ECA' }} />
+                    </div>
+                    <div>
+                        <p className="text-gray-600 text-sm mb-1">No hay departamentos registrados</p>
+                        <p className="text-gray-400 text-xs">
+                            Crea tu primer departamento desde el Wizard de posiciones o el botón del sidebar.
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {/* Data container */}
+            {(loading || departments.length > 0) && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    {/* Sub-header */}
+                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                        <p className="text-xs text-gray-400 uppercase tracking-wide">
+                            {loading ? "Cargando…" : `${departments.length} departamento${departments.length !== 1 ? "s" : ""}`}
+                        </p>
                     </div>
 
-                    {/* Manejo visual de errores de red o autenticación */}
-                    {error && (
-                        <div className="p-6 text-center text-sm font-medium text-red-500 bg-red-50 border-b border-red-100">
-                            {error}
-                        </div>
-                    )}
-
-                    {/* Estado vacío (Empty State) */}
-                    {!loading && departments.length === 0 && !error && (
-                        <div className="p-16 text-center text-gray-400 text-sm">
-                            No existen departamentos creados en la organización.
-                        </div>
-                    )}
-
                     <div className="divide-y divide-gray-50">
-                        {!loading && departments.map((dept) => (
-                            <div key={dept.id} className="px-8 py-5 flex items-center justify-between hover:bg-[#F8FBFF] transition-colors group relative">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 bg-[#EAF7FF] rounded-full flex items-center justify-center shrink-0 text-[#447ECA]">
-                                        <FiLayers className="text-xl" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[#1E293B] font-medium text-base">{dept.name}</span>
-                                        <span className="text-gray-400 text-sm">
-                                            {dept.positionsCount === 0 ? "Sin posiciones asignadas" :
-                                                dept.positionsCount === 1 ? "1 posición asignada" :
-                                                    `${dept.positionsCount} posiciones asignadas`}
-                                        </span>
-                                    </div>
+                        {departments.map((dept) => (
+                            <div
+                                key={dept.id}
+                                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group relative"
+                            >
+                                {/* Icon */}
+                                <div
+                                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                    style={{ backgroundColor: '#DCF9FF' }}
+                                >
+                                    <Layers size={16} style={{ color: '#447ECA' }} />
                                 </div>
 
-                                <div className="flex items-center gap-6">
-                                    {/* Componente UI de fecha de creación real solicitada */}
-                                    <div className="flex items-center gap-1.5 text-gray-400 text-xs font-medium whitespace-nowrap">
-                                        <FiClock className="text-gray-300 text-sm" />
-                                        <span>
-                                            Creado: {dept.createdAt ? new Date(dept.createdAt).toLocaleDateString() : "01/01/2026"}
-                                        </span>
-                                    </div>
+                                {/* Name + positions count */}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-800 truncate">{dept.name}</p>
+                                    <p className="text-xs text-gray-400 mt-0.5">
+                                        {dept.positionsCount === 0
+                                            ? "Sin posiciones asignadas"
+                                            : dept.positionsCount === 1
+                                                ? "1 posición asignada"
+                                                : `${dept.positionsCount} posiciones asignadas`}
+                                    </p>
+                                </div>
 
+                                {/* Date */}
+                                <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
+                                    <Clock size={11} />
+                                    <span>
+                                        {dept.createdAt
+                                            ? new Date(dept.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                            : "—"}
+                                    </span>
+                                </div>
+
+                                {/* Right side: count badge + actions */}
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                     {dept.positionsCount > 0 && (
-                                        <div className="w-7 h-7 bg-[#DCF9FF] text-[#447ECA] rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                        <span
+                                            className="px-2 py-0.5 rounded-full text-xs"
+                                            style={{ backgroundColor: '#DCF9FF', color: '#447ECA' }}
+                                        >
                                             {dept.positionsCount}
-                                        </div>
+                                        </span>
                                     )}
 
-                                    <button
-                                        onClick={(e) => toggleMenu(dept.id, e)}
-                                        title="Opciones de departamento"
-                                        aria-label="Opciones de departamento"
-                                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600 shrink-0"
-                                    >
-                                        <FiMoreVertical className="text-lg" />
-                                    </button>
-
-                                    {openMenuId === dept.id && (
-                                        <div className="absolute right-8 top-16 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50" onClick={e => e.stopPropagation()}>
-                                            <button
-                                                onClick={() => { setEditModalDept(dept); closeMenu(); }}
-                                                className="w-full text-left px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                                            >
-                                                <FiEdit2 className="text-blue-500 text-base" />
-                                                Editar nombre
-                                            </button>
-                                            <button
-                                                onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
-                                                className="w-full text-left px-5 py-3 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-3 transition-colors"
-                                            >
-                                                <FiTrash2 className="text-base" />
-                                                Eliminar
-                                            </button>
-                                        </div>
-                                    )}
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={(e) => toggleMenu(dept.id, e)}
+                                            title="Opciones de departamento"
+                                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                                        >
+                                            <MoreVertical size={16} />
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* Dropdown */}
+                                {openMenuId === dept.id && (
+                                    <div
+                                        className="absolute right-4 top-14 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <button
+                                            onClick={() => { setEditModalDept(dept); closeMenu(); }}
+                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                                        >
+                                            <Pencil size={14} className="text-blue-500" />
+                                            Editar nombre
+                                        </button>
+                                        <button
+                                            onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
+                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
+                                        >
+                                            <Trash2 size={14} />
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
                 </div>
-            </div>
+            )}
 
             <EditDepartmentModal
                 isOpen={!!editModalDept}

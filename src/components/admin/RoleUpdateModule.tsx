@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { UserCheck, Loader2 } from 'lucide-react';
+import { UserCog, CheckCircle, Loader2, ChevronDown } from 'lucide-react';
 import { adminService } from '../../services/api/admin.api';
 import { User, UserRole } from '../../types/api.types';
 
@@ -12,126 +12,137 @@ interface RoleUpdateModuleProps {
 const getInitials = (name?: string): string =>
     (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
 
-export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({
-    users,
-    isLoading,
-    onSaved,
-}) => {
-    const [currentRoles, setCurrentRoles] = useState<Record<string, UserRole>>({});
-    const [isSaving, setIsSaving] = useState<Record<string, boolean>>({});
-    const [searchTerm, setSearchTerm] = useState<string>('');
+export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoading, onSaved }) => {
+    const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
+    const [savingId, setSavingId]         = useState<string | null>(null);
+    const [savedId, setSavedId]           = useState<string | null>(null);
+    const [searchTerm, setSearchTerm]     = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    // Sync the working copy of roles whenever the parent hands us a fresh users list.
     useEffect(() => {
-        const initialRoles = users.reduce<Record<string, UserRole>>((acc, user) => {
-            acc[user.id] = user.role;
+        const initial = users.reduce<Record<string, UserRole>>((acc, u) => {
+            acc[u.id] = u.role;
             return acc;
         }, {});
-        setCurrentRoles(initialRoles);
+        setPendingRoles(initial);
     }, [users]);
-
-    const handleRoleChange = (userId: string, newRole: UserRole) => {
-        setCurrentRoles((prev) => ({ ...prev, [userId]: newRole }));
-    };
 
     const handleSave = async (userId: string) => {
         try {
-            setIsSaving((prev) => ({ ...prev, [userId]: true }));
+            setSavingId(userId);
             setErrorMessage(null);
-            await adminService.updateRole(userId, currentRoles[userId]);
+            await adminService.updateRole(userId, pendingRoles[userId]);
+            setSavingId(null);
+            setSavedId(userId);
+            setTimeout(() => setSavedId(null), 1800);
             onSaved();
         } catch (error) {
             console.error("Error al actualizar rol:", error);
             setErrorMessage("No se pudo actualizar el rol. Intenta nuevamente.");
-        } finally {
-            setIsSaving((prev) => ({ ...prev, [userId]: false }));
+            setSavingId(null);
         }
     };
 
     if (isLoading) {
         return (
-            <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm flex justify-center items-center h-44">
-                <Loader2 className="animate-spin text-blue-500" size={26} />
+            <div className="bg-white rounded-2xl shadow-sm flex justify-center items-center h-44">
+                <Loader2 className="animate-spin text-[#447ECA]" size={24} />
             </div>
         );
     }
 
-    const filteredUsers = users.filter(user =>
-        user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUsers = users.filter(u =>
+        u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {/* Section header */}
+            <div className="px-5 py-3.5 flex items-center justify-between gap-3 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-amber-50 text-amber-500 rounded-lg">
-                        <UserCheck size={16} strokeWidth={2.5} />
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-50">
+                        <UserCog size={14} className="text-amber-600" />
                     </div>
-                    <h2 className="text-sm font-bold text-gray-700 tracking-tight">Actualizar rol de usuario</h2>
+                    <p className="text-sm text-gray-700">Actualizar rol de usuario</p>
                 </div>
-                <div>
-                    <input
-                        type="text"
-                        placeholder="Buscar usuario..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="text-xs border border-gray-200/80 rounded-xl px-4 py-2 w-full sm:w-60 outline-none focus:border-blue-400 bg-gray-50/50 text-gray-700 transition-all placeholder:text-gray-400"
-                    />
-                </div>
+                <input
+                    type="text"
+                    placeholder="Buscar usuario…"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-3 py-2 w-full sm:w-56 outline-none focus:border-[#447ECA] transition-colors bg-white placeholder:text-gray-400"
+                />
             </div>
 
-            {errorMessage && (
-                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
-                    {errorMessage}
-                </div>
-            )}
+            <div className="p-5">
+                {errorMessage && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-3 mb-4">
+                        {errorMessage}
+                    </div>
+                )}
 
-            <div className="space-y-2.5">
-                {filteredUsers.length === 0 ? (
-                    <p className="text-center py-4 text-xs text-gray-400 font-medium">No se encontraron usuarios.</p>
-                ) : (
-                    filteredUsers.map((user) => {
-                        const isChanged = currentRoles[user.id] !== user.role;
-                        const saving = isSaving[user.id];
+                <div className="space-y-2">
+                    {filteredUsers.length === 0 ? (
+                        <p className="text-center py-4 text-xs text-gray-400">Sin resultados</p>
+                    ) : filteredUsers.map(u => {
+                        const pending    = pendingRoles[u.id] ?? u.role;
+                        const hasPending = pending !== u.role;
+                        const isSaving   = savingId === u.id;
+                        const justSaved  = savedId  === u.id;
 
                         return (
-                            <div key={user.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-gray-100/70 bg-white hover:shadow-sm transition-all gap-4">
-                                <div className="flex items-center gap-3 sm:w-1/3 min-w-[200px]">
-                                    <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                        {getInitials(user.username)}
-                                    </div>
-                                    <h4 className="text-xs font-bold text-gray-700 tracking-tight">{user.username}</h4>
+                            <div
+                                key={u.id}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors"
+                                style={{
+                                    borderColor: hasPending ? '#FCD34D' : '#F3F4F6',
+                                    backgroundColor: hasPending ? '#FFFBEB' : 'white',
+                                }}
+                            >
+                                {/* Avatar */}
+                                <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0"
+                                    style={{ backgroundColor: u.role === 'ADMIN' ? '#447ECA' : '#6B7280' }}
+                                >
+                                    {getInitials(u.username)}
                                 </div>
 
-                                <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <p className="text-xs text-gray-400 font-medium">{user.email}</p>
+                                <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{u.username}</span>
+                                <span className="text-xs text-gray-400 hidden sm:block flex-shrink-0 truncate max-w-[160px]">{u.email}</span>
 
-                                    <div className="flex items-center gap-2.5 justify-end shrink-0">
-                                        <select
-                                            aria-label="Seleccionar nuevo rol"
-                                            value={currentRoles[user.id] || user.role}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
-                                            className="bg-gray-50/50 border border-gray-200 text-gray-600 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:border-blue-300 cursor-pointer"
-                                        >
-                                            <option value="ADMIN">ADMIN</option>
-                                            <option value="USER">USER</option>
-                                        </select>
-
-                                        <button
-                                            disabled={!isChanged || saving}
-                                            onClick={() => handleSave(user.id)}
-                                            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${isChanged ? 'bg-[#f5d6b3] text-amber-950 hover:brightness-95 cursor-pointer shadow-sm' : 'bg-gray-50 text-gray-300 border border-gray-100 cursor-not-allowed'}`}
-                                        >
-                                            {saving ? 'Guardando...' : 'Guardar'}
-                                        </button>
-                                    </div>
+                                {/* Role select */}
+                                <div className="relative flex-shrink-0">
+                                    <select
+                                        value={pending}
+                                        onChange={e => setPendingRoles(prev => ({ ...prev, [u.id]: e.target.value as UserRole }))}
+                                        disabled={isSaving}
+                                        className="appearance-none pl-2.5 pr-7 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:border-[#447ECA] bg-white disabled:opacity-50 transition-colors"
+                                    >
+                                        <option value="ADMIN">admin</option>
+                                        <option value="USER">user</option>
+                                    </select>
+                                    <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
+
+                                {/* Save button */}
+                                <button
+                                    onClick={() => handleSave(u.id)}
+                                    disabled={!hasPending || isSaving}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+                                    style={{ backgroundColor: justSaved ? '#16A34A' : '#D97706' }}
+                                >
+                                    {isSaving
+                                        ? <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                                        : justSaved
+                                            ? <><CheckCircle size={11} /> Guardado</>
+                                            : 'Guardar'
+                                    }
+                                </button>
                             </div>
                         );
-                    })
-                )}
+                    })}
+                </div>
             </div>
         </div>
     );

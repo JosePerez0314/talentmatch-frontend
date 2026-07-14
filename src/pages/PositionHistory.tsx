@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Components
-import EmptyState from "../components/EmptyState";
 import PositionHistoryTable from "../components/Sections/PositionHistoryTable";
 
-// Assets & Services & Types
-import { ChevronLeft, Plus, AlertCircle } from "lucide-react";
+import { Plus, AlertCircle, Loader2, Briefcase } from "lucide-react";
 import { positionService } from "../services/api/positions.api";
 import { Position } from "../types/api.types";
 
 const PositionHistory: React.FC = () => {
     const navigate = useNavigate();
 
-    // Estados de Conexión y Datos
     const [positions, setPositions] = useState<Position[]>([]);
     const [departmentsList, setDepartmentsList] = useState<string[]>(["Todos"]);
     const [activeTab, setActiveTab] = useState<string>("Todos");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");
 
-    // OBTENER DATA REAL AL MONTAR
     const fetchPositions = async () => {
         setIsLoading(true);
         setError("");
         try {
             const data = await positionService.getAll();
             const positionsArray = data ?? [];
-
             setPositions(positionsArray);
-
-            // Generamos las pestañas dinámicamente basados en las posiciones obtenidas
             const uniqueDepts = Array.from(new Set(positionsArray.map((p) => p.department?.name || "General")));
             setDepartmentsList(["Todos", ...uniqueDepts]);
         } catch (err) {
@@ -45,12 +37,10 @@ const PositionHistory: React.FC = () => {
         fetchPositions();
     }, []);
 
-    // HANDLERS DEL CRUD (Eliminar y Duplicar)
     const handleDeletePosition = async (id: number | string) => {
         try {
             setError("");
             await positionService.delete(id);
-            // Actualización optimista de UI
             setPositions(prev => prev.filter(p => p.id !== id));
         } catch (err) {
             console.error("Error al eliminar", err);
@@ -61,9 +51,7 @@ const PositionHistory: React.FC = () => {
     const handleDuplicatePosition = async (id: number | string) => {
         try {
             setError("");
-            // POST /positions/duplicate/:id
             await positionService.duplicate(id);
-            // Refrescamos para trae copia generada por el backend
             fetchPositions();
         } catch (err) {
             console.error("Error al duplicar", err);
@@ -71,11 +59,9 @@ const PositionHistory: React.FC = () => {
         }
     };
 
-    // Lógica de Filtrado
     const filteredPositions = positions.filter(pos => {
         if (activeTab === "Todos") return true;
-        const deptName = pos.department?.name || "General";
-        return deptName.toLowerCase() === activeTab.toLowerCase();
+        return (pos.department?.name || "General").toLowerCase() === activeTab.toLowerCase();
     });
 
     const getTabCount = (tab: string) => {
@@ -84,78 +70,114 @@ const PositionHistory: React.FC = () => {
     };
 
     return (
-        <div className="p-10 animate-fade-in max-w-5xl mx-auto flex flex-col min-h-screen text-left relative">
-            <div className="flex justify-between items-start mb-8">
-                <header className="flex flex-col">
-                    <h1 className="text-[26px] font-semibold text-gray-800 tracking-tight mb-1">
-                        Historial de Posiciones
-                    </h1>
-                    <p className="text-sm text-gray-400 font-medium">
-                        {positions.length} posiciones registradas en la base de datos
-                    </p>
-                </header>
+        <div className="p-4 md:p-8 max-w-4xl mx-auto">
 
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+                <div>
+                    <h1 className="text-gray-800">Historial de Posiciones</h1>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                        {positions.length} posición{positions.length !== 1 ? "es" : ""} registrada{positions.length !== 1 ? "s" : ""}
+                    </p>
+                </div>
                 <button
                     onClick={() => navigate("/position")}
-                    className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-[#356BB0] active:scale-95 transition-all text-sm cursor-pointer">
-                    <Plus size={16} strokeWidth={2.5} />
-                    Nueva Posición
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-xl transition-colors"
+                    style={{ backgroundColor: '#447ECA' }}
+                    onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3a6bb8')}
+                    onMouseOut={e => (e.currentTarget.style.backgroundColor = '#447ECA')}
+                >
+                    <Plus size={14} /> Nueva Posición
                 </button>
             </div>
 
             {error && (
-                <div className="mb-6 bg-red-50 text-red-600 px-6 py-4 rounded-xl border border-red-200 text-sm font-bold flex items-center gap-3">
-                    <AlertCircle size={20} /> {error}
+                <div className="mb-5 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-200 text-sm font-medium flex items-center gap-2">
+                    <AlertCircle size={16} /> {error}
                 </div>
             )}
 
-            <section className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden flex-grow flex flex-col relative pb-6">
-                
-                {/* Tabs Dinamicos */}
-                <div className="flex border-b border-gray-100 px-8 pt-5 overflow-x-auto gap-4 custom-scrollbar whitespace-nowrap bg-white select-none">
-                    {departmentsList.map((dept) => {
-                        const isActive = activeTab === dept;
-                        const count = getTabCount(dept);
-
-                        return (
-                            <button
-                                key={dept}
-                                onClick={() => setActiveTab(dept)}
-                                className={`pb-4 px-1 text-sm font-medium transition-all relative flex items-center gap-2 cursor-pointer ${isActive ? "text-[#447ECA]" : "text-gray-400 hover:text-gray-600"}`}
-                            >
-                                {dept}
-                                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${isActive ? "bg-[#DCF9FF] text-[#447ECA]" : "bg-[#f0f0f5] text-gray-500"}`}>
-                                    {count}
-                                </span>
-                                {isActive && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#447ECA]" />}
-                            </button>
-                        );
-                    })}
+            {/* Loading state */}
+            {isLoading && (
+                <div className="bg-white rounded-2xl shadow-sm p-10 flex justify-center">
+                    <Loader2 className="animate-spin text-[#447ECA]" size={22} />
                 </div>
+            )}
 
-                {isLoading ? (
-                    <div className="py-24 flex items-center justify-center text-gray-400 font-medium">Cargando base de datos...</div>
-                ) : filteredPositions.length > 0 ? (
-                    <PositionHistoryTable 
-                        data={filteredPositions}
-                        onDelete={handleDeletePosition} 
-                        onDuplicate={handleDuplicatePosition} 
-                    />
-                ) : (
-                    <div className="py-24 flex-grow flex items-center justify-center">
-                        <EmptyState title="¡Aún no hay posiciones!" description="Aquí aparecerán las posiciones que crees para la plataforma." />
+            {/* Empty state */}
+            {!isLoading && positions.length === 0 && (
+                <div className="bg-white rounded-2xl shadow-sm p-20 flex flex-col items-center gap-4">
+                    <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                        style={{ backgroundColor: '#DCF9FF' }}
+                    >
+                        <Briefcase size={24} style={{ color: '#447ECA' }} />
                     </div>
-                )}
-            </section>
+                    <div className="text-center">
+                        <p className="text-gray-600 text-sm mb-1">No hay posiciones creadas</p>
+                        <p className="text-gray-400 text-xs">Crea tu primera posición para comenzar a evaluar candidatos.</p>
+                    </div>
+                    <button
+                        onClick={() => navigate("/position")}
+                        className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm transition-colors"
+                        style={{ backgroundColor: '#447ECA' }}
+                        onMouseOver={e => (e.currentTarget.style.backgroundColor = '#3a6bb8')}
+                        onMouseOut={e => (e.currentTarget.style.backgroundColor = '#447ECA')}
+                    >
+                        <Plus size={14} /> Crear Posición
+                    </button>
+                </div>
+            )}
 
-            <div className="flex justify-start mt-6">
-                <button
-                    onClick={() => navigate("/dashboard")}
-                    className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-medium shadow-sm hover:bg-[#356BB0] active:scale-95 transition-all text-sm cursor-pointer">
-                    <ChevronLeft size={16} strokeWidth={2.5} />
-                    Volver al Dashboard
-                </button>
-            </div>
+            {/* Data container */}
+            {!isLoading && positions.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+
+                    {/* Tabs */}
+                    <div className="border-b border-gray-100 px-4 overflow-x-auto">
+                        <div className="flex gap-0 min-w-max">
+                            {departmentsList.map((dept) => {
+                                const isActive = activeTab === dept;
+                                const count = getTabCount(dept);
+                                return (
+                                    <button
+                                        key={dept}
+                                        onClick={() => setActiveTab(dept)}
+                                        className={`flex items-center gap-2 px-4 py-3.5 text-sm border-b-2 transition-colors whitespace-nowrap ${
+                                            isActive
+                                                ? 'border-[#447ECA] text-[#447ECA]'
+                                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
+                                        }`}
+                                    >
+                                        {dept}
+                                        <span
+                                            className="text-xs px-1.5 py-0.5 rounded-full"
+                                            style={{
+                                                backgroundColor: isActive ? '#DCF9FF' : '#F3F4F6',
+                                                color: isActive ? '#447ECA' : '#6B7280',
+                                            }}
+                                        >
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {filteredPositions.length === 0 ? (
+                        <div className="p-12 text-center text-sm text-gray-400">
+                            Sin posiciones en este departamento
+                        </div>
+                    ) : (
+                        <PositionHistoryTable
+                            data={filteredPositions}
+                            onDelete={handleDeletePosition}
+                            onDuplicate={handleDuplicatePosition}
+                        />
+                    )}
+                </div>
+            )}
         </div>
     );
 };

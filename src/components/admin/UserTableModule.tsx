@@ -33,70 +33,72 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
     );
 
     return (
-        <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            {/* Section header */}
+            <div className="px-5 py-3.5 flex items-center justify-between gap-3 border-b border-gray-100">
                 <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-blue-50 text-blue-500 rounded-lg">
-                        <Users size={16} strokeWidth={2.5} />
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-[#F0FDFA]">
+                        <Users size={14} className="text-teal-600" />
                     </div>
-                    <h2 className="text-sm font-bold text-gray-700 tracking-tight">Todos los usuarios</h2>
+                    <p className="text-sm text-gray-700">Todos los usuarios</p>
                 </div>
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Buscar usuario..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="text-xs border border-gray-200/80 rounded-xl px-4 py-2 w-full sm:w-60 outline-none focus:border-blue-400 bg-gray-50/50 text-gray-700 transition-all placeholder:text-gray-400"
-                    />
-                </div>
+                <input
+                    type="text"
+                    placeholder="Buscar usuario…"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-3 py-2 w-full sm:w-56 outline-none focus:border-[#447ECA] transition-colors bg-white placeholder:text-gray-400"
+                />
             </div>
 
-            <div className="overflow-x-auto -mx-8">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50/70 border-y border-gray-100 text-gray-400 text-[11px] uppercase font-bold tracking-wider">
-                        <tr>
-                            <th className="px-8 py-3.5">Usuario</th>
-                            <th className="px-8 py-3.5">Email</th>
-                            <th className="px-8 py-3.5">Rol</th>
-                            <th className="px-8 py-3.5">Fecha de creación</th>
+            <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                    <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <th className="px-5 py-3 text-left text-gray-500 font-medium">Usuario</th>
+                            <th className="px-5 py-3 text-left text-gray-500 font-medium hidden sm:table-cell">Email</th>
+                            <th className="px-5 py-3 text-left text-gray-500 font-medium">Rol</th>
+                            <th className="px-5 py-3 text-left text-gray-500 font-medium hidden md:table-cell">Creado</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={4} className="py-12 text-center">
-                                    <Loader2 className="animate-spin text-blue-500 mx-auto" size={24} />
+                                <td colSpan={4} className="py-10 text-center">
+                                    <Loader2 className="animate-spin text-[#447ECA] mx-auto" size={22} />
                                 </td>
                             </tr>
                         ) : filteredUsers.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="py-8 text-center text-xs text-gray-400 font-medium">
-                                    No se encontraron usuarios.
-                                </td>
+                                <td colSpan={4} className="py-8 text-center text-xs text-gray-400">No se encontraron usuarios.</td>
                             </tr>
                         ) : (
-                            filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50/40 transition-colors">
-                                    <td className="px-8 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm uppercase shrink-0">
-                                                {user.username?.substring(0, 2) || 'US'}
+                            filteredUsers.map(user => (
+                                <tr key={user.id} className="hover:bg-gray-50/60 transition-colors">
+                                    <td className="px-5 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0"
+                                                style={{ backgroundColor: user.role === 'ADMIN' ? '#447ECA' : '#6B7280' }}
+                                            >
+                                                {(user.username ?? 'U')[0].toUpperCase()}
                                             </div>
-                                            <span className="text-xs font-semibold text-gray-700">{user.username}</span>
+                                            <span className="text-gray-700">{user.username}</span>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-4 text-xs text-gray-500 font-medium">
-                                        {user.email}
-                                    </td>
-                                    <td className="px-8 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase ${user.role === 'ADMIN' ? 'bg-blue-50 text-blue-600 border border-blue-100/70' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
-                                            {user.role}
+                                    <td className="px-5 py-3 text-gray-400 hidden sm:table-cell">{user.email}</td>
+                                    <td className="px-5 py-3">
+                                        <span
+                                            className="px-2 py-0.5 rounded-full text-[10px]"
+                                            style={user.role === 'ADMIN'
+                                                ? { backgroundColor: '#EFF6FF', color: '#447ECA' }
+                                                : { backgroundColor: '#F3F4F6', color: '#6B7280' }
+                                            }
+                                        >
+                                            {user.role === 'ADMIN' ? 'admin' : 'user'}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-4 text-xs text-gray-400 font-medium">
-                                        {formatDate(user.createdAt)}
-                                    </td>
+                                    <td className="px-5 py-3 text-gray-400 hidden md:table-cell">{formatDate(user.createdAt)}</td>
                                 </tr>
                             ))
                         )}
@@ -104,24 +106,24 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                 </table>
             </div>
 
-            <div className="flex items-center justify-between pt-6 border-t border-gray-100 mt-2">
-                <p className="text-xs font-semibold text-gray-400">
+            <div className="flex items-center justify-between px-5 py-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400">
                     Página {meta.currentPage} de {meta.totalPages} · {meta.totalCount} usuarios
                 </p>
                 <div className="flex gap-1.5">
                     <button
                         onClick={() => onPageChange(Math.max(1, page - 1))}
                         disabled={page <= 1}
-                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
+                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors text-gray-500"
                     >
-                        <ChevronLeft size={16} />
+                        <ChevronLeft size={14} />
                     </button>
                     <button
                         onClick={() => onPageChange(page + 1)}
                         disabled={page >= meta.totalPages}
-                        className="p-1.5 rounded-lg border border-gray-200/60 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-transparent transition-colors text-gray-500"
+                        className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors text-gray-500"
                     >
-                        <ChevronRight size={16} />
+                        <ChevronRight size={14} />
                     </button>
                 </div>
             </div>

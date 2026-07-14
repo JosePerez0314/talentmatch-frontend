@@ -55,5 +55,14 @@ export const adminService = {
     return apiClient<void>(`/admin/users/${userId}`, {
       method: 'DELETE',
     });
-  }
+  },
+
+  // POST /api/users (public endpoint — creates user, defaults to USER role)
+  createUser: async (email: string, password: string): Promise<{ message: string; userId: number }> => {
+    return apiClient<{ message: string; userId: number }>('/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+  },
 };

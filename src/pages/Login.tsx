@@ -24,10 +24,14 @@ const SERVER_ERROR_MESSAGE =
 const asRole = (role: string | undefined): UserRole =>
   role === "ADMIN" ? "ADMIN" : "USER";
 
+const RATE_LIMIT_MESSAGE =
+  "Demasiados intentos de acceso. Espera unos minutos e intenta de nuevo.";
+
 /** Only a 400/401 means the credentials were wrong; anything else is our fault, not the user's. */
 const resolveErrorMessage = (error: unknown): string => {
-  if (error instanceof ApiError && (error.status === 400 || error.status === 401)) {
-    return INVALID_CREDENTIALS_MESSAGE;
+  if (error instanceof ApiError) {
+    if (error.status === 400 || error.status === 401) return INVALID_CREDENTIALS_MESSAGE;
+    if (error.status === 429) return RATE_LIMIT_MESSAGE;
   }
   return SERVER_ERROR_MESSAGE;
 };

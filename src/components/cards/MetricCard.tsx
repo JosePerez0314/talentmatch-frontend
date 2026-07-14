@@ -10,13 +10,13 @@ interface MetricCardProps {
 }
 
 const cardClasses =
-  "bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 flex flex-col justify-between transition-all hover:shadow-md h-full min-h-[160px] group";
+  "bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex flex-col justify-between transition-all hover:shadow-md h-full min-h-[130px] group";
 
 const cardBody = (count: number, title: string, subtext: string, icon: ReactNode) => (
   <>
     {/* Top Row: Icon & Arrow */}
     <div className="flex justify-between items-start mb-4">
-      <div className="w-12 h-12 bg-[#EAF7FF] text-[#447ECA] rounded-full flex items-center justify-center">
+      <div className="w-9 h-9 bg-[#DCF9FF] text-[#447ECA] rounded-xl flex items-center justify-center">
         {icon}
       </div>
       <div className="text-gray-300 group-hover:text-gray-400 transition-colors">
@@ -29,7 +29,7 @@ const cardBody = (count: number, title: string, subtext: string, icon: ReactNode
 
     {/* Bottom Row: Info */}
     <div className="flex flex-col">
-      <span className="text-[32px] font-medium text-gray-900 leading-tight mb-1">
+      <span className="text-3xl font-medium text-gray-900 leading-tight mb-1">
         {count}
       </span>
       <span className="text-[13px] text-gray-500 font-medium mb-1">
