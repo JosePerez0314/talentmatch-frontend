@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Shield } from 'lucide-react';
-import { StatsModule } from '../components/admin/StatsModule';
-import { UserTableModule } from '../components/admin/UserTableModule';
+import { StatsModule }      from '../components/admin/StatsModule';
+import { UserTableModule }  from '../components/admin/UserTableModule';
 import { RoleUpdateModule } from '../components/admin/RoleUpdateModule';
 import { UserDeleteModule } from '../components/admin/UserDeleteModule';
-import { useAuth } from '../components/context/AuthContext';
+import { CreateUserModule } from '../components/admin/CreateUserModule';
+import { useAuth }          from '../components/context/AuthContext';
 import { adminService, AdminUsersPageMeta } from '../services/api/admin.api';
 import { User } from '../types/api.types';
 
@@ -12,10 +13,10 @@ const EMPTY_META: AdminUsersPageMeta = { totalCount: 0, currentPage: 1, totalPag
 
 const AdminPanel: React.FC = () => {
     const { user } = useAuth();
-    const [users, setUsers] = useState<User[]>([]);
-    const [meta, setMeta] = useState<AdminUsersPageMeta>(EMPTY_META);
-    const [page, setPage] = useState<number>(1);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [users, setUsers]               = useState<User[]>([]);
+    const [meta, setMeta]                 = useState<AdminUsersPageMeta>(EMPTY_META);
+    const [page, setPage]                 = useState<number>(1);
+    const [isLoading, setIsLoading]       = useState<boolean>(true);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const limit = 10;
 
@@ -34,36 +35,32 @@ const AdminPanel: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => {
-        fetchUsers(page);
-    }, [page, fetchUsers]);
+    useEffect(() => { fetchUsers(page); }, [page, fetchUsers]);
 
     const refetch = useCallback(() => fetchUsers(page), [fetchUsers, page]);
 
     const displayName = user?.username ?? '—';
-    const roleLabel = user?.role === 'ADMIN' ? 'Admin' : 'Usuario';
 
     return (
-        <div className="p-12 bg-[#f8fafc] min-h-screen space-y-6 overflow-y-auto">
-            {/* Encabezado Principal */}
-            <div className="flex items-center justify-between pb-2">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl shadow-sm border border-blue-100/50">
-                        <Shield size={22} strokeWidth={2} />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Panel de Administración</h1>
-                        <p className="text-xs text-gray-400 font-medium mt-0.5">
-                            Sesión: <span className="font-semibold text-gray-500">{displayName}</span> · Solo visible para administradores
-                        </p>
-                    </div>
-                </div>
+        <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
 
-                {/* Píldora del rol en la esquina derecha del Figma */}
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-semibold border border-blue-100/80 shadow-sm">
-                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                    {roleLabel}
+            {/* Page header */}
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#EFF6FF]">
+                    <Shield size={18} className="text-[#447ECA]" />
                 </div>
+                <div>
+                    <h1 className="text-gray-800 font-medium">Panel de Administración</h1>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        Sesión: <strong className="text-gray-600">{displayName}</strong> · Solo visible para administradores
+                    </p>
+                </div>
+                <span
+                    className="ml-auto text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 border"
+                    style={{ backgroundColor: '#EFF6FF', color: '#447ECA', borderColor: '#BFDBFE' }}
+                >
+                    <Shield size={9} /> admin
+                </span>
             </div>
 
             {errorMessage && (
@@ -72,26 +69,30 @@ const AdminPanel: React.FC = () => {
                 </div>
             )}
 
-            <div className="space-y-6">
-                <StatsModule />
-                <UserTableModule
-                    users={users}
-                    meta={meta}
-                    page={page}
-                    isLoading={isLoading}
-                    onPageChange={setPage}
-                />
-                <RoleUpdateModule
-                    users={users}
-                    isLoading={isLoading}
-                    onSaved={refetch}
-                />
-                <UserDeleteModule
-                    users={users}
-                    isLoading={isLoading}
-                    onDeleted={refetch}
-                />
-            </div>
+            <StatsModule />
+
+            <UserTableModule
+                users={users}
+                meta={meta}
+                page={page}
+                isLoading={isLoading}
+                onPageChange={setPage}
+            />
+
+            <CreateUserModule onCreated={refetch} />
+
+            <RoleUpdateModule
+                users={users}
+                isLoading={isLoading}
+                onSaved={refetch}
+            />
+
+            <UserDeleteModule
+                users={users}
+                isLoading={isLoading}
+                onDeleted={refetch}
+            />
+
         </div>
     );
 };

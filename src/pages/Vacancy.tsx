@@ -217,19 +217,8 @@ const CreateVacancy: React.FC = () => {
   }
 
   return (
-    <div className="p-6 md:p-10 max-w-3xl mx-auto animate-fade-in relative min-h-[80vh]">
-      <div className="flex justify-start mb-6">
-        <button
-          onClick={() => navigate(isEditMode ? "/vacancy-history" : "/dashboard")}
-          className="flex items-center gap-2 bg-[#447ECA] text-white px-5 py-2.5 rounded-xl font-bold shadow-sm hover:bg-[#3669ab] active:scale-95 transition-all text-xs"
-        >
-          <ChevronLeft size={16} strokeWidth={3} />
-          {isEditMode ? "VOLVER AL HISTORIAL" : "VOLVER AL INICIO"}
-        </button>
-      </div>
-
-      <div className="flex justify-center">
-        <div className="bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 w-full max-w-[500px] relative">
+    <div className="p-4 md:p-8 max-w-md mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm p-6">
 
           {apiError && (
             <div className="mb-6 bg-red-50 text-red-600 px-4 py-3 rounded-xl border border-red-100 text-sm font-bold flex items-center gap-3">
@@ -238,7 +227,7 @@ const CreateVacancy: React.FC = () => {
             </div>
           )}
 
-          <h1 className="text-xl font-medium text-center text-[#1E293B] mb-8">
+          <h1 className="text-xl text-center text-gray-800 mb-6">
             {isEditMode ? "Editar Vacante" : "Nueva Vacante"}
           </h1>
 
@@ -259,7 +248,7 @@ const CreateVacancy: React.FC = () => {
                     setFormData(prev => ({ ...prev, departmentId: e.target.value, positionId: "" }));
                   }}
                   required
-                  className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all"
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg outline-none focus:border-[#447ECA] appearance-none text-sm text-[#334155] cursor-pointer transition-colors"
                 >
                   <option value="" disabled>Selecciona un departamento...</option>
                   {departmentsList.map(dept => (
@@ -285,7 +274,7 @@ const CreateVacancy: React.FC = () => {
                   onChange={handlePositionChange}
                   required
                   disabled={!formData.departmentId}
-                  className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 appearance-none text-sm text-[#334155] cursor-pointer transition-all disabled:opacity-50 disabled:bg-gray-50">
+                  className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg outline-none focus:border-[#447ECA] appearance-none text-sm text-[#334155] cursor-pointer transition-colors disabled:opacity-50 disabled:bg-gray-50">
                   <option value="" disabled>
                     {formData.departmentId
                       ? filteredPositions.length > 0 ? "Selecciona una posición..." : "No hay posiciones en este depto."
@@ -314,7 +303,7 @@ const CreateVacancy: React.FC = () => {
                 onChange={handleInputChange}
                 placeholder="Ej: Backend Junior..."
                 required
-                className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 transition-all text-sm text-[#334155] placeholder:text-gray-300"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg outline-none focus:border-[#447ECA] transition-colors text-sm text-[#334155] placeholder:text-gray-300"
               />
             </div>
 
@@ -331,7 +320,7 @@ const CreateVacancy: React.FC = () => {
                 value={formData.availableSlots}
                 onChange={handleInputChange}
                 required
-                className="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-[#447ECA] focus:ring-4 focus:ring-[#447ECA]/10 transition-all text-sm text-[#334155]"
+                className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg outline-none focus:border-[#447ECA] transition-colors text-sm text-[#334155]"
               />
             </div>
 
@@ -342,7 +331,7 @@ const CreateVacancy: React.FC = () => {
                   Fecha Inicio <span className="text-red-400">*</span>
                 </label>
                 <div
-                  className="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10 transition-all cursor-text bg-white"
+                  className="relative flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:border-[#447ECA] transition-all cursor-text bg-white"
                   onClick={() => startDateRef.current?.showPicker()}
                 >
                   <input
@@ -356,7 +345,7 @@ const CreateVacancy: React.FC = () => {
                     className="w-full p-3 outline-none text-sm text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
                   <div className="absolute right-3 text-gray-400 pointer-events-none">
-                    <Calendar size={18} strokeWidth={2} />
+                    <Calendar size={14} strokeWidth={2} />
                   </div>
                 </div>
               </div>
@@ -366,7 +355,7 @@ const CreateVacancy: React.FC = () => {
                   Fecha Fin <span className="text-red-400">*</span>
                 </label>
                 <div
-                  className={`relative flex items-center border rounded-xl overflow-hidden transition-all cursor-text bg-white ${dateError ? "border-red-400 focus-within:ring-red-100 bg-red-50/50" : "border-gray-200 focus-within:border-[#447ECA] focus-within:ring-4 focus-within:ring-[#447ECA]/10"}`}
+                  className={`relative flex items-center border rounded-lg overflow-hidden transition-all cursor-text bg-white ${dateError ? "border-red-400 bg-red-50/50" : "border-gray-200 focus-within:border-[#447ECA]"}`}
                   onClick={() => endDateRef.current?.showPicker()}
                 >
                   <input
@@ -380,7 +369,7 @@ const CreateVacancy: React.FC = () => {
                     className="w-full p-3 outline-none text-sm text-[#334155] bg-transparent [&::-webkit-calendar-picker-indicator]:hidden"
                   />
                   <div className={`absolute right-3 pointer-events-none ${dateError ? "text-red-400" : "text-gray-400"}`}>
-                    <Calendar size={18} strokeWidth={2} />
+                    <Calendar size={14} strokeWidth={2} />
                   </div>
                 </div>
               </div>
@@ -388,18 +377,28 @@ const CreateVacancy: React.FC = () => {
 
             {dateError && <p className="text-red-500 text-xs font-bold -mt-3">{dateError}</p>}
 
-            {/* BOTÓN SUBMIT DINÁMICO */}
-            <div className="flex justify-end mt-4">
+            {/* ACCIONES */}
+            <div className="flex items-center justify-between mt-6">
+              <button
+                type="button"
+                onClick={() => navigate(isEditMode ? "/vacancy-history" : "/dashboard")}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 transition-colors disabled:opacity-50"
+              >
+                <ChevronLeft size={15} /> {isEditMode ? "Cancelar" : "Volver"}
+              </button>
               <button
                 type="submit"
                 disabled={isLoading || !!dateError || !formData.positionId || !formData.title || !formData.startDate || !formData.endDate}
-                className="bg-[#447ECA] text-white px-8 py-3 rounded-xl text-sm font-bold shadow-sm hover:bg-[#3669ab] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-2.5 text-sm text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: '#447ECA' }}
+                onMouseOver={e => { if (!isLoading) e.currentTarget.style.backgroundColor = '#3a6bb8'; }}
+                onMouseOut={e => { e.currentTarget.style.backgroundColor = '#447ECA'; }}
               >
                 {isLoading ? (isEditMode ? "Guardando..." : "Creando...") : (isEditMode ? "Guardar Cambios" : "Crear Vacante")}
               </button>
             </div>
           </form>
-        </div>
       </div>
     </div>
   );

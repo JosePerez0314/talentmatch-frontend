@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Icons } from "../assets/icons/index";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow";
-import CandidateDetailsModal from "../components/modals/CandidateDetailsModal.jsx";
+import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { MatchResult, Vacancy } from "../types/api.types";
 

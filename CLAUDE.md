@@ -53,7 +53,7 @@ There is **no test runner** configured — no Jest/Vitest, no test files. "Run t
 
 ## API Layer & Cross-Repo Constraints
 
-- **Cross-Repo Blindspot:** The backend Node/Express codebase is in a separate repository that you cannot see. **Never hallucinate API payloads or endpoints.** Before wiring up any page, you MUST explicitly ask me to provide the exact JSON response or TypeScript interface from the backend API documentation.
+- **Cross-Repo Blindspot:** The backend Node/Express codebase is in a separate repository that you cannot see. **Never hallucinate API payloads or endpoints.** When you need to know about an endpoint, its request shape, response shape, or business rules, **first read `docs/en/api-documentation.md`** (or `docs/es/api-documentation.md`). Only ask the user if the answer is not found there or the documentation is ambiguous.
 - **API Client (`src/services/api/`):** `apiClient.ts` is a thin `fetch` wrapper. It prefixes `VITE_API_URL` and injects `Authorization: Bearer <token>` from `localStorage`.
 
 - **API Unwrapping:** It treats the backend envelope `{ success, data, error/message }` as the contract and throws `ApiError` on `!ok` or `success:false`. Ensure the client explicitly throws errors on HTTP 400/500 responses so the UI can catch them.
