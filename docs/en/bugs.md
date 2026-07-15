@@ -1,195 +1,175 @@
 # 🐞 Bug Inventory — TalentMatch Frontend
 
-> **Premise:** the backend is finished and correct. Therefore **every item in this document is the frontend's responsibility** (the frontend consumes/maps a working backend incorrectly, or simply isn't connected to it).
+> **Premise:** the backend is finished and correct. Therefore **every item in this document is the frontend's responsibility**.
 >
 > 🇪🇸 Versión en español: [`../es/bugs.md`](../es/bugs.md)
 >
-> Sweep performed over **all routes** defined in `src/App.tsx`. **Last verified: 2026-07-09.**
+> **Last verified: 2026-07-14.**
+>
+> ⚠️ **Scope note:** everything listed here is **minor**. None of these bugs prevent normal use of the app — every screen loads, every core flow (create/edit/delete departments, positions, vacancies; upload CVs; view matching results; administer users) works end-to-end against the real API. What follows is dead code, a couple of UI bugs confined to legacy screens, and naming inconsistencies — cleanup work, not product blockers.
 
-## Connection status per route
+## Connection state by route
 
-| Route                      | Status         | Note                                                   |
-| -------------------------- | -------------- | ------------------------------------------------------ |
-| `/login`                   | ✅ Connected   | OK                                                     |
-| `/dashboard`               | ❌ 100% mock   | `MOCK_DATA` + not responsive + cards don't navigate    |
-| `/position`                | ✅ Connected   | OK                                                     |
-| `/uploadcv`                | 🟡 Connected   | Per-file detail missing                                |
-| `/cv-history`              | ✅ Connected   | OK                                                     |
-| `/position-history`        | ✅ Connected   | OK                                                     |
-| `/vacancy` (+ `/edit/:id`) | 🟡 Connected   | Success screen shows a fixed "Vac-009" code            |
-| `/vacancy-history`         | ✅ Connected   | OK                                                     |
-| `/department`              | ✅ Connected   | OK                                                     |
-| `/department-history`      | ✅ Connected   | OK                                                     |
-| `/resultados/:id`          | 🟡 Connected   | Candidate status doesn't persist                       |
-| `/candidates-history`      | ❌ 100% mock   | Actions = `alert()`                                    |
-| `/evaluations-history`     | ❌ 100% mock   | "Calcular" button does nothing                         |
-| `/advanced-results/:id`    | ❌ 100% mock   | All buttons inert                                      |
-| `/admin`                   | ❌ 100% mock   | Role gate is active, but the service is a simulation   |
-
----
-
-## 1. Critical functional bugs
-
-### 1.1 — `admin.api.ts` pretends to be connected
-
-- **File:** `src/services/api/admin.api.ts` + `src/components/admin/*`
-- **Detail:** `adminService` **does not import `apiClient`**. It defines a `MOCK_USERS` array and returns promises resolved with `setTimeout`. All four admin modules (`StatsModule`, `UserTableModule`, `RoleUpdateModule`, `UserDeleteModule`) consume it with `useEffect`, spinners, and reactive search boxes — so **the screen looks functional**: it lists users, "changes" roles, and "deletes". Nothing is persisted. `updateRole`/`deleteUser` resolve `{ success: true }` and `console.log`.
-- **Aggravating factor:** `getStats` is typed `Promise<any>`, violating `@typescript-eslint/no-explicit-any` (configured as an _error_).
-- **Fix:** rewrite it on top of `apiClient` against `GET /admin/stats`, `GET /admin/users`, `PUT /admin/users/:id/role`, `DELETE /admin/users/:id`. See `issues/P2.md §8.1`.
-
-### 1.2 — `AdminRoute` dumps the `user` object to the console
-
-- **File:** `src/components/routes/AdminRoute.tsx:8-9`
-- **Detail:** two debug `console.log` calls print the full user and its role on **every render**. They ship in the production bundle.
-- **Fix:** remove them.
-
-### 1.3 — Vacancy success screen shows a fixed code
-
-- **File:** `src/components/Sections/VacancySuccess.jsx:7` + `src/pages/Vacancy.tsx`
-- **Detail:** `VacancySuccess` defaults to `vacancyCode = "Vac-009"`, and `Vacancy.tsx` renders it **without passing** `vacancyCode`. It always shows "Vac-009" regardless of the vacancy created.
-- **Fix:** pass the real code/ID of the vacancy returned by `POST /vacancies`.
-
-### 1.4 — Sidebar: "Administration" visible to everyone, misplaced, wrong icon
-
-- **File:** `src/layouts/Sidebar.tsx:55-60`
-- **Detail:** it sits in the last group ("CONFIGURACIÓN") and uses `Icons.sidebar.dashboard` (the same icon as Dashboard). It is also **not filtered by role**: a normal user sees the link, clicks it, and `AdminRoute` bounces them to `/dashboard`. Secure, but broken UX.
-- **Fix:** move the item to the first group, give it its own icon (e.g. `Shield`), and render it only when `user.role === "admin"`.
-
-### 1.5 — `apiClient` crashes if `VITE_API_URL` is missing
-
-- **File:** `src/services/api/apiClient.ts:1`
-- **Detail:** `const BASE_URL: string = import.meta.env.VITE_API_URL;` — **no fallback**. If the variable is undefined, `BASE_URL.endsWith("/")` throws `TypeError: Cannot read properties of undefined`. The `string` annotation is a lie: at runtime it can be `undefined`.
-- **Fix:** an explicit fallback, or fail fast at startup with a clear message.
-
-### 1.6 — A `401` does not end the session
-
-- **File:** `src/services/api/apiClient.ts:78-84`
-- **Detail:** on a `401` it throws `ApiError("Sesión expirada o no autorizada.")`, but **never calls `logout()`** or redirects. With an expired token, every screen renders its own error and the user is stuck in an app that still looks authenticated.
-- **Fix:** centralize `401` handling (clear `localStorage` + redirect to `/login`).
-
-### 1.7 — Role casing misaligned between frontend and backend
-
-- **Files:** `src/components/context/AuthContext.tsx:5`, `src/types/admin.types.ts:17`, `src/types/api.types.ts:4`
-- **Detail:** the backend emits `ADMIN`/`USER`; `UserData.role` and `AdminUser.role` type them as `'admin' | 'user'`, while `api.types.ts` exposes `UserRole = 'ADMIN' | 'USER'`. It works today thanks to two defensive patches: `normalizeRole()` in `Login.tsx` and `.toLowerCase()` in `AdminRoute`. Any new code that compares the role without normalizing will fail silently.
-- **Fix:** unify on the backend enum and map to a display label in the UI.
+| Route                       | State          | Note                                                                       |
+| ----------------------------- | ---------------- | ------------------------------------------------------------------------------ |
+| `/login`                   | ✅ Connected   | Demo shortcut (`admin` → `admin@admin.ai`)                                     |
+| `/dashboard`               | ✅ Connected   | Real `dashboardService.getSummary()`, no more `MOCK_DATA`                     |
+| `/position`                | ✅ Connected   | 4-step wizard, manual or AI                                                    |
+| `/uploadcv`                | ✅ Connected   |                                                                                |
+| `/cv-history`              | ⚠️ Connected, orphaned | Parallel screen to `/candidates-history`, not linked from the sidebar     |
+| `/position-history`        | ✅ Connected   |                                                                                |
+| `/vacancy` (+ `/edit/:id`) | ⚠️ Connected   | Success screen ignores the `onReset` callback                                 |
+| `/vacancy-history`         | ✅ Connected   |                                                                                |
+| `/department`              | ✅ Connected   |                                                                                |
+| `/department-history`      | ✅ Connected   |                                                                                |
+| `/resultados/:id`          | ⚠️ Connected, legacy | Not linked from anywhere in the UI; parsing bug in `CandidateMatchRow`     |
+| `/candidates-history`      | ✅ Connected   | Groups candidates by vacancy                                                   |
+| `/evaluations-history`     | ✅ Connected   | The route's `:id` param is never used                                          |
+| `/advanced-results/:id`    | ✅ Connected   | The current results screen                                                     |
+| `/admin`                   | ✅ Connected   | Real `adminService`; role gate active in both Sidebar and `AdminRoute`         |
 
 ---
 
-## 2. Unconnected screens (100% mock)
+## 1. Confirmed code bugs
 
-### 2.1 — Dashboard
+### 1.1 — `VacancySuccess.tsx` ignores the `onReset` prop
 
-- **File:** `src/pages/Dashboard.tsx:9-28`
-- **Detail:** all data comes from `MOCK_DATA`. It never calls `dashboardService.getSummary()` (which exists and is typed against the real backend shape). Metrics, chart, and vacancy statuses are fictional.
+- **File:** `src/components/Sections/VacancySuccess.tsx`
+- **Detail:** the component declares it receives `{ vacancyCode, onReset }`, but the actual destructuring only takes `({ vacancyCode })` — `onReset` is never used. `Vacancy.tsx` does pass a real `onReset` (to reset the edit-mode form and navigate). Since `VacancySuccess`'s own buttons (a hardcoded `navigate(...)`) cover the visible navigation, the bug goes unnoticed during normal use — but any additional logic that depended on `onReset` firing (e.g., clearing parent state) never runs.
+- **Fix:** destructure and call `onReset` from the relevant button, or drop the prop from the signature if it's no longer needed.
 
-### 2.2 — Advanced Results
+### 1.2 — `CandidateMatchRow.tsx` doesn't parse `normalizedCandidate` (legacy screen)
 
-- **File:** `src/pages/AdvancedResults.tsx:21-25, 125`
-- **Detail:** uses `MOCK_RESULTS`, `useParams` is unused, and the "Compartir", "Recalcular MatchScore", and "Ver perfil" buttons do nothing. Title/department/code are hardcoded.
+- **File:** `src/components/cards/CandidateMatchRow.tsx` (used only by `src/pages/Resultados.tsx`)
+- **Detail:** `api.types.ts` documents `MatchResult.normalizedCandidate` as a **serialized JSON string** that must be parsed (`CandidateDetailsModal.tsx` does this correctly via `parseNormalized`, wrapped in try/catch). `CandidateMatchRow.tsx` instead widens the type locally (`ResultData`) to treat it as if it were already an object, reading `resultData.normalizedCandidate?.technicalSkills` directly. If the backend always returns a string, this is `undefined`, and the candidate row on `Resultados.tsx` **renders zero skills**.
+- **Scope:** only affects `/resultados/:id`, the legacy screen not linked from the sidebar (see §2). `AdvancedResults.tsx`, the current results screen, does not have this problem.
+- **Fix:** parse `normalizedCandidate` with `JSON.parse()` the same way `CandidateDetailsModal.tsx` does, or retire the legacy screen (see §2.1).
 
-### 2.3 — Candidates History
+### 1.3 — Invented candidate statuses in the UI, never persisted
 
-- **File:** `src/pages/CandidatesHistory.tsx:5-22`
-- **Detail:** `MOCK_VACANCIES`. Every action is an `alert()`. It never uses `candidateService`.
-
-### 2.4 — Evaluations
-
-- **File:** `src/pages/EvaluationsHistory.tsx:16-53` + `src/components/EvaluationCard.tsx:63`
-- **Detail:** `MOCK_EVALUATIONS`. The "Calcular" button has **no `onClick`**. The `/evaluations-history/:id` route receives `:id` but never uses it. `vacanciesApi.evaluateCandidates()` exists, is typed, and **nobody calls it**.
-- **Extra:** the file **redeclares** the `EvaluationVacancy` interface locally instead of importing it from `src/types/evaluations.types.ts`, which already defines it identically.
-
-### 2.5 — Admin Panel
-
-- **File:** `src/pages/AdminPanel.tsx:11-15` + `src/services/api/admin.api.ts`
-- **Detail:** a simulated `setTimeout(750)` loader in the page, **on top of** the fake service's own `setTimeout`s (see §1.1). The header prints `admin` as hardcoded text instead of reading `user.username`/`user.role`.
+- **Files:** `src/pages/AdvancedResults.tsx`, `src/pages/EvaluationsHistory.tsx`
+- **Detail:** the backend's real enum is `CandidateStatus = "DISPONIBLE" | "CONTRATADO"` (`api.types.ts`). Both screens, however, offer a status `<select>` with extra values (`"CONTACTADO"`/`"NO_CONTRATADO"` in one, Spanish-cased variants in the other) backed **only by a local component-state `Map`** (`candidateStatuses`) — there is no endpoint that accepts these values. The change is visible in the UI but is lost on page reload.
+- **Note:** this is a pending product decision, not a crash. `candidates.api.ts` explicitly documents (an inline comment) that updating an individual candidate's status is not implemented; the only real "hire" persistence is `Resultados.tsx`, which closes the whole vacancy via `vacanciesApi.updateStatus(id, "CLOSED")`.
+- **Fix:** decide whether these statuses should persist (would require a new backend endpoint) or whether the control should be removed and the UI made clear that it's a local/temporary annotation only.
 
 ---
 
-## 3. UI / UX / Responsive
+## 2. Duplicated / partially orphaned screens
 
-### 3.1 — Dashboard doesn't adapt to small screens
+### 2.1 — `Resultados.tsx` vs. `AdvancedResults.tsx`
 
-- **File:** `src/pages/Dashboard.tsx:49, 79`
-- **Detail:** fixed padding and rigid `min-h-[350px] xl:min-h-[450px]` inside a `<main>` with `overflow-y-auto`. On short viewports the content overflows and forces scrolling.
-- **Fix:** flexible heights / `aspect-ratio`, revisit breakpoints.
+- **Files:** `src/pages/Resultados.tsx` (routes `/resultados`, `/resultados/:id`) and `src/pages/AdvancedResults.tsx` (route `/advanced-results/:id`)
+- **Detail:** both show matching results for a vacancy, but with different layouts. `AdvancedResults` is the screen linked from `VacancyHistory` and `CandidatesHistory`, and the one that received the recent redesign and fixes (separate sections, recalculate guard, `PAUSED` handling). `Resultados` is still alive in the router but **isn't linked from any button/link in the app** — only reachable by typing the URL directly. It also has the bug in §1.2 and uses a cosmetic (non-real) `ProcessingModal` progress animation.
+- **Fix:** decide whether to retire `Resultados.tsx` from the router (which would also make the bug in §1.2 moot) or consolidate it with `AdvancedResults`.
 
-### 3.2 — Dashboard metric cards don't navigate
+### 2.2 — `CVHistory.jsx` vs. `CandidatesHistory.tsx`
 
-- **File:** `src/components/cards/MetricCard.tsx` + `src/pages/Dashboard.tsx:63-72`
-- **Detail:** each `MetricCard` draws a "→" arrow suggesting navigation, but the component **accepts neither `onClick` nor `to`**. No shortcut works.
-- **Fix:** add the destination prop and wire each card to its history screen.
-
-### 3.3 — Inconsistent candidate statuses across screens
-
-- **Files:** `src/components/ui/StatusDropdown.jsx:9` vs `src/pages/AdvancedResults.tsx:8, 92`
-- **Detail:** results use `"No contratado" | "Contratado" | "Contactar"`, while `AdvancedResults` uses `"No Contratado" | "Contactado" | "Contratado"`. They differ in wording ("Contactar" vs "Contactado") and casing. Neither matches the real enum `DISPONIBLE | CONTRATADO`.
-- **Fix:** unify into a single set derived from the backend enum.
-
-### 3.4 — Show/hide password icon is inverted
-
-- **File:** `src/components/ui/LoginForm.tsx:60-66`
-- **Detail:** when the password is visible it shows `Eye` (open) and when hidden it shows `EyeOff`; the usual convention is the opposite.
-- **Fix:** swap the icons.
-
-### 3.5 — Candidate status doesn't persist
-
-- **Files:** `src/pages/Resultados.jsx` + `src/components/ui/StatusDropdown.jsx`
-- **Detail:** changing the status only updates local UI (and, when "Contratado", the **vacancy** status via `PATCH /vacancies/:id/status` → `CLOSED`). There is no endpoint to persist per-candidate status: candidates are read-only in the API.
-- **Fix:** design decision — remove the control or make it obvious it doesn't save. See `issues/P1.md §6.3`.
+- **Files:** `src/pages/CVHistory.jsx` (route `/cv-history`, uses `candidateService.getAll()` → flat `GET /candidates`) and `src/pages/CandidatesHistory.tsx` (route `/candidates-history`, uses `vacanciesApi.getAll()`, grouping candidates by vacancy)
+- **Detail:** two "candidate history" screens with different data sources. The Sidebar only links `/candidates-history`; `/cv-history` doesn't appear in any menu and is only reachable via a direct URL. `HistoryTable.jsx` (used only by `CVHistory.jsx`) reads multiple alternate field names for the CV URL, a sign that it was written against an older API shape than what's documented today.
+- **Fix:** same as §2.1 — decide whether to retire `/cv-history` from the router or consolidate.
 
 ---
 
-## 4. Code quality / minor
+## 3. Dead code and stale comments
 
-- **4.1 — Debug `console.log`:** `AdminRoute.tsx:8-9` (critical, see §1.2), `admin.api.ts:32,41,50`, `RoleUpdateModule.tsx:41`, `AdvancedResults.tsx:136`, `Resultados.jsx:51`, `CreateDepartment.tsx:35`.
-- **4.2 — `alert()` as a placeholder:** `CandidatesHistory.tsx` (invented actions), and as error reporting in `Resultados.jsx`, `VacancyHistory.tsx`, `DepartmentHistory.tsx`, `PositionHistory.tsx`.
-- **4.3 — Dead dependencies:** `package.json` declares `express`, `cors`, and `dotenv` — none are used in a 100% client-side frontend. Same for `react-router` alongside `react-router-dom`.
-- **4.4 — `DemoCredential.jsx` is orphaned:** never imported anywhere, and its credentials are hardcoded as literal text rather than read from `import.meta.env`.
-- **4.5 — `dashboard.types.ts` holds two models:** the real backend shape (`DashboardSummary`) and the mock's UI shape (`DashboardStats`) coexist. Connecting will require an adapter, or dropping one of them.
-- **4.6 — `EvaluationsHistory.tsx` redeclares a type:** it defines `EvaluationVacancy` locally instead of importing it from `src/types/evaluations.types.ts`.
+### 3.1 — Orphaned components
+
+- `src/components/DemoCredential.jsx` — not imported anywhere; `Login.tsx` doesn't use it.
+- `src/components/ui/EmptyVacancyState.tsx` — not imported anywhere.
+- `src/utils/dashboardConfig.js` — not imported anywhere; `Dashboard.tsx` builds its metrics inline from `dashboard.api.ts`.
+
+### 3.2 — Sidebar's vestigial `isDynamic` mechanism
+
+- **File:** `src/layouts/Sidebar.tsx`
+- **Detail:** the `MenuItem` type has an `isDynamic` field and there's logic to suffix the route with `lastVacancyId` from `localStorage`, but **no** `MenuItem` in `MENU_GROUPS` currently sets `isDynamic: true` — it's a dead branch. `VacancyHistory.tsx` still writes `localStorage.setItem("lastVacancyId", id)` to feed a mechanism nothing visible consumes anymore.
+- **Fix:** clean up the `isDynamic` field and the `lastVacancyId` write if there's truly no consumer left, or document why it's being kept.
+
+### 3.3 — Stale comments
+
+- `src/types/dashboard.types.ts` (line ~32): the comment says "UI types (mock data + cards)" — but these types are now populated with real data from `dashboard.api.ts` since `Dashboard.tsx` got wired up. The comment is stale.
+- `src/main.tsx`: has a `@ts-ignore` with a comment ("Temporary while `App` is migrated to `.tsx`"), but `App.tsx` **is already** `.tsx` — the comment (and possibly the `@ts-ignore`) no longer apply.
+
+### 3.4 — Cosmetic details
+
+- `src/App.tsx` imports `VacancyHistory` under the name `VacacyHistory` (typo preserved) — no functional impact, only readability.
+- `src/src/vite-env.d.ts` — a nested `src/src/` folder exists containing a single one-line file (`/// <reference types="vite/client" />`). It should live at `src/vite-env.d.ts`, not `src/src/`.
+- `src/layouts/Sidebar.tsx`: `handleLogout` calls `logout()` (which already does a full navigation to `/login`) and additionally calls `navigate("/login")` — redundant double navigation, harmless.
 
 ---
 
-## 5. What the tooling does **not** catch
+## 4. Configuration and environment
 
-Worth keeping in mind when reviewing changes:
+### 4.1 — `apiClient.ts` has no fallback for `VITE_API_URL`
 
-- **Tailwind classes are not validated.** `className="rounded-[24px]"` and `className="roundTomaed-[24px]"` are equally valid to `tsc` and to ESLint — they're just strings. A class typo only shows up by opening the app.
-- **Stray JSX text isn't caught either.** `<h1>Title</h1>, cr` compiles fine and renders `, cr` on screen.
-- Both happened in `LoginForm.tsx` (fixed on 2026-07-09). **A green `npm run build` does not mean the UI is correct.**
+- **File:** `src/services/api/apiClient.ts:3`
+- **Detail:** `const BASE_URL: string = import.meta.env.VITE_API_URL;` still has no fallback. If the variable is undefined, the first request literally uses the URL `"undefined/users/login"`.
+- **Aggravating factor:** no `.env.example` is committed to the repo, despite `.gitignore` carving out an explicit exception for it (`!.env.example`). A fresh clone has no template indicating which variables to set.
+- **Fix:** an explicit fallback or an early, clear failure at startup; commit a `.env.example` with `VITE_API_URL` (no real values).
+
+### 4.2 — Dead environment variables
+
+- The local `.env` defines `VITE_TEST_USER`/`VITE_TEST_PASS`, but **no file in `src/` reads them**. Only `VITE_API_URL` is used in code.
+
+---
+
+## 5. Minor UI / UX
+
+### 5.1 — `UserTableModule`'s search only filters the current page
+
+- **File:** `src/components/admin/UserTableModule.tsx`
+- **Detail:** the search box filters over `users`, which is already the current page (10 rows) returned by `adminService.getUsers(page, limit)`. An admin searching for a user who isn't on the visible page won't find them, even if they exist in the system.
+- **Fix:** decide whether search should be server-side (a new parameter on `GET /admin/users`) or documented in the UI itself as "search within this page only".
+
+### 5.2 — Two icon libraries coexisting
+
+- `lucide-react` is used pervasively; `react-icons` only appears in `DeleteDepartmentModal.tsx`, `EvaluationCard.tsx`, and the orphaned `EmptyVacancyState.tsx`. Not a bug, but consistency debt — there's no functional reason to keep two icon libraries.
+
+### 5.3 — `/evaluations-history/:id` with an unused param
+
+- **File:** `src/App.tsx` (route), `src/pages/EvaluationsHistory.tsx`
+- **Detail:** the route declares `:id`, but `EvaluationsHistory.tsx` never calls `useParams()` — the screen is a self-contained state machine that starts in vacancy-selection mode regardless of the URL. The `:id` variant is effectively unreachable in any useful way.
+- **Fix:** drop the `:id` route variant if there's no plan to use it, or implement pre-selecting the corresponding vacancy.
+
+---
+
+## 6. What tooling does **not** catch
+
+- **Tailwind classes aren't validated.** A typo in a class (`className="rounded-[24px]"` vs. `"roundTomaed-[24px]"`) is equally valid to `tsc` and ESLint — they're just strings. Only caught by looking at the app in the browser.
+- **Stray text in JSX either.** An `<h1>Título</h1>, cr` compiles fine and renders `, cr` on screen.
+- **A green `npm run build` doesn't mean the UI is correct.** Both cases above happened in `LoginForm.tsx` in an earlier session (2026-07-09) and neither `tsc` nor ESLint caught them.
 
 ---
 
 ## Executive summary
 
-| Category                    | Count |
-| --------------------------- | ----- |
-| Critical functional bugs    | 7     |
-| Unconnected screens (mock)  | 5     |
-| UI / UX / Responsive        | 5     |
-| Quality / minor             | 6     |
+| Category                                   | Count |
+| --------------------------------------------- | ------- |
+| Confirmed code bugs                          | 3     |
+| Duplicated / partially orphaned screens      | 2     |
+| Dead code / stale comments                   | 6     |
+| Configuration and environment                | 2     |
+| Minor UI / UX                                | 3     |
 
-**Suggested priority:** 1) genuinely connect `adminService` and remove the `user` console dump (§1.1, §1.2), 2) harden `apiClient` (§1.5, §1.6), 3) connect the mock screens (§2), 4) responsive and consistency (§3), 5) cleanup (§4).
+**None of these items is blocking.** Suggested priority if time is invested in cleanup: 1) decide the fate of the duplicated screens (§2) — this also resolves the bug in §1.2 if `Resultados.tsx` is retired; 2) fix the ignored `onReset` prop (§1.1); 3) harden `VITE_API_URL` and commit a `.env.example` (§4.1); 4) dead-code cleanup (§3) and minor details (§5).
 
 ---
 
 ## Appendix — Already-resolved bugs
 
-Kept for traceability. **Do not reopen without checking against the code.**
+Kept for traceability. **Do not reopen without verifying against the code.**
 
-| Bug                                                              | Resolved   | Note                                                       |
-| ---------------------------------------------------------------- | ---------- | ---------------------------------------------------------- |
-| `Vacancy.tsx` navigated to the non-existent `/history` route      | 2026-07-08 | Now `/vacancy-history`                                      |
-| Empty departments dropdown in "Nueva Posición"                    | 2026-07-08 | Uses `departmentsApi.getAll()` typed as `Department[]`      |
-| AI autocomplete broken (field `file`)                             | 2026-07-08 | The `FormData` now sends the `pdf` field                    |
-| Invalid vacancy status `FILLED`                                   | 2026-07-08 | `Resultados.jsx` sends `CLOSED`                             |
-| Fragile results unwrapping (`response.status`)                    | 2026-07-08 | `getResults` returns `MatchResult[]` directly               |
-| `uploads.api.ts` posted to `/uploads` (nonexistent)               | 2026-07-08 | File deleted; `UploadCV` uses `vacanciesApi.uploadCVs`      |
-| `Position.tsx` used `useState<any[]>`                             | 2026-07-08 | Typed as `Department[]`                                     |
-| Dead `serverData` error branch in `CreateDepartment.tsx`          | 2026-07-08 | Uses `err instanceof ApiError`                              |
-| `/admin` route had no role gate                                   | 2026-07-09 | `AdminRoute` guards it                                      |
-| `AuthContext` didn't store the role                               | 2026-07-09 | `UserData.role` exists (but see §1.7)                       |
-| `App.tsx` read `loading` from a context that never exposed it     | 2026-07-09 | Broke `dev` and `build`; branch removed                     |
-| `Login.tsx` read `data.data?.token` (nonexistent field)           | 2026-07-09 | Broke `dev` and `build`; simplified to `data.token`         |
-| Dead JSX block after `export default Login;`                      | 2026-07-09 | Removed                                                     |
-| `LoginForm.tsx` had corrupted text (`roundTomaed-[24px]`, `, cr`) | 2026-07-09 | Caught by neither `tsc` nor ESLint — see §5                 |
+| Bug                                                              | Resolved in  | Note                                                                       |
+| -------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------ |
+| `adminService` was a fake (`MOCK_USERS` + `setTimeout`)              | 2026-07-13/14 | Rewritten on top of `apiClient` against `/admin/*`, with a new `createUser`   |
+| Dashboard was 100% mock (`MOCK_DATA`)                                | 2026-07-13/14 | Wired to `dashboardService.getSummary()`                                      |
+| Sidebar showed "Admin Panel" to every role                          | 2026-07-13/14 | Now gated on `user?.role === "ADMIN"`                                         |
+| `AdminRoute` dumped the `user` object to the console                | ≤ 2026-07-13  | No `console.log` in the current file                                          |
+| Role-casing mismatch (`admin/user` UI vs. `ADMIN/USER` API)         | ≤ 2026-07-13  | Unified to uppercase across the whole frontend                                |
+| A `401` didn't log the user out                                     | ≤ 2026-07-13  | `apiClient` calls `endExpiredSession()` except on public endpoints            |
+| `apiClient` attached a token to public auth endpoints               | 2026-07-13    | `isPublicEndpoint` skips attaching `Authorization` on login/register          |
+| No `PAUSED` status handling on vacancy results                      | 2026-07-13    | `AdvancedResults.tsx` handles the badge and recalculate guard for `PAUSED`     |
+| Dead dependencies in `package.json` (`express`, `cors`, `dotenv`)   | ≤ 2026-07-13  | Not present in the current `package.json`                                     |
+| `Vacancy.tsx` navigated to the nonexistent route `/history`         | 2026-07-08    | Now `/vacancy-history`                                                        |
+| Empty department dropdown in "New Position"                        | 2026-07-08    | Uses `departmentsApi.getAll()` with `Department[]` types                      |
+| Invalid `FILLED` vacancy status                                     | 2026-07-08    | `CLOSED` is sent instead                                                      |
+| `LoginForm.tsx` had corrupted text (`roundTomaed-[24px]`, `, cr`)   | 2026-07-09    | Neither `tsc` nor ESLint caught it — see §6                                    |

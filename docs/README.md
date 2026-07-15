@@ -25,8 +25,10 @@ docs/
 │   ├── bugs.md
 │   ├── issues.md
 │   ├── last-changes.md
-│   └── issues/
-│       ├── P0.md  P1.md  P2.md  P3.md
+│   └── issues/                (per-screen QA plans · planes de QA por pantalla)
+│       ├── dashboard.md  admin-panel.md  position-history.md
+│       ├── vacancy-history.md  department-history.md
+│       ├── candidates-history.md  evaluations-history.md
 └── es/
     ├── README.md             ← índice en español
     ├── front-documentation.md
@@ -34,8 +36,10 @@ docs/
     ├── bugs.md
     ├── issues.md
     ├── last-changes.md
-    └── issues/
-        ├── P0.md  P1.md  P2.md  P3.md
+    └── issues/                (planes de QA por pantalla)
+        ├── dashboard.md  admin-panel.md  position-history.md
+        ├── vacancy-history.md  department-history.md
+        ├── candidates-history.md  evaluations-history.md
 ```
 
 > `README.md` and `CLAUDE.md` stay at the repository root.

@@ -1,43 +1,55 @@
-# 🗂️ Issue Backlog by Flow — TalentMatch Frontend
+# 🗂️ Issue Backlog — TalentMatch Frontend
 
-> Companion to [`bugs.md`](./bugs.md). Here bugs are **grouped by flow** following [`api-documentation.md`](./api-documentation.md) and ordered from **most to least important**.
+> Companion to [`bugs.md`](./bugs.md). Issues here are grouped **by screen**, with a data-architecture plan, identified bugs, and a QA test checklist (including Figma alignment).
 >
 > 🇪🇸 Versión en español: [`../es/issues.md`](../es/issues.md)
 >
 > **Premise:** the backend is finished and correct. Everything below is frontend work.
 >
-> **Last verified against the code: 2026-07-09.**
+> **Last verified against the code: 2026-07-14.**
 
-## Priority legend
+## What changed from earlier versions
 
-| Level  | Meaning                                                                                                    |
-| ------ | ---------------------------------------------------------------------------------------------------------- |
-| **P0** | Invisible bugs (the UI promises data the API doesn't return) and previous-sprint validation. Do first.     |
-| **P2** | Polished screens, consistent pagination, orphan endpoints and housekeeping. Nothing blocking.              |
+The previous backlogs (`issues/P0.md`–`P3.md`, organized by EPICs) were **replaced on 2026-07-13** by per-screen QA plans — `P0.md`–`P3.md` no longer exist in this repository (if you see a link to them in an older document, it's broken: use the tables below instead). The original P0–P3 sprint is already closed; the current focus is a Figma-alignment review (margins, responsiveness, test checklists) screen by screen.
 
-The previous backlogs (P0–P4 covering EPICs 1–11) were replaced on 2026-07-09 after closing the P0/P1/P2/P3 sprint and running a full review of the app. History is still available in `git log` — this index only reflects the work that's actually **pending today**.
+## Per-screen QA plans
 
-## Detailed documents per priority
+Each file documents: data architecture/flow, identified bugs (kebab-menu overflow, blank username, `PAUSED` status handling, touch accessibility, margin inconsistencies), and a full test checklist.
 
-| File                             | Priority                       | EPICs                                                                       | Status     |
-| -------------------------------- | ------------------------------ | --------------------------------------------------------------------------- | ---------- |
-| [`issues/P0.md`](./issues/P0.md) | **P0** — blockers              | 12 (data the UI promises but the API doesn't return), 13 (sprint validation) | ⏳ Pending |
-| [`issues/P2.md`](./issues/P2.md) | **P2** — polish and housekeeping | 14 (UI robustness), 15 (responsive), 16 (pagination), 17 (orphan endpoints), 18 (housekeeping) | ⏳ Pending |
+| File                                                     | Screen                        | Route(s)                                                  |
+| ----------------------------------------------------------- | -------------------------------- | -------------------------------------------------------------- |
+| [`issues/dashboard.md`](./issues/dashboard.md)             | Dashboard                       | `/dashboard`                                                    |
+| [`issues/admin-panel.md`](./issues/admin-panel.md)         | Admin Panel                     | `/admin`                                                        |
+| [`issues/position-history.md`](./issues/position-history.md) | Position History              | `/position-history`                                             |
+| [`issues/vacancy-history.md`](./issues/vacancy-history.md) | Vacancy History                | `/vacancy-history`                                              |
+| [`issues/department-history.md`](./issues/department-history.md) | Department History      | `/department-history`                                           |
+| [`issues/candidates-history.md`](./issues/candidates-history.md) | Candidates History      | `/candidates-history`                                           |
+| [`issues/evaluations-history.md`](./issues/evaluations-history.md) | Evaluations            | `/evaluations-history`                                          |
+
+## Screens without a dedicated QA plan yet
+
+These screens don't have their own per-screen QA file. Their known code bugs are in [`bugs.md`](./bugs.md):
+
+| Screen                        | Route(s)                                            | See in `bugs.md`               |
+| -------------------------------- | -------------------------------------------------------- | ----------------------------------- |
+| Login                          | `/login`                                                 | —                                    |
+| New/Edit Vacancy               | `/vacancy`, `/vacancy/edit/:id`                           | §1.1 (ignored `onReset`)             |
+| Upload CV                      | `/uploadcv`                                              | —                                    |
+| CV History (legacy)            | `/cv-history`                                            | §2.2 (duplicated screen)             |
+| Results (legacy)               | `/resultados`, `/resultados/:id`                          | §1.2, §2.1                           |
+| Advanced Results               | `/advanced-results/:id`                                   | §1.3 (statuses not persisted)        |
+| Create Position                | `/position`                                              | —                                    |
+| Create Department              | `/department`                                            | —                                    |
+
+## Cross-cutting code bugs
+
+Bugs that aren't specific to one screen's margins/responsiveness, but are logic issues (ignored props, parsing, dead code, configuration), live in [`bugs.md`](./bugs.md) — they aren't duplicated here. They include: the ignored `onReset` prop in `VacancySuccess`, the parsing bug in `CandidateMatchRow` (legacy screen), the duplicated screens (`Resultados`/`AdvancedResults`, `CVHistory`/`CandidatesHistory`), orphaned components, and the missing fallback/`.env.example` for `VITE_API_URL`.
 
 ## Current state
 
-**Previous sprint (commits `80263da`…`f6feba2`, 2026-07-08 → 2026-07-09):** closed at code level but **not verified in the browser** (see P0 13.1). The main flows are connected: dashboard on `/dashboard`, admin panel on `/admin/*`, vacancy/position CRUD, match results, role-based auth.
+**Every screen is connected to the real API** (see `front-documentation.md §8`). The remaining work is of two kinds:
 
-**Current focus:** the invisible bugs surfaced by the review — `CandidateDetailsModal` with 6 bars at zero, `HistoryTable` with a dead CV link, and the misleading copy on the "Hire" button. None of them break compile or build, but they erode trust in what the UI shows the user.
+1. **Figma-alignment QA** (margins, typography, responsiveness) — covered by the 7 per-screen plans above.
+2. **Minor bug and technical-debt cleanup** — covered by `bugs.md`.
 
-## Priority summary
-
-| EPIC | Flow                                       | Priority | Status     | Blocked on                    |
-| ---- | ------------------------------------------ | -------- | ---------- | ----------------------------- |
-| 12   | Data the UI promises but the API doesn't   | **P0**   | ⏳ Pending | Backend contract (12.1)       |
-| 13   | Previous sprint validation                  | **P0**   | ⏳ Pending | Dev server + live backend     |
-| 14   | UI robustness (labels, fallbacks)          | **P2**   | ⏳ Pending | —                             |
-| 15   | Dashboard responsive                       | **P2**   | ⏳ Pending | —                             |
-| 16   | Consistent pagination                      | **P2**   | ⏳ Pending | —                             |
-| 17   | Orphan endpoints (register, candidates/:id) | **P2**   | ⏳ Pending | Product decision              |
-| 18   | Pre-existing debt + housekeeping           | **P2**   | ⏳ Pending | —                             |
+Neither blocks normal use of the application.
