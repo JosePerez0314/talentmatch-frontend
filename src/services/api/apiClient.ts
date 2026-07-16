@@ -23,6 +23,11 @@ export interface ApiClientOptions extends Omit<RequestInit, "headers"> {
 
 const LOGIN_PATH = "/login";
 
+// Backoff schedule for 429s: 3 total attempts (initial + 2 retries).
+const MAX_ATTEMPTS = 3;
+const BACKOFF_BASE_MS = 300;
+const BACKOFF_JITTER_MS = 200;
+
 /**
  * A 401 on an authenticated request means the token is gone or expired.
  * Without this the caller just throws, every screen renders its own error, and
@@ -34,6 +39,55 @@ const endExpiredSession = (): void => {
     window.location.assign(LOGIN_PATH);
   }
 };
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+// `Retry-After` may be delta-seconds or an HTTP-date. Both are valid per RFC 9110.
+const parseRetryAfter = (header: string | null): number | null => {
+  if (!header) return null;
+  const asSeconds = Number(header);
+  if (Number.isFinite(asSeconds)) return Math.max(0, asSeconds * 1000);
+  const asDate = Date.parse(header);
+  if (Number.isFinite(asDate)) return Math.max(0, asDate - Date.now());
+  return null;
+};
+
+const backoffFor = (attempt: number): number =>
+  BACKOFF_BASE_MS * Math.pow(3, attempt) + Math.random() * BACKOFF_JITTER_MS;
+
+/**
+ * Wraps `fetch` with a 429-only retry loop. Any other status (including 5xx)
+ * is returned as-is so the caller can decide. 429 is safe to retry for any
+ * method because the server rejected before processing.
+ */
+const fetchWithRetry = async (
+  url: string,
+  config: RequestInit,
+): Promise<Response> => {
+  for (let attempt = 0; attempt < MAX_ATTEMPTS - 1; attempt++) {
+    const response = await fetch(url, config);
+    if (response.status !== 429) return response;
+    const wait =
+      parseRetryAfter(response.headers.get("Retry-After")) ??
+      backoffFor(attempt);
+    console.warn(
+      `[apiClient] 429 en ${url} — reintento ${attempt + 1}/${MAX_ATTEMPTS - 1} en ${Math.round(wait)}ms`,
+    );
+    await sleep(wait);
+  }
+  return fetch(url, config);
+};
+
+/**
+ * Collapses identical concurrent GETs into a single in-flight promise. Kills
+ * StrictMode's double-invocation of useEffect fetches in dev and merges the
+ * usual race when two pages ask for the same list back-to-back. Only for GET —
+ * merging POST/PUT/DELETE/PATCH would silently swallow mutations. Cleared as
+ * soon as the request settles, so the window is bounded to the actual
+ * concurrency window (a few hundred ms), not stale-cached across time.
+ */
+const inFlightGets = new Map<string, Promise<unknown>>();
 
 interface ApiResponse<T> {
   success: boolean;
@@ -61,9 +115,35 @@ export class ApiError extends Error {
   }
 }
 
-export const apiClient = async <T = unknown>(
+export const apiClient = <T = unknown>(
   endpoint: string,
   options: ApiClientOptions = {},
+): Promise<T> => {
+  const method = (options.method ?? "GET").toUpperCase();
+  const dedupKey =
+    method === "GET" ? `${endpoint}::${options.raw ? "raw" : "std"}` : null;
+
+  if (dedupKey) {
+    const existing = inFlightGets.get(dedupKey) as Promise<T> | undefined;
+    if (existing) return existing;
+  }
+
+  const promise = executeApiRequest<T>(endpoint, options);
+
+  if (dedupKey) {
+    inFlightGets.set(dedupKey, promise);
+    // Race-safe cleanup: only delete if the map still points to *this* promise.
+    promise.finally(() => {
+      if (inFlightGets.get(dedupKey) === promise) inFlightGets.delete(dedupKey);
+    });
+  }
+
+  return promise;
+};
+
+const executeApiRequest = async <T = unknown>(
+  endpoint: string,
+  options: ApiClientOptions,
 ): Promise<T> => {
   try {
     const baseUrlCleaned = BASE_URL.endsWith("/")
@@ -90,7 +170,7 @@ export const apiClient = async <T = unknown>(
       headers,
     };
 
-    const response = await fetch(url, config);
+    const response = await fetchWithRetry(url, config);
     const isJson = response.headers
       .get("content-type")
       ?.includes("application/json");
