@@ -35,6 +35,8 @@ const AVATAR_PALETTES = [
     { bg: "#E8EAF6", text: "#283593" },
 ];
 
+const CANDIDATE_STATUSES = ["No Contratado", "Contactado", "Contratado"] as const;
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getAvatarStyle = (idx: number) => AVATAR_PALETTES[idx % AVATAR_PALETTES.length];
@@ -66,7 +68,7 @@ const getStatusStyle = (status: string): string => {
 
 // ─── CircleScore ──────────────────────────────────────────────────────────────
 
-const CircleScore: React.FC<{ score: number }> = ({ score }) => {
+const CircleScore: React.FC<{ score: number }> = React.memo(({ score }) => {
     const r = 30;
     const circ = 2 * Math.PI * r;
     const offset = circ - (score / 100) * circ;
@@ -95,7 +97,9 @@ const CircleScore: React.FC<{ score: number }> = ({ score }) => {
             </div>
         </div>
     );
-};
+});
+
+CircleScore.displayName = "CircleScore";
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -124,6 +128,21 @@ const EvaluationsHistory: React.FC = () => {
     const [shareMsg, setShareMsg] = useState<string | null>(null);
 
     const resultsRef = useRef<HTMLDivElement>(null);
+
+    // ── Close dropdown when clicking outside ─────────────────────────────────
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (statusDropdownId !== null) {
+                const target = e.target as HTMLElement;
+                if (!target.closest(".status-dropdown-container")) {
+                    setStatusDropdownId(null);
+                }
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [statusDropdownId]);
 
     // ── Initial load ──────────────────────────────────────────────────────────
     useEffect(() => {
@@ -192,8 +211,6 @@ const EvaluationsHistory: React.FC = () => {
         }
 
         try {
-            // POST evaluations; 400 means no candidates pending (all already scored) —
-            // silently skip and show existing results instead.
             try {
                 await vacanciesApi.evaluateCandidates(vacancy.id);
             } catch (err) {
@@ -238,8 +255,12 @@ const EvaluationsHistory: React.FC = () => {
     // ── Screenshot → clipboard ────────────────────────────────────────────────
     const handleShare = async () => {
         if (!resultsRef.current) return;
+
+        // Cerrar menús desplegables abiertos antes de capturar
+        setStatusDropdownId(null);
         setIsSharing(true);
         setShareMsg(null);
+
         try {
             const { toPng } = await import("html-to-image");
             const dataUrl = await toPng(resultsRef.current, { pixelRatio: 2 });
@@ -289,11 +310,8 @@ const EvaluationsHistory: React.FC = () => {
 
                     {!isLoading && !loadError && activeVacancies.length === 0 && (
                         <div className="bg-white rounded-2xl shadow-sm p-20 flex flex-col items-center gap-4">
-                            <div
-                                className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                                style={{ backgroundColor: "#DCF9FF" }}
-                            >
-                                <FileSearch size={24} style={{ color: "#447ECA" }} />
+                            <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#DCF9FF]">
+                                <FileSearch size={24} className="text-[#447ECA]" />
                             </div>
                             <div className="text-center">
                                 <p className="text-gray-600 text-sm mb-1 font-medium">
@@ -305,14 +323,7 @@ const EvaluationsHistory: React.FC = () => {
                             </div>
                             <button
                                 onClick={() => navigate("/vacancy")}
-                                className="flex items-center gap-2 px-5 py-2.5 text-white rounded-xl text-sm font-medium transition-colors"
-                                style={{ backgroundColor: "#447ECA" }}
-                                onMouseOver={(e) =>
-                                    (e.currentTarget.style.backgroundColor = "#3a6bb8")
-                                }
-                                onMouseOut={(e) =>
-                                    (e.currentTarget.style.backgroundColor = "#447ECA")
-                                }
+                                className="flex items-center gap-2 px-5 py-2.5 text-white bg-[#447ECA] hover:bg-[#3a6bb8] rounded-xl text-sm font-medium transition-colors"
                             >
                                 <Sparkles size={14} /> Nueva Vacante
                             </button>
@@ -346,10 +357,7 @@ const EvaluationsHistory: React.FC = () => {
         return (
             <div className="min-h-screen bg-[#f0f0f5] p-8 w-full flex items-start pt-24 justify-center">
                 <div className="w-full max-w-2xl">
-                    <div
-                        className="rounded-2xl p-14 flex flex-col items-center justify-center gap-5 min-h-72"
-                        style={{ backgroundColor: "#2d2d2d" }}
-                    >
+                    <div className="bg-[#2d2d2d] rounded-2xl p-14 flex flex-col items-center justify-center gap-5 min-h-72">
                         <div className="space-y-2 text-center">
                             <p className="text-white text-lg font-medium">
                                 Calculando MatchScores (IA)
@@ -399,7 +407,6 @@ const EvaluationsHistory: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#f0f0f5] p-8 w-full">
-
             {/* Share feedback toast */}
             {shareMsg && (
                 <div className="fixed bottom-6 right-6 z-50 px-4 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-xl">
@@ -408,7 +415,6 @@ const EvaluationsHistory: React.FC = () => {
             )}
 
             <div className="max-w-5xl mx-auto">
-
                 {/* Action bar */}
                 <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-4 mb-6 flex-wrap bg-[#f0f0f5]">
                     <button
@@ -431,10 +437,7 @@ const EvaluationsHistory: React.FC = () => {
                             <p className="text-xs text-gray-400 mt-0.5">
                                 {selectedVacancy && formatVacancyCode(selectedVacancy.id)}
                                 {deptName && (
-                                    <span
-                                        className="ml-1.5 inline-flex items-center gap-0.5"
-                                        style={{ color: "#447ECA" }}
-                                    >
+                                    <span className="ml-1.5 inline-flex items-center gap-0.5 text-[#447ECA]">
                                         <Layers size={10} className="inline" /> {deptName}
                                     </span>
                                 )}
@@ -458,15 +461,7 @@ const EvaluationsHistory: React.FC = () => {
                         <button
                             onClick={() => selectedVacancy && runEvaluation(selectedVacancy, true)}
                             disabled={isRecalculating}
-                            className="flex items-center gap-2 px-4 py-2 text-sm text-white rounded-xl transition-colors disabled:opacity-60"
-                            style={{ backgroundColor: "#447ECA" }}
-                            onMouseOver={(e) => {
-                                if (!isRecalculating)
-                                    e.currentTarget.style.backgroundColor = "#3a6bb8";
-                            }}
-                            onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = "#447ECA";
-                            }}
+                            className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-[#447ECA] hover:bg-[#3a6bb8] rounded-xl transition-colors disabled:opacity-60"
                         >
                             {isRecalculating ? (
                                 <>
@@ -485,10 +480,7 @@ const EvaluationsHistory: React.FC = () => {
 
                 {/* Recalculating overlay */}
                 {isRecalculating && (
-                    <div
-                        className="rounded-2xl p-12 flex flex-col items-center justify-center gap-5 mb-6"
-                        style={{ backgroundColor: "#2d2d2d" }}
-                    >
+                    <div className="bg-[#2d2d2d] rounded-2xl p-12 flex flex-col items-center justify-center gap-5 mb-6">
                         <div className="text-center space-y-1">
                             <p className="text-white text-base font-medium">
                                 Recalculando MatchScores
@@ -504,26 +496,16 @@ const EvaluationsHistory: React.FC = () => {
                 {!isRecalculating && (
                     <>
                         {/* Info banner */}
-                        <div
-                            className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl mb-5"
-                            style={{
-                                backgroundColor: "#EFF6FF",
-                                border: "1px solid #BFDBFE",
-                            }}
-                        >
-                            <Sparkles
-                                size={14}
-                                className="flex-shrink-0 mt-0.5"
-                                style={{ color: "#447ECA" }}
-                            />
-                            <p className="text-xs" style={{ color: "#1E40AF" }}>
+                        <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-xl mb-5 bg-[#EFF6FF] border border-[#BFDBFE]">
+                            <Sparkles size={14} className="flex-shrink-0 mt-0.5 text-[#447ECA]" />
+                            <p className="text-xs text-[#1E40AF]">
                                 Mostrando el <strong>Top 10</strong> de candidatos con mayor
                                 compatibilidad con los requisitos de la posición.
                             </p>
                         </div>
 
                         <p className="text-sm text-gray-500 mb-4">
-                            <span style={{ color: "#447ECA" }}>{results.length} candidatos</span>{" "}
+                            <span className="text-[#447ECA]">{results.length} candidatos</span>{" "}
                             evaluados
                         </p>
 
@@ -594,7 +576,7 @@ const EvaluationsHistory: React.FC = () => {
                                         {/* Actions */}
                                         <div className="flex items-center justify-between gap-2 pt-1 border-t border-gray-100">
                                             {/* Status dropdown */}
-                                            <div className="relative flex-shrink-0">
+                                            <div className="relative flex-shrink-0 status-dropdown-container">
                                                 <button
                                                     onClick={() =>
                                                         setStatusDropdownId(
@@ -611,13 +593,7 @@ const EvaluationsHistory: React.FC = () => {
 
                                                 {statusDropdownId === result.id && (
                                                     <div className="absolute left-0 bottom-full mb-1 z-20 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-36">
-                                                        {(
-                                                            [
-                                                                "No Contratado",
-                                                                "Contactado",
-                                                                "Contratado",
-                                                            ] as const
-                                                        ).map((s) => (
+                                                        {CANDIDATE_STATUSES.map((s) => (
                                                             <button
                                                                 key={s}
                                                                 onClick={() =>
@@ -638,16 +614,7 @@ const EvaluationsHistory: React.FC = () => {
                                                     setSelectedMatch(result);
                                                     setIsModalOpen(true);
                                                 }}
-                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] text-white transition-colors flex-shrink-0"
-                                                style={{ backgroundColor: "#447ECA" }}
-                                                onMouseOver={(e) =>
-                                                    (e.currentTarget.style.backgroundColor =
-                                                        "#3a6bb8")
-                                                }
-                                                onMouseOut={(e) =>
-                                                    (e.currentTarget.style.backgroundColor =
-                                                        "#447ECA")
-                                                }
+                                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] text-white bg-[#447ECA] hover:bg-[#3a6bb8] transition-colors flex-shrink-0"
                                             >
                                                 <Eye size={11} /> Ver perfil
                                             </button>
