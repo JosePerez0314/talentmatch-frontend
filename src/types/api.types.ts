@@ -5,6 +5,7 @@ export type UserRole = 'ADMIN' | 'USER';
 export type EducationLevel = 'NONE' | 'HIGH_SCHOOL' | 'BACHELOR' | 'TECHNICAL' | 'UNIVERSITY' | 'MASTER' | 'DOCTORATE';
 export type VacancyStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
 export type CandidateStatus = 'DISPONIBLE' | 'CONTRATADO';
+export type ApplicationStatus = 'PENDIENTE' | 'EN_PROCESO' | 'SELECCIONADO' | 'RECHAZADO';
 
 // INTERFACES DE ENTIDADES
 
@@ -45,9 +46,19 @@ export interface Vacancy {
     status: VacancyStatus;
     isDeleted: boolean;
     createdAt: string;
-    // GET /vacancies includes _count.candidates and the full candidates array (see api-documentation.md §4)
+    // GET /vacancies incluye _count.candidates y el array completo de candidates
     _count?: { candidates: number };
     candidates?: Candidate[];
+}
+
+export interface Application {
+    id?: number;
+    vacancyId?: number;
+    candidateId?: number;
+    status: ApplicationStatus;
+    createdAt?: string;
+    updatedAt?: string;
+    [key: string]: unknown;
 }
 
 export interface Candidate {
@@ -57,19 +68,17 @@ export interface Candidate {
     fullName?: string;
     email: string;
     phone?: string;
-    fileUrl?: string;      // CV URL returned by GET /vacancies/:id/results
-    resumeUrl?: string;    // legacy field kept for backward compat
+    fileUrl?: string;      // CV URL devuelto por GET /vacancies/:id/results
+    resumeUrl?: string;    // legacy
     skills?: string[];
     niche?: string;
     status?: CandidateStatus;
     indexedAt?: string;
     createdAt?: string;
-    applications?: unknown[];
+    applications?: Application[];
 }
 
-// Structured candidate data extracted by the AI evaluation engine.
-// The API returns this as a serialized JSON string inside MatchResult.normalizedCandidate.
-// Parse with JSON.parse() before use.
+// Datos estructurados extraídos por la IA
 export interface NormalizedCandidateAiAnalysis {
     rawTextSummary?: string;
     redFlags?: string;
@@ -100,25 +109,20 @@ export interface MatchResult {
     matchScore: number;
     evaluatedAt?: string;
     createdAt?: string;
-    // Top-level AI fields returned directly on the result object
     summary?: string;
     redFlags?: string;
-    // Per-category scores — present only when the backend ran the full AI evaluation
     hardSkillsScore?: number;
     experienceScore?: number;
     roleScore?: number;
     languagesScore?: number;
     educationScore?: number;
     softSkillsScore?: number;
-    // matchReasoning kept for backward compat with older responses
     matchReasoning?: string;
-    // Serialized JSON string — must be JSON.parse()'d before use
     normalizedCandidate?: string;
 }
 
-// INTERFACES DE RESPUESTA HTTP
+// INTERFACES DE RESPUESTA HTTP Y ERRORES
 
-// Soporte para errores
 export interface ApiErrorDetail {
     field: string;
     message: string;
@@ -132,12 +136,29 @@ export interface ApiResponse<T> {
     details?: ApiErrorDetail[];
 }
 
-// Per-file result of POST /vacancies/:id/upload (each PDF processed independently)
+// Resultado por archivo en POST /vacancies/:id/upload
 export interface UploadResult {
     success: boolean;
     data?: Candidate;
     message?: string;
     error?: string;
+    stack?: string;
 }
 
-// Auth contracts live in ./auth.types.ts
+// Contrato específico del endpoint PATCH /api/vacancies/:vacancyId/candidates/:candidateId/status
+// Nota: Directo { success, data } sin doble envoltura.
+export interface UpdatedVacancyData {
+    id: number;
+    availableSlots: number;
+    status: VacancyStatus;
+}
+
+export interface UpdateCandidateStatusData {
+    application: Application | Record<string, unknown>;
+    vacancy: UpdatedVacancyData;
+}
+
+export interface UpdateCandidateStatusResponse {
+    success: boolean;
+    data: UpdateCandidateStatusData;
+}
