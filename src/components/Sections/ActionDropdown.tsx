@@ -5,9 +5,10 @@ interface ActionDropdownProps {
     onDuplicate: () => void;
     onDelete: () => void;
     onEdit?: () => void;
+    isUpward?: boolean;
 }
 
-const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, onEdit }) => {
+const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, onEdit, isUpward = false }) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -33,38 +34,46 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({ onDuplicate, onDelete, 
                 onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
                 title="Opciones"
                 aria-label="Opciones"
-                className={`p-1.5 rounded-lg transition-all flex items-center justify-center cursor-pointer ${isOpen ? "bg-gray-100 text-gray-700" : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
-                    }`}>
-                <MoreVertical size={16} />
+                className={`p-1.5 w-8 h-8 rounded-lg transition-all flex items-center justify-center cursor-pointer ${
+                    isOpen ? "bg-gray-200 text-gray-800 shadow-inner" : "text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                }`}
+            >
+                <MoreVertical size={18} />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-50 animate-fade-in text-left">
-
+                <div 
+                    /* Lógica del Flip Upward Cambia la posicion dependiendo de isUpward */
+                    className={`absolute right-0 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 z-50 animate-fade-in text-left ${
+                        isUpward ? 'bottom-full mb-1' : 'top-full mt-1'
+                    }`}
+                >
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setIsOpen(false); onEdit?.(); }}
-                        className="w-full px-4 py-2.5 text-[14px] font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer group">
-                        <Edit2 size={15} className="text-gray-400 group-hover:text-gray-500 transition-colors" />
+                        className="w-full px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#447ECA] flex items-center gap-3 transition-colors cursor-pointer"
+                    >
+                        <Edit2 size={15} />
                         Editar Posición
                     </button>
 
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDuplicate(); }}
-                        className="w-full px-4 py-2.5 text-[14px] font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer group">
-                        <Copy size={15} className="text-gray-400 group-hover:text-gray-500 transition-colors" />
+                        className="w-full px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors cursor-pointer"
+                    >
+                        <Copy size={15} />
                         Duplicar Posición
                     </button>
 
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setIsOpen(false); onDelete(); }}
-                        className="w-full px-4 py-2.5 text-[14px] font-medium text-[#e53e3e] hover:bg-red-50/40 flex items-center gap-3 transition-colors cursor-pointer group">
-                        <Trash2 size={15} className="text-red-400 group-hover:text-red-500 transition-colors" />
+                        className="w-full px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors cursor-pointer"
+                    >
+                        <Trash2 size={15} />
                         Eliminar Posición
                     </button>
-
                 </div>
             )}
         </div>
