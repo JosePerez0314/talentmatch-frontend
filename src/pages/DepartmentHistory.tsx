@@ -31,13 +31,24 @@ const DepartmentHistory: React.FC = () => {
         }
     };
 
-    useEffect(() => { fetchDepartments(); }, []);
+    useEffect(() => { 
+        fetchDepartments(); 
+    }, []);
 
+    // Cierre de menú clickeando fuera del elemento (Clean Code)
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
+
+    // Alternar visibilidad del menú
     const toggleMenu = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Previene que el click llegue al document y cierre el menú de inmediato
         setOpenMenuId(openMenuId === id ? null : id);
     };
 
+    // Función reintroducida para cerrar el menú de forma explícita desde los botones
     const closeMenu = () => setOpenMenuId(null);
 
     const handleSaveEdit = async (id: string, newName: string) => {
@@ -65,35 +76,32 @@ const DepartmentHistory: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-8 max-w-3xl mx-auto" onClick={closeMenu}>
+        <div className="p-4 md:p-8 max-w-4xl mx-auto animate-fade-in">
 
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-gray-800">Departamentos</h1>
-                <p className="text-gray-400 text-sm mt-0.5">
+            <div className="mb-5 md:mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Departamentos</h1>
+                <p className="text-gray-500 text-sm mt-1 font-medium">
                     Gestiona las áreas de tu organización y las posiciones vinculadas a cada una.
                 </p>
             </div>
 
             {error && (
-                <div className="mb-5 p-3 text-sm font-medium text-red-500 bg-red-50 border border-red-100 rounded-xl">
+                <div className="mb-5 p-4 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-xl shadow-sm">
                     {error}
                 </div>
             )}
 
             {/* Empty state */}
             {!loading && departments.length === 0 && !error && (
-                <div className="bg-white rounded-2xl shadow-sm p-16 flex flex-col items-center gap-4 text-center">
-                    <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                        style={{ backgroundColor: '#DCF9FF' }}
-                    >
-                        <Layers size={24} style={{ color: '#447ECA' }} />
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 md:p-16 flex flex-col items-center gap-5 text-center mt-4">
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-[#DCF9FF]">
+                        <Layers size={28} className="text-[#447ECA]" />
                     </div>
                     <div>
-                        <p className="text-gray-600 text-sm mb-1">No hay departamentos registrados</p>
-                        <p className="text-gray-400 text-xs">
-                            Crea tu primer departamento desde el Wizard de posiciones o el botón del sidebar.
+                        <p className="text-gray-900 text-lg font-bold mb-1.5">No hay departamentos registrados</p>
+                        <p className="text-gray-500 text-sm max-w-sm mx-auto">
+                            Crea tu primer departamento desde el Wizard de posiciones o usando acciones rápidas.
                         </p>
                     </div>
                 </div>
@@ -101,96 +109,101 @@ const DepartmentHistory: React.FC = () => {
 
             {/* Data container */}
             {(loading || departments.length > 0) && (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     {/* Sub-header */}
-                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <p className="text-xs text-gray-400 uppercase tracking-wide">
+                    <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
                             {loading ? "Cargando…" : `${departments.length} departamento${departments.length !== 1 ? "s" : ""}`}
                         </p>
                     </div>
 
                     <div className="divide-y divide-gray-50">
-                        {departments.map((dept) => (
-                            <div
-                                key={dept.id}
-                                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group relative"
-                            >
-                                {/* Icon */}
+                        {departments.map((dept, index) => {
+                            // Detección dinámica de cercanía al final de la lista para hacer "Flip Upward"
+                            const isNearBottom = index >= departments.length - 2 && departments.length > 3;
+
+                            return (
                                 <div
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                    style={{ backgroundColor: '#DCF9FF' }}
+                                    key={dept.id}
+                                    className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50/80 transition-colors group relative"
                                 >
-                                    <Layers size={16} style={{ color: '#447ECA' }} />
-                                </div>
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                        {/* Icon */}
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#DCF9FF]">
+                                            <Layers size={18} className="text-[#447ECA]" />
+                                        </div>
 
-                                {/* Name + positions count */}
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-800 truncate">{dept.name}</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">
-                                        {dept.positionsCount === 0
-                                            ? "Sin posiciones asignadas"
-                                            : dept.positionsCount === 1
-                                                ? "1 posición asignada"
-                                                : `${dept.positionsCount} posiciones asignadas`}
-                                    </p>
-                                </div>
+                                        {/* Name + positions count */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-bold text-gray-900 truncate">{dept.name}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5 font-medium truncate">
+                                                {dept.positionsCount === 0
+                                                    ? "Sin posiciones asignadas"
+                                                    : dept.positionsCount === 1
+                                                        ? "1 posición asignada"
+                                                        : `${dept.positionsCount} posiciones asignadas`}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                {/* Date */}
-                                <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
-                                    <Clock size={11} />
-                                    <span>
-                                        {dept.createdAt
-                                            ? new Date(dept.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
-                                            : "—"}
-                                    </span>
-                                </div>
+                                    {/* Right Context */}
+                                    <div className="flex items-center gap-4 flex-shrink-0">
+                                        {/* Date */}
+                                        <div className="hidden sm:flex items-center gap-1.5 text-xs text-gray-400 font-medium">
+                                            <Clock size={12} />
+                                            <span>
+                                                {dept.createdAt
+                                                    ? new Date(dept.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                                    : "—"}
+                                            </span>
+                                        </div>
 
-                                {/* Right side: count badge + actions */}
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    {dept.positionsCount > 0 && (
-                                        <span
-                                            className="px-2 py-0.5 rounded-full text-xs"
-                                            style={{ backgroundColor: '#DCF9FF', color: '#447ECA' }}
+                                        {/* Count badge */}
+                                        {dept.positionsCount > 0 && (
+                                            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#DCF9FF] text-[#447ECA] shadow-sm">
+                                                {dept.positionsCount}
+                                            </span>
+                                        )}
+
+                                        {/* Acciones */}
+                                        <div className="opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={(e) => toggleMenu(dept.id, e)}
+                                                title="Opciones de departamento"
+                                                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${openMenuId === dept.id ? 'bg-gray-200 text-gray-800' : 'hover:bg-gray-200 text-gray-400 hover:text-gray-700'}`}
+                                            >
+                                                <MoreVertical size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Dropdown Kebab */}
+                                    {openMenuId === dept.id && (
+                                        <div
+                                            className={`absolute right-4 w-44 bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 py-1.5 z-50 ${
+                                                isNearBottom ? 'bottom-12 mb-1' : 'top-14'
+                                            }`}
+                                            onClick={e => e.stopPropagation()}
                                         >
-                                            {dept.positionsCount}
-                                        </span>
+                                            <button
+                                                onClick={() => { setEditModalDept(dept); closeMenu(); }}
+                                                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#447ECA] flex items-center gap-3 transition-colors"
+                                            >
+                                                <Pencil size={15} />
+                                                Editar nombre
+                                            </button>
+                                            <button
+                                                onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
+                                                className="w-full text-left px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors"
+                                            >
+                                                <Trash2 size={15} />
+                                                Eliminar
+                                            </button>
+                                        </div>
                                     )}
-
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={(e) => toggleMenu(dept.id, e)}
-                                            title="Opciones de departamento"
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
-                                        >
-                                            <MoreVertical size={16} />
-                                        </button>
-                                    </div>
                                 </div>
-
-                                {/* Dropdown */}
-                                {openMenuId === dept.id && (
-                                    <div
-                                        className="absolute right-4 top-14 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
-                                        onClick={e => e.stopPropagation()}
-                                    >
-                                        <button
-                                            onClick={() => { setEditModalDept(dept); closeMenu(); }}
-                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
-                                        >
-                                            <Pencil size={14} className="text-blue-500" />
-                                            Editar nombre
-                                        </button>
-                                        <button
-                                            onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
-                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}
