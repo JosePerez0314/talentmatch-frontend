@@ -69,8 +69,10 @@ const Sidebar: React.FC = () => {
 
     const toggleSidebar = () => setIsExpanded(!isExpanded);
 
-    const displayName = user?.username || "Acme Corp";
-    const initialLetter = displayName.charAt(0).toUpperCase();
+    // Resolución segura del nombre y la inicial (Defensive Programming)
+    const displayName = user?.username || (user as any)?.name || user?.email?.split('@')[0] || "Administrador";
+    // Garantizamos que charAt(0) no lance error si por algún motivo extremo el string llega vacío
+    const initialLetter = displayName ? displayName.charAt(0).toUpperCase() : "A";
 
     return (
         <aside

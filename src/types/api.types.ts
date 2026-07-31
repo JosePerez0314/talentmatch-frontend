@@ -10,7 +10,9 @@ export type CandidateStatus = 'DISPONIBLE' | 'CONTRATADO';
 
 export interface User {
     id: string;
-    username: string;
+    username?: string;
+    name?: string;
+    firstName?: string;
     email: string;
     role: UserRole;
     createdAt: string;

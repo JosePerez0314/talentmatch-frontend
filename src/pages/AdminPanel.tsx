@@ -39,32 +39,29 @@ const AdminPanel: React.FC = () => {
 
     const refetch = useCallback(() => fetchUsers(page), [fetchUsers, page]);
 
-    const displayName = user?.username ?? '—';
+    const displayName = user?.username || (user as any)?.name || user?.email?.split('@')[0] || 'Administrador';
 
     return (
-        <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-
-            {/* Page header */}
-            <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#EFF6FF]">
-                    <Shield size={18} className="text-[#447ECA]" />
+        <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8">
+            
+            {/* Page header - Optimizado para Mobile (Flex-wrap y min-w) */}
+            <div className="flex flex-wrap items-center gap-4 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-50 text-blue-600">
+                    <Shield size={20} strokeWidth={2.5} />
                 </div>
-                <div>
-                    <h1 className="text-gray-800 font-medium">Panel de Administración</h1>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                        Sesión: <strong className="text-gray-600">{displayName}</strong> · Solo visible para administradores
+                <div className="flex-1 min-w-[200px]">
+                    <h1 className="text-gray-900 font-bold text-lg md:text-xl tracking-tight">Panel de Administración</h1>
+                    <p className="text-xs text-gray-500 mt-1 truncate">
+                        Sesión: <strong className="text-gray-700 font-semibold">{displayName}</strong> · Solo visible para administradores
                     </p>
                 </div>
-                <span
-                    className="ml-auto text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1 flex-shrink-0 border"
-                    style={{ backgroundColor: '#EFF6FF', color: '#447ECA', borderColor: '#BFDBFE' }}
-                >
-                    <Shield size={9} /> admin
+                <span className="text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 flex-shrink-0 bg-blue-50 text-blue-600 border border-blue-100/70 uppercase tracking-wider">
+                    <Shield size={10} strokeWidth={3} /> admin
                 </span>
             </div>
 
             {errorMessage && (
-                <div className="rounded-2xl border border-red-200 bg-red-50 text-red-700 text-xs font-semibold p-4">
+                <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm font-medium p-4 flex items-center shadow-sm">
                     {errorMessage}
                 </div>
             )}
@@ -92,7 +89,6 @@ const AdminPanel: React.FC = () => {
                 isLoading={isLoading}
                 onDeleted={refetch}
             />
-
         </div>
     );
 };

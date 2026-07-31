@@ -12,9 +12,11 @@ import {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-/** The API never returns a username, so we derive one from the email local-part. */
-const deriveUsername = (email: string, username?: string): string =>
-  username?.trim() || email.split("@")[0];
+const deriveUsername = (email: string, username?: string): string => {
+  if (username && username.trim().length > 0) return username.trim();
+  if (email && email.includes("@")) return email.split("@")[0];
+  return "Usuario";
+};
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<SessionUser | null>(readStoredSession);
