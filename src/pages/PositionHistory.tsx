@@ -5,6 +5,7 @@ import PositionHistoryTable from "../components/Sections/PositionHistoryTable";
 
 import { Plus, AlertCircle, Loader2, Briefcase } from "lucide-react";
 import { positionService } from "../services/api/positions.api";
+import { ApiError } from "../services/api/apiClient";
 import { Position } from "../types/api.types";
 
 const PositionHistory: React.FC = () => {
@@ -44,8 +45,16 @@ const PositionHistory: React.FC = () => {
             setPositions(prev => prev.filter(p => p.id !== id));
         } catch (err) {
             console.error("Error al eliminar", err);
-            setError("No se pudo eliminar la posición.");
+            if (err instanceof ApiError && err.status === 400) {
+                setError("No se puede eliminar una posición que tiene vacantes asignadas.");
+            } else {
+                setError("No se pudo eliminar la posición.");
+            }
         }
+    };
+
+    const handleEditPosition = (id: number | string) => {
+        navigate(`/position/edit/${id}`);
     };
 
     const handleDuplicatePosition = async (id: number | string) => {
@@ -174,6 +183,7 @@ const PositionHistory: React.FC = () => {
                             data={filteredPositions}
                             onDelete={handleDeletePosition}
                             onDuplicate={handleDuplicatePosition}
+                            onEdit={handleEditPosition}
                         />
                     )}
                 </div>

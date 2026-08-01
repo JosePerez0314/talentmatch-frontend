@@ -81,9 +81,9 @@ export const UserTableModule: React.FC<UserTableModuleProps> = ({
                                                 className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0"
                                                 style={{ backgroundColor: user.role === 'ADMIN' ? '#447ECA' : '#6B7280' }}
                                             >
-                                                {(user.username ?? 'U')[0].toUpperCase()}
+                                                {user.email.split('@')[0][0].toUpperCase()}
                                             </div>
-                                            <span className="text-gray-700">{user.username}</span>
+                                            <span className="text-gray-700">{user.email.split('@')[0]}</span>
                                         </div>
                                     </td>
                                     <td className="px-5 py-3 text-gray-400 hidden sm:table-cell">{user.email}</td>

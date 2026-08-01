@@ -9,9 +9,6 @@ interface UserDeleteModuleProps {
     onDeleted: () => void;
 }
 
-const getInitials = (name?: string): string =>
-    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
-
 export const UserDeleteModule: React.FC<UserDeleteModuleProps> = ({ users, isLoading, onDeleted }) => {
     const [searchTerm, setSearchTerm]     = useState<string>('');
     const [confirmingId, setConfirmingId] = useState<string | null>(null);
@@ -99,11 +96,11 @@ export const UserDeleteModule: React.FC<UserDeleteModuleProps> = ({ users, isLoa
                                 >
                                     {/* Avatar */}
                                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0 ${user.role === 'ADMIN' ? 'bg-[#447ECA]' : 'bg-gray-400'}`}>
-                                        {getInitials(user.username)}
+                                        {user.email.split('@')[0][0].toUpperCase()}
                                     </div>
 
                                     {/* Name */}
-                                    <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{user.username}</span>
+                                    <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{user.email.split('@')[0]}</span>
 
                                     {/* Role pill */}
                                     <span
