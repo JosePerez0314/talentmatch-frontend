@@ -5,6 +5,7 @@ export type UserRole = 'ADMIN' | 'USER';
 export type EducationLevel = 'NONE' | 'HIGH_SCHOOL' | 'BACHELOR' | 'TECHNICAL' | 'UNIVERSITY' | 'MASTER' | 'DOCTORATE';
 export type VacancyStatus = 'ACTIVE' | 'PAUSED' | 'CLOSED';
 export type CandidateStatus = 'DISPONIBLE' | 'CONTRATADO';
+export type ApplicationStatus = 'PENDIENTE' | 'EN_PROCESO' | 'SELECCIONADO' | 'RECHAZADO';
 
 // INTERFACES DE ENTIDADES
 
@@ -64,7 +65,7 @@ export interface Candidate {
     status?: CandidateStatus;
     indexedAt?: string;
     createdAt?: string;
-    applications?: unknown[];
+    applications?: Application[];
 }
 
 // Structured candidate data extracted by the AI evaluation engine.
@@ -114,6 +115,13 @@ export interface MatchResult {
     matchReasoning?: string;
     // Serialized JSON string — must be JSON.parse()'d before use
     normalizedCandidate?: string;
+}
+
+export interface Application {
+    id?: number;
+    candidateId?: number;
+    vacancyId?: number;
+    status: ApplicationStatus;
 }
 
 // INTERFACES DE RESPUESTA HTTP

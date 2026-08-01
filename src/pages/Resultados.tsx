@@ -4,6 +4,7 @@ import { Icons } from "../assets/icons/index";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
+import { ApiError } from "../services/api/apiClient";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { MatchResult, Vacancy } from "../types/api.types";
 
@@ -62,19 +63,33 @@ const Resultados: React.FC = () => {
 
     const handleHire = async (match: MatchResult) => {
         if (!id) return;
+        const candidateId = match.candidateId ?? match.candidate?.id;
+        if (!candidateId) return;
+
         const confirmed = window.confirm(
-            "Contratar a este candidato cerrará la vacante. ¿Deseas continuar?",
+            "¿Marcar este candidato como seleccionado? La vacante se cerrará automáticamente si se completan los cupos.",
         );
         if (!confirmed) return;
 
         try {
             setHiringMatchId(match.id);
-            const updated = await vacanciesApi.updateStatus(id, "CLOSED");
-            setVacancy((prev) => (prev ? { ...prev, status: updated.status } : updated));
-            showNotification("Candidato contratado y vacante cerrada con éxito.", "success");
+            const result = await vacanciesApi.updateCandidateStatus(id, candidateId, "SELECCIONADO");
+            setVacancy(prev => prev ? { ...prev, status: result.vacancy.status, availableSlots: result.vacancy.availableSlots } : prev);
+            const msg = result.vacancy.status === "CLOSED"
+                ? "Candidato seleccionado. Vacante cerrada por cupos completados."
+                : "Candidato marcado como seleccionado.";
+            showNotification(msg, "success");
         } catch (error) {
-            console.error("Error al cerrar la vacante:", error);
-            showNotification("No se pudo cerrar la vacante. Intenta de nuevo.", "error");
+            if (error instanceof ApiError && error.status === 409) {
+                const msg = vacancy?.status === "CLOSED"
+                    ? "La vacante está cerrada. Reactívala para cambiar estados."
+                    : "No hay cupos disponibles para seleccionar más candidatos.";
+                showNotification(msg, "error");
+            } else if (error instanceof ApiError && error.status === 404) {
+                showNotification("Este candidato no tiene un registro activo para esta vacante. Re-sube su CV para habilitarlo.", "error");
+            } else {
+                showNotification("No se pudo actualizar el estado del candidato.", "error");
+            }
         } finally {
             setHiringMatchId(null);
         }
