@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { CheckCircle, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { CheckCircle, Sparkles, PenLine, UploadCloud, ChevronLeft, ChevronRight, FileText, X, Loader2 } from "lucide-react";
 
 // Components & Services
 import PillInput from "../components/ui/PillInput";
@@ -42,6 +42,8 @@ const INITIAL_STATE: CreatePositionInput = {
 
 const Position: React.FC = () => {
   const navigate = useNavigate();
+  const { id: editId } = useParams<{ id: string }>();
+  const isEditMode = !!editId;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ESTADOS DEL WIZARD
@@ -57,6 +59,7 @@ const Position: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingEdit, setIsFetchingEdit] = useState(false);
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [apiError, setApiError] = useState("");
 
@@ -76,6 +79,37 @@ const Position: React.FC = () => {
     };
     fetchDepartments();
   }, []);
+
+  // EN MODO EDICIÓN: cargar la posición existente y saltar al paso 2
+  useEffect(() => {
+    if (!editId) return;
+    const fetchPosition = async () => {
+      setIsFetchingEdit(true);
+      setApiError("");
+      try {
+        const position = await positionService.getById(editId);
+        setFormData({
+          departmentId: position.departmentId,
+          role: position.role,
+          yearsOfExperience: position.yearsOfExperience,
+          description: position.description,
+          technicalSkills: position.technicalSkills,
+          optionalTechnicalSkills: position.optionalTechnicalSkills,
+          softSkills: position.softSkills,
+          educationLevel: position.educationLevel as string,
+          educationArea: position.educationArea ?? "",
+          languages: position.languages,
+        });
+        setEntryMethod("manual");
+        setCurrentStep(2);
+      } catch (error) {
+        setApiError(formatApiError(error, "No se pudo cargar la posición."));
+      } finally {
+        setIsFetchingEdit(false);
+      }
+    };
+    fetchPosition();
+  }, [editId]);
 
   const handlePill = (field: keyof CreatePositionInput, val: string | null, action: 'add' | 'remove', idx?: number) => {
     if (action === 'add' && val) {
@@ -168,10 +202,14 @@ const Position: React.FC = () => {
           yearsOfExperience: Number(formData.yearsOfExperience),
           educationArea: formData.educationArea?.trim() || undefined,
         };
-        await positionService.create(finalPayload as CreatePositionInput);
+        if (isEditMode && editId) {
+          await positionService.update(editId, finalPayload);
+        } else {
+          await positionService.create(finalPayload as CreatePositionInput);
+        }
         setIsSuccess(true);
       } catch (error) {
-        setApiError(formatApiError(error, "Error al crear la posición."));
+        setApiError(formatApiError(error, isEditMode ? "Error al actualizar la posición." : "Error al crear la posición."));
       } finally {
         setIsLoading(false);
       }
@@ -217,6 +255,17 @@ const Position: React.FC = () => {
       </div>
     );
   };
+
+  if (isFetchingEdit) {
+    return (
+      <div className="p-4 md:p-8 max-w-4xl mx-auto flex justify-center">
+        <div className="bg-white rounded-2xl shadow-sm p-10 flex items-center gap-3 text-gray-500 text-sm">
+          <Loader2 className="animate-spin text-[#447ECA]" size={20} />
+          Cargando posición...
+        </div>
+      </div>
+    );
+  }
 
   if (showAiLoader) {
     return (
@@ -437,7 +486,7 @@ const Position: React.FC = () => {
             onMouseOver={e => { if (!isLoading) e.currentTarget.style.backgroundColor = '#3a6bb8'; }}
             onMouseOut={e => { e.currentTarget.style.backgroundColor = '#447ECA'; }}
           >
-            {isLoading ? "Creando..." : "Crear Posición"} <ChevronRight size={15} />
+            {isLoading ? (isEditMode ? "Guardando..." : "Creando...") : (isEditMode ? "Guardar Cambios" : "Crear Posición")} <ChevronRight size={15} />
           </button>
         )}
       </div>

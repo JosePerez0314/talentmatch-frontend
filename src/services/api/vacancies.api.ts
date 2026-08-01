@@ -1,9 +1,17 @@
 import { apiClient } from "./apiClient";
 import {
-  Vacancy,
+  Application,
+  ApplicationStatus,
   MatchResult,
   UploadResult,
+  Vacancy,
+  VacancyStatus,
 } from "../../types/api.types";
+
+type CandidateStatusResult = {
+  application: Application;
+  vacancy: { id: number; availableSlots: number; status: VacancyStatus };
+};
 
 // Interfaz
 export interface CreateVacancyInput {
@@ -80,5 +88,21 @@ export const vacanciesApi = {
   // POST /vacancies/:id/evaluations - Ejecutar IA para evaluar
   evaluateCandidates: async (id: number | string): Promise<MatchResult[]> => {
     return apiClient<MatchResult[]>(`/vacancies/${id}/evaluations`, { method: 'POST' });
-  }
+  },
+
+  // PATCH /vacancies/:vacancyId/candidates/:candidateId/status - Cambiar estado del candidato
+  updateCandidateStatus: async (
+    vacancyId: number | string,
+    candidateId: number | string,
+    status: ApplicationStatus,
+  ): Promise<CandidateStatusResult> => {
+    return apiClient<CandidateStatusResult>(
+      `/vacancies/${vacancyId}/candidates/${candidateId}/status`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      },
+    );
+  },
 };

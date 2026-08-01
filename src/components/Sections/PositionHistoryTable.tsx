@@ -14,6 +14,7 @@ interface PositionHistoryTableProps {
     data: PositionData[];
     onDelete: (id: number | string) => void;
     onDuplicate: (id: number | string) => void;
+    onEdit?: (id: number | string) => void;
 }
 
 const formatDate = (dateString: string | undefined): string => {
@@ -23,7 +24,7 @@ const formatDate = (dateString: string | undefined): string => {
     return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
-const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], onDelete, onDuplicate }) => {
+const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], onDelete, onDuplicate, onEdit }) => {
     return (
         <table className="w-full">
             <thead>
@@ -67,6 +68,7 @@ const PositionHistoryTable: React.FC<PositionHistoryTableProps> = ({ data = [], 
                                 <ActionDropdown
                                     onDelete={() => onDelete(id)}
                                     onDuplicate={() => onDuplicate(id)}
+                                    onEdit={() => onEdit?.(id)}
                                 />
                             </td>
                         </tr>
