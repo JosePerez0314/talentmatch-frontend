@@ -1,17 +1,11 @@
 import { apiClient } from "./apiClient";
 import {
-  Application,
   ApplicationStatus,
   MatchResult,
-  UploadResult,
-  ApplicationStatus,
   UpdateCandidateStatusData,
+  UploadResult,
+  Vacancy,
 } from "../../types/api.types";
-
-type CandidateStatusResult = {
-  application: Application;
-  vacancy: { id: number; availableSlots: number; status: VacancyStatus };
-};
 
 // Interfaz
 export interface CreateVacancyInput {

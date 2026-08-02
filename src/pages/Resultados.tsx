@@ -4,7 +4,6 @@ import { Inbox, Briefcase } from "lucide-react";
 import ProcessingModal from "../components/ui/ProcessingModal.jsx";
 import CandidateMatchRow from "../components/cards/CandidateMatchRow";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
-import { ApiError } from "../services/api/apiClient";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { MatchResult, Vacancy, ApplicationStatus, Application } from "../types/api.types";
 

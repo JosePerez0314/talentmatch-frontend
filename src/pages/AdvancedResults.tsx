@@ -543,7 +543,8 @@ const AdvancedResults: React.FC = () => {
                                     const scoreColor = getScoreColor(score);
                                     const lightText = score < 50;
                                     const avatarStyle = getAvatarStyle(idx);
-                                    const candidateStatus = candidateStatuses.get(m.id) ?? "NO_CONTRATADO";
+                                    const cId = person?.id;
+                                    const candidateStatus: ApplicationStatus = (cId != null ? candidateStatuses.get(cId) : undefined) ?? "PENDIENTE";
 
                                     return (
                                         <div key={m.id ?? idx} className="flex items-center gap-3 py-3.5">
@@ -583,12 +584,14 @@ const AdvancedResults: React.FC = () => {
                                             {/* Status selector */}
                                             <select
                                                 value={candidateStatus}
-                                                onChange={e => handleUpdateStatus(m.id, e.target.value)}
-                                                className={`text-xs font-semibold px-2.5 py-1.5 rounded-xl border focus:outline-none transition-all cursor-pointer shrink-0 ${getStatusStyle(candidateStatus)}`}
+                                                disabled={isClosed || cId == null}
+                                                onChange={e => cId != null && handleUpdateStatus(cId, e.target.value as ApplicationStatus)}
+                                                className={`text-xs font-semibold px-2.5 py-1.5 rounded-xl border focus:outline-none transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusStyle(candidateStatus)}`}
                                             >
-                                                <option value="NO_CONTRATADO">No Contratado</option>
-                                                <option value="CONTACTADO">Contactar</option>
-                                                <option value="CONTRATADO">Contratado</option>
+                                                <option value="PENDIENTE">Pendiente</option>
+                                                <option value="EN_PROCESO">En Proceso</option>
+                                                <option value="SELECCIONADO">Seleccionado</option>
+                                                <option value="RECHAZADO">Rechazado</option>
                                             </select>
 
                                             {/* Match score badge */}

@@ -8,21 +8,21 @@ import {
     Layers,
     Share2,
     Sparkles,
-    Loader2,
 } from "lucide-react";
 
 import EvaluationCard from "../components/EvaluationCard";
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { departmentsApi } from "../services/api/departments.api";
-import { MatchResult, Vacancy, ApplicationStatus } from "../types/api.types";
+import { ApiError } from "../services/api/apiClient";
+import { ApplicationStatus, MatchResult, Vacancy } from "../types/api.types";
 import { Department } from "../types/department.types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type EvalState = "idle" | "calculating" | "done" | "empty";
 
-// ─── Constants & Mappings ─────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const AVATAR_PALETTES = [
     { bg: "#DCF9FF", text: "#447ECA" },
@@ -35,21 +35,11 @@ const AVATAR_PALETTES = [
     { bg: "#E8EAF6", text: "#283593" },
 ];
 
-const UI_STATUSES = ["No Contratado", "Contactado", "Contratado"] as const;
-
-// Mapeo UI -> Backend ApplicationStatus
-const STATUS_TO_BACKEND: Record<string, ApplicationStatus> = {
-    "Contactado": "EN_PROCESO",
-    "Contratado": "SELECCIONADO",
-    "No Contratado": "RECHAZADO",
-};
-
-// Mapeo Backend ApplicationStatus -> UI
-const STATUS_FROM_BACKEND: Record<ApplicationStatus, string> = {
-    "EN_PROCESO": "Contactado",
-    "SELECCIONADO": "Contratado",
-    "RECHAZADO": "No Contratado",
-    "PENDIENTE": "No Contratado",
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+    PENDIENTE: "Pendiente",
+    EN_PROCESO: "En proceso",
+    SELECCIONADO: "Seleccionado",
+    RECHAZADO: "Rechazado",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -75,9 +65,10 @@ const getCandidateName = (match: MatchResult): string => {
     );
 };
 
-const getStatusStyle = (status: string): string => {
-    if (status === "Contratado") return "text-green-600 bg-green-50 border-green-200";
-    if (status === "Contactado") return "text-yellow-600 bg-yellow-50 border-yellow-200";
+const getStatusStyle = (status: ApplicationStatus): string => {
+    if (status === "SELECCIONADO") return "text-green-600 bg-green-50 border-green-200";
+    if (status === "EN_PROCESO") return "text-yellow-600 bg-yellow-50 border-yellow-200";
+    if (status === "RECHAZADO") return "text-red-500 bg-red-50 border-red-200";
     return "text-gray-500 bg-gray-50 border-gray-200";
 };
 
@@ -135,9 +126,9 @@ const EvaluationsHistory: React.FC = () => {
     const [evalError, setEvalError] = useState<string | null>(null);
 
     // UI
-    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, string>>(new Map());
-    const [updatingCandidateId, setUpdatingCandidateId] = useState<number | null>(null);
+    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, ApplicationStatus>>(new Map());
     const [statusDropdownId, setStatusDropdownId] = useState<number | null>(null);
+    const [statusError, setStatusError] = useState<string | null>(null);
     const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
@@ -226,38 +217,24 @@ const EvaluationsHistory: React.FC = () => {
         }
 
         try {
-            // 1. Intentar llamar a evaluaciones. Si da 400 (ya evaluado), se ignora y continúa.
             try {
                 await vacanciesApi.evaluateCandidates(vacancy.id);
-            } catch {
-                // Ignoramos el fallo de evaluación si la vacante ya fue procesada anteriormente
+            } catch (err) {
+                if (!(err instanceof ApiError && err.status === 400)) throw err;
             }
 
-            // 2. Obtener los resultados directo de la API
             const data = await vacanciesApi.getResults(vacancy.id, 1, 10);
             const list = Array.isArray(data) ? data : [];
             setResults(list);
 
-            // 3. Cargar los estados guardados en la BD de forma flexible
-            const initialMap = new Map<number, string>();
-            list.forEach((res) => {
-                const candId = res.candidate?.id ?? res.candidateId;
-                if (!candId) return;
-
-                const apps = res.candidate?.applications || [];
-                // Comparación flexible usando String(...) para evitar fallos de string vs number
-                const app = apps.find(
-                    (a) => String(a.vacancyId) === String(vacancy.id)
-                ) || apps[0];
-
-                const rawStatus = (app?.status || (res as unknown as Record<string, unknown>).status) as ApplicationStatus;
-
-                if (rawStatus && STATUS_FROM_BACKEND[rawStatus]) {
-                    initialMap.set(candId, STATUS_FROM_BACKEND[rawStatus]);
-                }
+            // Seed statuses from Application rows
+            const seeded = new Map<number, ApplicationStatus>();
+            list.forEach((m) => {
+                const cId = m.candidate?.id ?? m.candidateId;
+                const appStatus = m.candidate?.applications?.[0]?.status;
+                if (cId != null && appStatus) seeded.set(cId, appStatus);
             });
-
-            setCandidateStatuses(initialMap);
+            setCandidateStatuses(seeded);
 
             if (!isRecalc) {
                 setEvalState(list.length > 0 ? "done" : "empty");
@@ -279,47 +256,44 @@ const EvaluationsHistory: React.FC = () => {
         setEvalState("idle");
         setResults([]);
         setEvalError(null);
+        setStatusError(null);
+        setCandidateStatuses(new Map());
         setStatusDropdownId(null);
         setSelectedMatch(null);
         setIsModalOpen(false);
     };
 
-    // ── Update Candidate Status ──────────────────────────────────────────────
-    const handleStatusChange = async (candidateId: number, newUiStatus: string) => {
-        if (!selectedVacancy || !candidateId) return;
-
-        const backendStatus = STATUS_TO_BACKEND[newUiStatus];
-        if (!backendStatus) return;
-
-        const previousStatus = candidateStatuses.get(candidateId);
-
-        // Optimistic UI Update
-        setCandidateStatuses((prev) => new Map(prev).set(candidateId, newUiStatus));
+    const handleStatusChange = async (candidateId: number, newStatus: ApplicationStatus) => {
+        if (!selectedVacancy) return;
         setStatusDropdownId(null);
-        setUpdatingCandidateId(candidateId);
-
+        const previous = candidateStatuses.get(candidateId);
+        setCandidateStatuses((prev) => new Map(prev).set(candidateId, newStatus));
         try {
-            await vacanciesApi.updateCandidateStatus(
-                selectedVacancy.id,
-                candidateId,
-                backendStatus
-            );
-        } catch (error) {
-            console.error("Error al actualizar estado en el servidor:", error);
-            // Revertir estado si falla el servidor
-            if (previousStatus) {
-                setCandidateStatuses((prev) => new Map(prev).set(candidateId, previousStatus));
-            } else {
-                setCandidateStatuses((prev) => {
-                    const updated = new Map(prev);
-                    updated.delete(candidateId);
-                    return updated;
-                });
+            const result = await vacanciesApi.updateCandidateStatus(selectedVacancy.id, candidateId, newStatus);
+            // Sync vacancy status/slots — auto-close happens here when last slot is filled
+            if (result.vacancy.status !== selectedVacancy.status || result.vacancy.availableSlots !== selectedVacancy.availableSlots) {
+                setSelectedVacancy((prev) =>
+                    prev ? { ...prev, status: result.vacancy.status, availableSlots: result.vacancy.availableSlots } : prev,
+                );
             }
-            setShareMsg("No se pudo actualizar el estado en el servidor.");
-            setTimeout(() => setShareMsg(null), 3000);
-        } finally {
-            setUpdatingCandidateId(null);
+        } catch (err) {
+            setCandidateStatuses((prev) => {
+                const next = new Map(prev);
+                previous != null ? next.set(candidateId, previous) : next.delete(candidateId);
+                return next;
+            });
+            if (err instanceof ApiError && err.status === 409) {
+                setStatusError(
+                    selectedVacancy.status === "CLOSED"
+                        ? "La vacante está cerrada. Reactívala para cambiar estados."
+                        : "No hay cupos disponibles para seleccionar más candidatos.",
+                );
+            } else if (err instanceof ApiError && err.status === 404) {
+                setStatusError("Este candidato no tiene un registro activo. Re-sube su CV y recalcula.");
+            } else {
+                setStatusError("No se pudo actualizar el estado del candidato.");
+            }
+            window.setTimeout(() => setStatusError(null), 4000);
         }
     };
 
@@ -341,7 +315,7 @@ const EvaluationsHistory: React.FC = () => {
             ]);
             setShareMsg("¡Imagen copiada al portapapeles!");
         } catch {
-            setShareMsg("No se pudo copiar la imagen.");
+            setShareMsg("No se pudo copiar la imagen. Verifica los permisos del navegador.");
         } finally {
             setIsSharing(false);
             window.setTimeout(() => setShareMsg(null), 3500);
@@ -475,11 +449,21 @@ const EvaluationsHistory: React.FC = () => {
         departmentsById.get(String(selectedVacancy?.departmentId))?.name ??
         null;
 
+    const isClosed = selectedVacancy?.status === "CLOSED";
+
     return (
         <div className="min-h-screen bg-[#f0f0f5] p-8 w-full">
+            {/* Share feedback toast */}
             {shareMsg && (
                 <div className="fixed bottom-6 right-6 z-50 px-4 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-xl">
                     {shareMsg}
+                </div>
+            )}
+
+            {/* Status update error toast */}
+            {statusError && (
+                <div className="fixed bottom-6 left-6 z-50 px-4 py-3 bg-red-600 text-white text-sm rounded-xl shadow-xl">
+                    {statusError}
                 </div>
             )}
 
@@ -499,8 +483,12 @@ const EvaluationsHistory: React.FC = () => {
                                 <span className="text-sm font-semibold text-gray-800 truncate">
                                     {selectedVacancy?.title}
                                 </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
-                                    Activa
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                    isClosed
+                                        ? "bg-slate-200 text-slate-600"
+                                        : "bg-green-100 text-green-700"
+                                }`}>
+                                    {isClosed ? "Cerrada" : "Activa"}
                                 </span>
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">
@@ -578,7 +566,7 @@ const EvaluationsHistory: React.FC = () => {
                             evaluados
                         </p>
 
-                        {/* Candidate cards */}
+                        {/* Candidate cards — this div is captured by the screenshot */}
                         <div
                             ref={resultsRef}
                             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1"
@@ -592,13 +580,10 @@ const EvaluationsHistory: React.FC = () => {
                                     .slice(0, 2)
                                     .map((n) => n[0].toUpperCase())
                                     .join("");
-
-                                // Garantizamos extraer el ID real del candidato sin hacer fallback a result.id
-                                const candidateId = result.candidate?.id ?? result.candidateId;
-                                const currentStatus = candidateId
-                                    ? (candidateStatuses.get(candidateId) ?? "No Contratado")
-                                    : "No Contratado";
-                                const isUpdating = candidateId ? updatingCandidateId === candidateId : false;
+                                // Prefer nested candidate.id; fall back to top-level candidateId
+                                const cId = result.candidate?.id ?? result.candidateId;
+                                const currentStatus: ApplicationStatus =
+                                    (cId != null ? candidateStatuses.get(cId) : undefined) ?? "PENDIENTE";
 
                                 return (
                                     <div
@@ -652,7 +637,6 @@ const EvaluationsHistory: React.FC = () => {
                                             {/* Status dropdown */}
                                             <div className="relative flex-shrink-0 status-dropdown-container">
                                                 <button
-                                                    disabled={isUpdating || !candidateId}
                                                     onClick={() =>
                                                         setStatusDropdownId(
                                                             statusDropdownId === result.id
@@ -660,31 +644,24 @@ const EvaluationsHistory: React.FC = () => {
                                                                 : result.id,
                                                         )
                                                     }
-                                                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border transition-colors ${getStatusStyle(
-                                                        currentStatus
-                                                    )}`}
+                                                    disabled={cId == null || isClosed}
+                                                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border transition-colors disabled:opacity-50 ${getStatusStyle(currentStatus)}`}
                                                 >
-                                                    {isUpdating ? (
-                                                        <Loader2 size={10} className="animate-spin text-gray-500" />
-                                                    ) : (
-                                                        <>
-                                                            {currentStatus}
-                                                            <ChevronDown size={9} />
-                                                        </>
-                                                    )}
+                                                    {STATUS_LABELS[currentStatus]}
+                                                    <ChevronDown size={9} />
                                                 </button>
 
                                                 {statusDropdownId === result.id && (
                                                     <div className="absolute left-0 bottom-full mb-1 z-20 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-36">
-                                                        {UI_STATUSES.map((s) => (
+                                                        {(Object.keys(STATUS_LABELS) as ApplicationStatus[]).map((s) => (
                                                             <button
                                                                 key={s}
                                                                 onClick={() =>
-                                                                    candidateId && handleStatusChange(candidateId, s)
+                                                                    cId != null && handleStatusChange(cId, s)
                                                                 }
                                                                 className="w-full px-3 py-2 text-xs text-left hover:bg-gray-50 text-gray-700 transition-colors"
                                                             >
-                                                                {s}
+                                                                {STATUS_LABELS[s]}
                                                             </button>
                                                         ))}
                                                     </div>

@@ -358,6 +358,8 @@ Runs the AI matching engine over every `Application` for this vacancy that doesn
 
 Note this endpoint does **not** use `sendResponseOr404` — the response is `{ success, data }` directly, not double-wrapped (contrast with `PATCH /:id/status` above).
 
+> **Side effect (2026-08-01):** when the transition is a *new selection* (`status: "SELECCIONADO"` and the candidate was not already `SELECCIONADO`), the backend also sets `Candidate.status = CONTRATADO` inside the same `$transaction`, after the slot guards pass. This write is atomic with the `Application` and `Vacancy` updates — if any guard throws `409`, nothing is written. The response body does **not** include the updated `Candidate` object; callers that need to reflect `Candidate.status` must re-fetch separately.
+
 **Errors:**
 | Code | Cause |
 |---|---|
@@ -517,6 +519,7 @@ This is a deliberately minimal, **not built for high-concurrency scale** rule, a
 - Only transitioning a candidate's `Application.status` **into** `"SELECCIONADO"` is checked against `Vacancy.availableSlots`. Any other transition (`PENDIENTE`/`EN_PROCESO`/`RECHAZADO`, or re-confirming a candidate already `SELECCIONADO`) never touches the slot count.
 - The check counts existing `Application` rows with `status: "SELECCIONADO"` for that vacancy. If the count is already `>= availableSlots`, the request is rejected with `409` and **nothing is written** — the candidate's status stays whatever it was before the call.
 - If accepting this candidate reaches `availableSlots`, the vacancy's `status` is set to `"CLOSED"` in the **same transaction** as the `Application` update (`prisma.$transaction`, with the `Vacancy` row locked via `SELECT ... FOR UPDATE` for the duration, so two near-simultaneous hire attempts on the same vacancy can't both squeeze past the slot check).
+- **New hire flag (2026-08-01):** when `isNewSelection` is true (transition into `SELECCIONADO` and the candidate was not already in that state), `Candidate.status` is also set to `CONTRATADO` inside the same transaction — after the slot guards pass, before the slot count and auto-close check. If the guards reject the request, `Candidate.status` is never written.
 - **While a vacancy is `CLOSED`, this endpoint rejects *any* candidate status change with `409`** — not just new selections — until the vacancy is reactivated.
 - **No automatic reopening, ever.** Moving a candidate out of `SELECCIONADO` (freeing a slot) does not reopen a `CLOSED` vacancy. Reopening is always the explicit, manual `PATCH /api/vacancies/:id/status` (`ACTIVE`) — this endpoint never writes `Vacancy.status` back to `ACTIVE`.
 - **Raising `availableSlots` does not reopen a `CLOSED` vacancy either.** `PUT /api/vacancies/:id` can increase `availableSlots` (it's a real patch, §8.2), but if the vacancy is `CLOSED` that has to be paired with a manual `PATCH .../status` → `ACTIVE` to actually accept anyone into the new slots.
