@@ -75,7 +75,7 @@ const PositionHistory: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div>
-                    <h1 className="text-gray-800">Historial de Posiciones</h1>
+                    <h1 className="text-gray-800 text-xl font-bold">Historial de Posiciones</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
                         {positions.length} posición{positions.length !== 1 ? "es" : ""} registrada{positions.length !== 1 ? "s" : ""}
                     </p>
@@ -129,12 +129,12 @@ const PositionHistory: React.FC = () => {
                 </div>
             )}
 
-            {/* Data container */}
+            {/* Data container — Se remueve 'overflow-hidden' para permitir que el dropdown flote libremente */}
             {!isLoading && positions.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm">
 
                     {/* Tabs */}
-                    <div className="border-b border-gray-100 px-4 overflow-x-auto">
+                    <div className="border-b border-gray-100 px-4 overflow-x-auto rounded-t-2xl">
                         <div className="flex gap-0 min-w-max">
                             {departmentsList.map((dept) => {
                                 const isActive = activeTab === dept;
@@ -143,11 +143,10 @@ const PositionHistory: React.FC = () => {
                                     <button
                                         key={dept}
                                         onClick={() => setActiveTab(dept)}
-                                        className={`flex items-center gap-2 px-4 py-3.5 text-sm border-b-2 transition-colors whitespace-nowrap ${
-                                            isActive
+                                        className={`flex items-center gap-2 px-4 py-3.5 text-sm border-b-2 transition-colors whitespace-nowrap ${isActive
                                                 ? 'border-[#447ECA] text-[#447ECA]'
                                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200'
-                                        }`}
+                                            }`}
                                     >
                                         {dept}
                                         <span
