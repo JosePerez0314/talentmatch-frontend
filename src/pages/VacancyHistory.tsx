@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import VacancyActionModal from "../components/modals/VacancyActionModal";
 
+import { ApiError } from "../services/api/apiClient";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { Vacancy, VacancyStatus } from "../types/api.types";
 
@@ -92,7 +93,10 @@ const VacancyHistory: React.FC = () => {
                 closeMenu();
             } catch (error) {
                 console.error("Error al eliminar vacante:", error);
-                setErrorMessage("No se pudo eliminar la vacante.");
+                const detail = error instanceof ApiError
+                    ? `(${error.status}) ${error.message}`
+                    : "Error desconocido";
+                setErrorMessage(`No se pudo eliminar la vacante: ${detail}`);
             }
         }
     };
