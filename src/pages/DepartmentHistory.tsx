@@ -69,8 +69,8 @@ const DepartmentHistory: React.FC = () => {
 
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-gray-800">Departamentos</h1>
-                <p className="text-gray-400 text-sm mt-0.5">
+                <h1 className="text-gray-800 text-xl font-bold">Departamentos</h1>
+                <p className="text-gray-500 text-sm mt-0.5">
                     Gestiona las áreas de tu organización y las posiciones vinculadas a cada una.
                 </p>
             </div>
@@ -99,98 +99,104 @@ const DepartmentHistory: React.FC = () => {
                 </div>
             )}
 
-            {/* Data container */}
+            {/* Data container - Sin 'overflow-hidden' y con min-h para que el menú no se corte en listas cortas */}
             {(loading || departments.length > 0) && (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm min-h-[220px]">
                     {/* Sub-header */}
                     <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <p className="text-xs text-gray-400 uppercase tracking-wide">
+                        <p className="text-xs text-black uppercase tracking-wide font-medium">
                             {loading ? "Cargando…" : `${departments.length} departamento${departments.length !== 1 ? "s" : ""}`}
                         </p>
                     </div>
 
                     <div className="divide-y divide-gray-50">
-                        {departments.map((dept) => (
-                            <div
-                                key={dept.id}
-                                className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50 transition-colors group relative"
-                            >
-                                {/* Icon */}
+                        {departments.map((dept, index) => {
+                            // Solo voltea el menú si hay más de 3 elementos Y estamos en los últimos 2
+                            const isNearBottom = departments.length > 3 && index >= departments.length - 2;
+
+                            return (
                                 <div
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                                    style={{ backgroundColor: '#DCF9FF' }}
+                                    key={dept.id}
+                                    className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50/80 transition-colors group relative"
                                 >
-                                    <Layers size={16} style={{ color: '#447ECA' }} />
-                                </div>
-
-                                {/* Name + positions count */}
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-800 truncate">{dept.name}</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">
-                                        {dept.positionsCount === 0
-                                            ? "Sin posiciones asignadas"
-                                            : dept.positionsCount === 1
-                                                ? "1 posición asignada"
-                                                : `${dept.positionsCount} posiciones asignadas`}
-                                    </p>
-                                </div>
-
-                                {/* Date */}
-                                <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
-                                    <Clock size={11} />
-                                    <span>
-                                        {dept.createdAt
-                                            ? new Date(dept.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
-                                            : "—"}
-                                    </span>
-                                </div>
-
-                                {/* Right side: count badge + actions */}
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                    {dept.positionsCount > 0 && (
-                                        <span
-                                            className="px-2 py-0.5 rounded-full text-xs"
-                                            style={{ backgroundColor: '#DCF9FF', color: '#447ECA' }}
-                                        >
-                                            {dept.positionsCount}
-                                        </span>
-                                    )}
-
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={(e) => toggleMenu(dept.id, e)}
-                                            title="Opciones de departamento"
-                                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
-                                        >
-                                            <MoreVertical size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Dropdown */}
-                                {openMenuId === dept.id && (
+                                    {/* Icon */}
                                     <div
-                                        className="absolute right-4 top-14 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50"
-                                        onClick={e => e.stopPropagation()}
+                                        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ backgroundColor: '#DCF9FF' }}
                                     >
-                                        <button
-                                            onClick={() => { setEditModalDept(dept); closeMenu(); }}
-                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
-                                        >
-                                            <Pencil size={14} className="text-blue-500" />
-                                            Editar nombre
-                                        </button>
-                                        <button
-                                            onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
-                                            className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                            Eliminar
-                                        </button>
+                                        <Layers size={16} style={{ color: '#447ECA' }} />
                                     </div>
-                                )}
-                            </div>
-                        ))}
+
+                                    {/* Name + positions count */}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-800 truncate">{dept.name}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            {dept.positionsCount === 0
+                                                ? "Sin posiciones asignadas"
+                                                : dept.positionsCount === 1
+                                                    ? "1 posición asignada"
+                                                    : `${dept.positionsCount} posiciones asignadas`}
+                                        </p>
+                                    </div>
+
+                                    {/* Date */}
+                                    <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0">
+                                        <Clock size={11} />
+                                        <span>
+                                            {dept.createdAt
+                                                ? new Date(dept.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" })
+                                                : "—"}
+                                        </span>
+                                    </div>
+
+                                    {/* Right side: count badge + actions */}
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        {dept.positionsCount > 0 && (
+                                            <span
+                                                className="px-2 py-0.5 rounded-full text-xs font-medium"
+                                                style={{ backgroundColor: '#DCF9FF', color: '#447ECA' }}
+                                            >
+                                                {dept.positionsCount}
+                                            </span>
+                                        )}
+
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={(e) => toggleMenu(dept.id, e)}
+                                                title="Opciones de departamento"
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600"
+                                            >
+                                                <MoreVertical size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Dropdown dinámico */}
+                                    {openMenuId === dept.id && (
+                                        <div
+                                            className={`absolute right-4 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 ${isNearBottom ? "bottom-full mb-1" : "top-12"
+                                                }`}
+                                            onClick={e => e.stopPropagation()}
+                                        >
+                                            <button
+                                                onClick={() => { setEditModalDept(dept); closeMenu(); }}
+                                                className="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
+                                            >
+                                                <Pencil size={14} className="text-blue-500" />
+                                                Editar nombre
+                                            </button>
+                                            <button
+                                                onClick={() => { setDeleteModalDept(dept); closeMenu(); }}
+                                                className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}
