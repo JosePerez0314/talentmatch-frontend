@@ -4,6 +4,57 @@
 
 ---
 
+## Candidate status API wiring, position edit/delete, admin panel fixes, dead code removal
+
+**Branch:** `features`
+**Date:** 2026-08-01
+
+### Context
+
+This sprint completed the wiring of candidate status management to the real backend API, added the position edit route and wired the position history edit/delete buttons, fixed blank usernames in the admin panel, and removed several dead files. Every change below was applied to the `features` branch.
+
+### What changed
+
+1. **`ApplicationStatus` type + `Application` interface added to `src/types/api.types.ts`.** The type covers the four real backend enum values: `PENDIENTE`, `EN_PROCESO`, `SELECCIONADO`, `RECHAZADO`. The `Application` interface pairs a `candidateId`, `vacancyId`, and `status`.
+
+2. **`vacanciesApi.updateCandidateStatus` added to `src/services/api/vacancies.api.ts`.** Calls `PATCH /vacancies/:vacancyId/candidates/:candidateId/status` — the write path for `ApplicationStatus` introduced on the backend on 2026-07-23.
+
+3. **`AdvancedResults.tsx` fully wired.** The status selector now uses real `ApplicationStatus` values (`PENDIENTE/EN_PROCESO/SELECCIONADO/RECHAZADO`). It calls the PATCH API with optimistic update + rollback on failure. Status is seeded from `candidate.applications[0].status`. Specific 404 and 409 error messages surface in the UI.
+
+4. **`Resultados.tsx` `handleHire` fixed.** Now calls `updateCandidateStatus(..., "SELECCIONADO")` instead of `updateStatus("CLOSED")` directly. The vacancy is no longer closed as a side effect of marking one candidate as hired.
+
+5. **Position edit route added.** `/position/edit/:id` added to `src/App.tsx`.
+
+6. **`PositionHistory.tsx` edit and delete wired.** The Edit button now navigates to `/position/edit/:id`. Delete shows a FK error message on 400 responses from the backend.
+
+7. **`Position.tsx` edit mode.** Reads `id` from `useParams`, pre-fills the form when editing, and branches between create and update on submit.
+
+8. **Admin panel username display fixed.** `UserTableModule`, `RoleUpdateModule`, and `UserDeleteModule` now show `email.split('@')[0]` as the user display name (the API never returns a `username` field). Avatar initials corrected to a single letter.
+
+9. **Dead files deleted:** `src/components/DemoCredential.jsx`, `src/components/ui/EmptyVacancyState.tsx`, `src/utils/dashboardConfig.js`.
+
+10. **`src/vite-env.d.ts` relocated.** Moved from the orphan `src/src/vite-env.d.ts` to the correct `src/vite-env.d.ts`.
+
+11. **`docs/backend-bugs.md` created** with 8 backend bugs (BUG-001 through BUG-008).
+
+12. **404/409 error branches added** in `AdvancedResults.tsx` and `Resultados.tsx` for candidate status update failures.
+
+13. **`getResults` 404 treated as empty array.** A 404 response from the results endpoint no longer crashes the results page — it yields an empty list instead.
+
+14. **Evaluated candidate date fix.** The evaluated candidate date is now cross-referenced from `localCandidates` to fix the missing date display in section 2 of `AdvancedResults.tsx`.
+
+### Documentation updated
+
+- `docs/en/backend-documentation.md` created (moved from root `backend-documentation.md`); `Application` model entry updated to reflect its active routes.
+- `docs/en/bugs.md` and `docs/es/bugs.md`: bugs 1.3 (invented statuses), 3.1 (orphaned components), and 3.4 `vite-env` nested moved to resolved appendix; connection state table updated; executive summary counts updated.
+- `docs/en/last-changes.md` and `docs/es/last-changes.md`: this entry added.
+- `docs/en/front-documentation.md` and `docs/es/front-documentation.md`: `updateCandidateStatus` method, `ApplicationStatus` type, `/position/edit/:id` route, and `AdvancedResults`/`Resultados` wiring status updated.
+- Per-screen issue files: `position-history.md`, `admin-panel.md`, `vacancy-history.md` (en + es) updated.
+- `docs/es/backend-bugs.md` created (Spanish translation of `docs/backend-bugs.md`).
+- `ESTADO_ACTUAL.md` (root) deleted — stale status doc for a closed branch.
+
+---
+
 ## Full documentation refresh against current code
 
 **Branch:** `main`

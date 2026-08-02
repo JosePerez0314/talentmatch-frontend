@@ -6,7 +6,7 @@
 >
 > **Premise:** the backend is finished and correct. Everything below is frontend work.
 >
-> **Last verified against the code: 2026-07-14.**
+> **Last verified against the code: 2026-08-01.**
 
 ## What changed from earlier versions
 

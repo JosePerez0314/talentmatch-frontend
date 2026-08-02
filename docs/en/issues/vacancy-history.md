@@ -27,6 +27,10 @@ Shows all vacancies in a table with edit, status-change (Active/Paused/Closed), 
 
 ## Identified issues
 
+### Backend bug — `DELETE /api/vacancies/:id` always returns 400
+
+**Note:** Every vacancy delete attempt fails with `400 "Invalid data sent to the database"`. This is a **backend bug** (BUG-001 in `docs/backend-bugs.md`), not a frontend issue. Root cause: `req.params.id` is passed directly to Prisma without `parseInt`, causing `PrismaClientValidationError`. The frontend correctly calls `vacanciesApi.delete(id)` — the fix belongs on the backend.
+
 ### Critical bug — Kebab menu clipped by `overflow-x-auto`
 
 **Symptom:** Clicking the 3-dot icon on the last rows of the table renders the action dropdown clipped or invisible.

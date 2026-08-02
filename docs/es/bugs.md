@@ -4,7 +4,7 @@
 >
 > 🇬🇧 English version: [`../en/bugs.md`](../en/bugs.md)
 >
-> **Última verificación: 2026-07-14.**
+> **Última verificación: 2026-08-01.**
 >
 > ⚠️ **Nota de alcance:** todo lo listado aquí es **menor**. Ninguno de estos bugs impide usar la app con normalidad — todas las pantallas cargan, todos los flujos principales (crear/editar/eliminar departamentos, posiciones, vacantes; subir CVs; ver resultados de matching; administrar usuarios) funcionan de punta a punta contra la API real. Lo que sigue es código muerto, un par de bugs de UI confinados a pantallas legacy, e inconsistencias de nomenclatura — trabajo de limpieza, no bloqueantes de producto.
 
@@ -14,15 +14,15 @@
 | ---------------------------- | -------------- | ------------------------------------------------------------------------ |
 | `/login`                   | ✅ Conectado | Atajo de demo (`admin` → `admin@admin.ai`)                                |
 | `/dashboard`               | ✅ Conectado | `dashboardService.getSummary()` real, ya no hay `MOCK_DATA`             |
-| `/position`                | ✅ Conectado | Wizard de 4 pasos, manual o IA                                            |
+| `/position`                | ✅ Conectado | Wizard de 4 pasos, manual o IA (+ `/position/edit/:id` modo edición)      |
 | `/uploadcv`                | ✅ Conectado |                                                                          |
 | `/cv-history`              | ⚠️ Conectado, huérfano | Pantalla paralela a `/candidates-history`, no enlazada desde el sidebar |
-| `/position-history`        | ✅ Conectado |                                                                          |
+| `/position-history`        | ✅ Conectado | Edición y eliminación conectadas                                          |
 | `/vacancy` (+ `/edit/:id`) | ⚠️ Conectado | Pantalla de éxito ignora el callback `onReset`                           |
 | `/vacancy-history`         | ✅ Conectado |                                                                          |
 | `/department`              | ✅ Conectado |                                                                          |
 | `/department-history`      | ✅ Conectado |                                                                          |
-| `/resultados/:id`          | ⚠️ Conectado, legacy | No enlazada desde ningún lugar de la UI; bug de parsing en `CandidateMatchRow` |
+| `/resultados/:id`          | ✅ Conectado         | No enlazada desde ningún lugar de la UI; bug de parsing en `CandidateMatchRow`; ahora conectada a la API real (usa `updateCandidateStatus`, seguimiento del estado de vacante, sistema de notificaciones) |
 | `/candidates-history`      | ✅ Conectado | Agrupa candidatos por vacante                                             |
 | `/evaluations-history`     | ✅ Conectado | El param `:id` de la ruta nunca se usa                                    |
 | `/advanced-results/:id`    | ✅ Conectado | Pantalla de resultados actual                                             |
@@ -45,13 +45,6 @@
 - **Alcance:** solo afecta a `/resultados/:id`, la pantalla legacy no enlazada desde el sidebar (ver §2). `AdvancedResults.tsx`, la pantalla de resultados actual, no tiene este problema.
 - **Fix:** parsear `normalizedCandidate` con `JSON.parse()` igual que `CandidateDetailsModal.tsx`, o retirar la pantalla legacy (ver §2.1).
 
-### 1.3 — Estados de candidato inventados en la UI, nunca persistidos
-
-- **Archivos:** `src/pages/AdvancedResults.tsx`, `src/pages/EvaluationsHistory.tsx`
-- **Detalle:** el enum real del backend es `CandidateStatus = "DISPONIBLE" | "CONTRATADO"` (`api.types.ts`). Ambas pantallas, sin embargo, ofrecen un `<select>` de estado con valores adicionales (`"CONTACTADO"`/`"NO_CONTRATADO"` en una, variantes con casing en español en la otra) respaldados **solo por un `Map` de estado local del componente** (`candidateStatuses`) — no hay ningún endpoint que reciba estos valores. El cambio se ve en la UI pero se pierde al recargar la página.
-- **Nota:** esto es una decisión de producto pendiente, no un crash. `candidates.api.ts` documenta explícitamente (comentario en el archivo) que actualizar el estado de un candidato individual no está implementado; la única persistencia real de "contratación" es `Resultados.tsx`, que cierra la vacante completa vía `vacanciesApi.updateStatus(id, "CLOSED")`.
-- **Fix:** decidir si estos estados deben persistir (requeriría un endpoint nuevo en el backend) o si se retira el control y se deja claro en la UI que es solo una anotación local/temporal.
-
 ---
 
 ## 2. Pantallas duplicadas / parcialmente huérfanas
@@ -72,12 +65,6 @@
 
 ## 3. Código muerto y comentarios desactualizados
 
-### 3.1 — Componentes huérfanos
-
-- `src/components/DemoCredential.jsx` — no se importa en ninguna parte; `Login.tsx` no lo usa.
-- `src/components/ui/EmptyVacancyState.tsx` — no se importa en ninguna parte.
-- `src/utils/dashboardConfig.js` — no se importa en ninguna parte; `Dashboard.tsx` construye sus métricas inline a partir de `dashboard.api.ts`.
-
 ### 3.2 — Mecanismo `isDynamic` del Sidebar, vestigial
 
 - **Archivo:** `src/layouts/Sidebar.tsx`
@@ -92,7 +79,6 @@
 ### 3.4 — Detalles cosméticos
 
 - `src/App.tsx` importa `VacancyHistory` bajo el nombre `VacacyHistory` (typo conservado) — no tiene impacto funcional, solo legibilidad.
-- `src/src/vite-env.d.ts` — existe una carpeta anidada `src/src/` con un único archivo de una línea (`/// <reference types="vite/client" />`). Debería vivir en `src/vite-env.d.ts`, no en `src/src/`.
 - `src/layouts/Sidebar.tsx`: `handleLogout` llama a `logout()` (que ya hace una navegación completa a `/login`) y además llama a `navigate("/login")` — doble navegación redundante pero inofensiva.
 
 ---
@@ -122,7 +108,7 @@
 
 ### 5.2 — Dos librerías de íconos coexistiendo
 
-- `lucide-react` se usa de forma pervasiva; `react-icons` solo aparece en `DeleteDepartmentModal.tsx`, `EvaluationCard.tsx` y el componente huérfano `EmptyVacancyState.tsx`. No es un bug, pero es deuda de consistencia — no hay razón funcional para mantener dos librerías de íconos.
+- `lucide-react` se usa de forma pervasiva; `react-icons` solo aparece en `DeleteDepartmentModal.tsx` y `EvaluationCard.tsx`. No es un bug, pero es deuda de consistencia — no hay razón funcional para mantener dos librerías de íconos.
 
 ### 5.3 — `/evaluations-history/:id` con parámetro sin usar
 
@@ -144,9 +130,9 @@
 
 | Categoría                              | Cantidad |
 | ----------------------------------------- | ---------- |
-| Bugs de código confirmados               | 3        |
+| Bugs de código confirmados               | 2        |
 | Pantallas duplicadas/parcialmente huérfanas | 2        |
-| Código muerto / comentarios desactualizados | 6        |
+| Código muerto / comentarios desactualizados | 5        |
 | Configuración y entorno                  | 2        |
 | UI / UX menores                          | 3        |
 
@@ -173,3 +159,10 @@ Se conservan para trazabilidad. **No reabrir sin verificar contra el código.**
 | Dropdown de departamentos vacío en "Nueva Posición"             | 2026-07-08    | Usa `departmentsApi.getAll()` con tipos `Department[]`                   |
 | Estado de vacante `FILLED` inválido                             | 2026-07-08    | Se envía `CLOSED`                                                        |
 | `LoginForm.tsx` con texto corrupto (`roundTomaed-[24px]`, `, cr`) | 2026-07-09  | Ni `tsc` ni ESLint lo detectaban — ver §6                                |
+| Selector de estado en `AdvancedResults` usaba estados locales inventados (`NO_CONTRATADO/CONTACTADO/CONTRATADO`) | 2026-08-01 | Conectado a `PATCH /vacancies/:vacancyId/candidates/:candidateId/status` con valores reales de `ApplicationStatus` (`PENDIENTE/EN_PROCESO/SELECCIONADO/RECHAZADO`) |
+| `handleHire` en `Resultados.tsx` llamaba a `updateStatus("CLOSED")` en vez de `updateCandidateStatus(..., "SELECCIONADO")` | 2026-08-01 | Corregido para llamar a `vacanciesApi.updateCandidateStatus` con el estado correcto |
+| Botón Editar de `PositionHistory` no tenía ruta configurada | 2026-08-01 | Ruta `/position/edit/:id` añadida a `App.tsx`; botón Editar navega a ella; `Position.tsx` maneja el modo edición vía `useParams` |
+| Panel admin con nombres de usuario en blanco y avatares con doble inicial | 2026-08-01 | `UserTableModule`, `RoleUpdateModule`, `UserDeleteModule` ahora muestran `email.split('@')[0]` como nombre; el avatar muestra una sola inicial |
+| `getResults` retornaba 404 y rompía la página de resultados | 2026-08-01 | El 404 se trata como array vacío en vez de relanzar el error |
+| Componentes huérfanos: `DemoCredential.jsx`, `EmptyVacancyState.tsx`, `dashboardConfig.js` | 2026-08-01 | Archivos eliminados |
+| `src/src/vite-env.d.ts` en carpeta anidada incorrecta | 2026-08-01 | Reubicado en `src/vite-env.d.ts` |

@@ -12,8 +12,9 @@ Muestra todas las posiciones del sistema en una tabla con tabs de filtrado por d
 |---|---|
 | Lista de posiciones | `positionService.getAll()` → `Position[]` |
 | Tabs de departamento | Derivado de `positions` con `Array.from(new Set(...))` |
-| Eliminar posición | `positionService.delete(id)` → optimistic UI (filtra el array local) |
+| Eliminar posición | `positionService.delete(id)` → optimistic UI (filtra el array local); muestra error FK ante un 400 |
 | Duplicar posición | `positionService.duplicate(id)` → re-fetch completo (`fetchPositions()`) |
+| Editar posición | Navega a `/position/edit/:id`; `Position.tsx` pre-rellena el formulario desde `positionService.getById(id)` |
 
 **Flujo de estado:**
 1. `useEffect` llama a `fetchPositions()` al montar.
@@ -32,6 +33,14 @@ PositionHistory
 ---
 
 ## Issues identificados
+
+### ~~Botón Editar sin conectar~~ — CORREGIDO (2026-08-01)
+
+El botón Editar del menú kebab no tenía ruta configurada. Esto fue resuelto: se añadió `/position/edit/:id` a `App.tsx`, el botón Editar ahora navega a esa ruta, y `Position.tsx` maneja el modo edición leyendo `useParams().id` y pre-rellenando el formulario.
+
+### ~~Mensaje de error 400 al eliminar ausente~~ — CORREGIDO (2026-08-01)
+
+Cuando se elimina una posición que está referenciada por una vacante (restricción FK), el backend devuelve 400. `PositionHistory.tsx` ahora muestra un mensaje de error FK específico al usuario en ese caso, en lugar de un banner de error genérico.
 
 ### Bug crítico — Menú kebab cortado por `overflow-hidden`
 
