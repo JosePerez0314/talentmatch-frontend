@@ -3,9 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Sparkles, Layers, Calendar, Eye, Upload, Search, Download, X, FileText, BarChart2 } from "lucide-react";
 
 import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
+import { ApiError } from "../services/api/apiClient";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { departmentsApi } from "../services/api/departments.api";
-import { Candidate, MatchResult, UploadResult, Vacancy } from "../types/api.types";
+import { Application, ApplicationStatus, Candidate, MatchResult, UploadResult, Vacancy } from "../types/api.types";
 
 const formatDate = (iso?: string): string => {
     if (!iso) return "";
@@ -30,10 +31,11 @@ const getScoreColor = (score: number): string => {
 };
 
 const getStatusStyle = (status: string): string => {
-    switch (status?.toUpperCase()) {
-        case "CONTRATADO": return "bg-green-50 border-green-200 text-green-700";
-        case "CONTACTADO": return "bg-blue-50 border-blue-200 text-blue-700";
-        default: return "bg-gray-50 border-gray-200 text-gray-600";
+    switch (status) {
+        case "SELECCIONADO": return "bg-green-50 border-green-200 text-green-700";
+        case "EN_PROCESO":   return "bg-blue-50 border-blue-200 text-blue-700";
+        case "RECHAZADO":    return "bg-red-50 border-red-200 text-red-600";
+        default:             return "bg-gray-50 border-gray-200 text-gray-600";
     }
 };
 
@@ -68,7 +70,7 @@ const AdvancedResults: React.FC = () => {
     // Candidates accumulated from upload responses and/or vacancy.candidates from the backend
     const [localCandidates, setLocalCandidates] = useState<Candidate[]>([]);
     const [departmentName, setDepartmentName] = useState<string>("");
-    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, string>>(new Map());
+    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, ApplicationStatus>>(new Map());
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [showDropzone, setShowDropzone] = useState<boolean>(false);
     const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -81,7 +83,7 @@ const AdvancedResults: React.FC = () => {
 
     const loadData = useCallback(async (vacancyId: string) => {
         const [results, vac, allVacancies] = await Promise.all([
-            vacanciesApi.getResults(vacancyId),
+            vacanciesApi.getResults(vacancyId).catch(() => []),
             vacanciesApi.getById(vacancyId).catch(() => null),
             vacanciesApi.getAll().catch(() => []),
         ]);
@@ -129,6 +131,22 @@ const AdvancedResults: React.FC = () => {
         })();
         return () => { cancelled = true; };
     }, [id, loadData]);
+
+    // Seed candidateStatuses from the applications array returned by getResults.
+    // Only fills entries not already in the map so user changes aren't overwritten on re-render.
+    useEffect(() => {
+        setCandidateStatuses(prev => {
+            const next = new Map(prev);
+            for (const m of evaluatedCandidates) {
+                const cId = m.candidate?.id;
+                const appStatus = (m.candidate?.applications as Application[] | undefined)?.[0]?.status;
+                if (cId != null && appStatus && !next.has(cId)) {
+                    next.set(cId, appStatus);
+                }
+            }
+            return next;
+        });
+    }, [evaluatedCandidates]);
 
     // Upload CVs without triggering evaluation — evaluation is explicit via Recalcular button.
     // Candidates are extracted directly from the upload response so they appear immediately
@@ -195,8 +213,31 @@ const AdvancedResults: React.FC = () => {
         }
     };
 
-    const handleUpdateStatus = (candidateId: number, newStatus: string) => {
+    const handleUpdateStatus = async (candidateId: number, newStatus: ApplicationStatus) => {
+        if (!id) return;
+        const previous = candidateStatuses.get(candidateId);
         setCandidateStatuses(prev => new Map(prev).set(candidateId, newStatus));
+        try {
+            const result = await vacanciesApi.updateCandidateStatus(id, candidateId, newStatus);
+            if (result.vacancy.status !== vacancy?.status) {
+                setVacancy(prev => prev ? { ...prev, status: result.vacancy.status, availableSlots: result.vacancy.availableSlots } : prev);
+            }
+        } catch (err) {
+            setCandidateStatuses(prev => {
+                const next = new Map(prev);
+                previous != null ? next.set(candidateId, previous) : next.delete(candidateId);
+                return next;
+            });
+            if (err instanceof ApiError && err.status === 409) {
+                setError(vacancy?.status === 'CLOSED'
+                    ? "La vacante está cerrada. Reactívala para cambiar estados."
+                    : "No hay cupos disponibles para seleccionar más candidatos.");
+            } else if (err instanceof ApiError && err.status === 404) {
+                setError("Este candidato no tiene un registro activo para esta vacante. Re-sube su CV y recalcula para habilitarlo.");
+            } else {
+                setError("No se pudo actualizar el estado del candidato.");
+            }
+        }
     };
 
     const lq = searchQuery.toLowerCase();

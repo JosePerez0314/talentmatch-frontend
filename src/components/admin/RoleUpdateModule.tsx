@@ -9,9 +9,6 @@ interface RoleUpdateModuleProps {
     onSaved: () => void;
 }
 
-const getInitials = (name?: string): string =>
-    (name ?? '').trim().slice(0, 2).toUpperCase() || 'US';
-
 export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoading, onSaved }) => {
     const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
     const [savingId, setSavingId]         = useState<string | null>(null);
@@ -105,10 +102,10 @@ export const RoleUpdateModule: React.FC<RoleUpdateModuleProps> = ({ users, isLoa
                                     className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] text-white flex-shrink-0"
                                     style={{ backgroundColor: u.role === 'ADMIN' ? '#447ECA' : '#6B7280' }}
                                 >
-                                    {getInitials(u.username)}
+                                    {u.email.split('@')[0][0].toUpperCase()}
                                 </div>
 
-                                <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{u.username}</span>
+                                <span className="text-sm text-gray-700 flex-1 min-w-0 truncate">{u.email.split('@')[0]}</span>
                                 <span className="text-xs text-gray-400 hidden sm:block flex-shrink-0 truncate max-w-[160px]">{u.email}</span>
 
                                 {/* Role select */}

@@ -1,10 +1,6 @@
-# Documentación de la API — TalentMatch AI
+# API Documentation — TalentMatch AI
 
-> 🇬🇧 English version: [`../en/api-documentation.md`](../en/api-documentation.md)
->
-> ⚠️ Este documento describe el **contrato del backend**, no el frontend. La fuente de verdad vive en el repositorio `talentmatch-backend`; esta copia es una referencia para el equipo de frontend y puede desincronizarse.
-
-**Generado a partir de:** `src/routes/`, `src/controllers/`, `src/validations/` y `prisma/schema.prisma` (del backend).
+**Generado a partir de:** `src/routes/`, `src/controllers/`, `src/validations/` y `prisma/schema.prisma`.
 **Base URL:** `/api`
 **Formato:** JSON (`Content-Type: application/json`), excepto los endpoints de subida de archivos (`multipart/form-data`).
 
@@ -129,6 +125,8 @@ Registra un nuevo usuario y crea automáticamente 10 departamentos default para 
 
 Sin parámetros. Devuelve todos los departamentos del usuario autenticado, con `_count.positions`.
 
+**Paginación:** ninguna. `prisma.department.findMany` no usa `skip`/`take` — todos los departamentos del usuario vuelven en una sola respuesta, siempre. En la práctica esta lista es pequeña y acotada (10 sembrados al registrarse + los que el usuario cree), así que hasta ahora no ha necesitado paginación.
+
 ### `POST /api/departments`
 
 | Campo (body) | Tipo     | Requerido | Validación          |
@@ -172,6 +170,8 @@ Solo `id` en params.
 
 Sin parámetros. Lista posiciones del usuario (campos seleccionados: `id, userId, departmentId, role, yearsOfExperience, technicalSkills, optionalTechnicalSkills, softSkills, languages, description, educationLevel, educationArea, createdAt` — **no incluye** `positionPdfUrl` ni `updatedAt`).
 
+**Paginación:** ninguna. `prisma.position.findMany` no usa `skip`/`take` — devuelve **todas** las posiciones que el usuario haya creado, en un solo array, sin aceptar parámetros `limit`/`page`. Un usuario con cientos de posiciones recibe todas en una sola respuesta.
+
 ### `POST /api/positions`
 
 Crea una posición. Valida que `departmentId` exista y pertenezca al usuario.
@@ -179,11 +179,11 @@ Crea una posición. Valida que `departmentId` exista y pertenezca al usuario.
 | Campo (body)              | Tipo                      | Requerido   | Validación                                            |
 | ------------------------- | ------------------------- | ----------- | ----------------------------------------------------- |
 | `role`                    | `string`                  | Sí          | mínimo 5 caracteres                                   |
-| `yearsOfExperience`       | `number`                  | Sí          | entero positivo (acepta coerción desde string)        |
+| `yearsOfExperience`       | `number`                  | Sí          | entero ≥ 0 — acepta `0` para roles entry-level (coerción desde string) |
 | `technicalSkills`         | `string[]`                | Sí          | mínimo 1 elemento                                     |
 | `optionalTechnicalSkills` | `string[]`                | No          | —                                                     |
-| `softSkills`              | `string[]`                | Sí          | —                                                     |
-| `languages`               | `string[]`                | No          | —                                                     |
+| `softSkills`              | `string[]`                | Sí          | mínimo 1 elemento — `"At least one soft skill is required"` |
+| `languages`               | `string[]`                | Sí          | mínimo 1 elemento — `"At least one language is required"`   |
 | `description`             | `string`                  | Sí          | mínimo 25 caracteres                                  |
 | `educationLevel`          | `EducationLevel` (string) | Sí          | debe ser uno de los valores del enum                  |
 | `educationArea`           | `string`                  | Condicional | **ver sección 8 — regla `NONE`**                      |
@@ -258,7 +258,9 @@ Solo `id`. `404` si no existe/no pertenece al usuario.
 
 ### `GET /api/vacancies`
 
-Sin parámetros. Incluye `_count.candidates` y `candidates` completos.
+Sin parámetros. Incluye `_count.candidates`, `candidates` completos, y `position: { id, role }` (**corregido 2026-07-13**: antes la respuesta solo traía el FK crudo `positionId`, sin datos anidados de la posición — el frontend no tenía forma de mostrar el rol de la posición sin una segunda request).
+
+**Paginación:** ninguna, en ningún eje. `prisma.vacancy.findMany` devuelve **todas** las vacantes del usuario sin `skip`/`take`, y por cada vacante incrusta el array **completo** de `candidates` (cada registro `Candidate` vinculado a esa vacante — no solo `_count`, sino los registros completos con `rawApiPayload` incluido). Es la respuesta sin paginar más pesada de toda la API: el tamaño de la respuesta escala con la cantidad de vacantes **multiplicada** por candidatos-por-vacante. Una vacante con miles de CVs subidos hace que esta única respuesta crezca proporcionalmente — no existe parámetro `limit`/`page` para recortarla.
 
 ### `POST /api/vacancies`
 
@@ -278,7 +280,7 @@ Valida que `departmentId` pertenezca al usuario, que el departamento tenga al me
 
 ### `GET /api/vacancies/:id`
 
-`404` si no existe/no pertenece al usuario.
+`404` si no existe/no pertenece al usuario. Incluye también `position: { id, role }` (**corregido 2026-07-13**, mismo fix que el endpoint de lista de arriba — este endpoint de un solo registro antes omitía `position` por completo, ni siquiera el FK).
 
 ### `GET /api/vacancies/:id/results`
 
@@ -290,7 +292,9 @@ Resultados de matching (IA) paginados.
 | `page` (query)  | `number` | No        | 1       |
 | `limit` (query) | `number` | No        | 20      |
 
-**Respuesta 200:** `{ success, data: MatchResult[], meta: { total, page, limit, totalPages } }`.
+**Respuesta 200:** `{ success, data: MatchResult[], meta: { total, page, limit, totalPages } }`. Cada `MatchResult` incluye el desglose completo (`hardSkillsScore`, `experienceScore`, `roleScore`, `languagesScore`, `educationScore`, `softSkillsScore`), el snapshot congelado `normalizedCandidate`, `summary`, `redFlags`, y un `candidate` anidado: `{ id, fullName, email, fileUrl, applications: [{ status }] }` — este es actualmente el único lugar donde se expone `ApplicationStatus` al cliente (solo lectura, sin endpoint dedicado `/api/applications` — ver §8.5).
+
+> **Sin tope máximo en `limit`:** el controlador hace `parseInt(req.query.limit) || 20` sin ningún `Math.min`/clamp contra un tamaño de página máximo. Un cliente que envíe `?limit=100000` recibe todos los `MatchResult` de esa vacante en una sola "página". Usar `meta.total`/`meta.totalPages` para manejar la paginación real en la UI, en vez de asumir que 20 es un tope fijo.
 
 ### `POST /api/vacancies/:id/upload`
 
@@ -309,14 +313,16 @@ Se procesa cada archivo de forma independiente (concurrencia máx. 5) — un arc
 | Causa | Resultado |
 |---|---|
 | Texto extraído < 500 caracteres | `{ success: false, message: "..." }` |
-| Hash ya existe (CV duplicado) | `{ success: true, data: <candidato existente> }` |
+| Hash ya existe **para este usuario** (CV duplicado, posiblemente entre vacantes) | `{ success: true, data: <candidato existente> }` |
 | Otro error de procesamiento/IA | `{ success: false, message, error, stack }` |
+
+> **Reutilización entre vacantes (corregido 2026-07-13):** la deduplicación por `Candidate.hash` está scoped por usuario (`@@unique([userId, hash])`), no es global. Subir el mismo CV a una vacante **distinta** del mismo usuario reutiliza el registro `Candidate` existente (sin repetir la llamada a OpenAI/Cloudinary) y además crea/actualiza (`upsert`) un registro `Application(candidateId, vacancyId)` que lo vincula a la nueva vacante — esto es lo que hace que el candidato reutilizado aparezca como pendiente en `POST /:id/evaluations` también para esa vacante. Antes de este fix, el candidato reutilizado quedaba silenciosamente atado solo a la vacante de su subida *original* y nunca podía evaluarse para ninguna otra vacante (la request igual devolvía `success: true`, sin ningún error visible — ver la sección de "Inconsistencias Conocidas" para el incidente que esto cierra). Subir el mismo CV bajo **dos usuarios distintos** ya no choca en absoluto — cada usuario obtiene su propio registro `Candidate` independiente (la deduplicación por hash nunca cruza entre tenants).
 
 **Errores globales:** `400` si no se envía ningún archivo · `404` vacante no existe/no pertenece al usuario (implícito por `id` inválido) · `500`.
 
 ### `POST /api/vacancies/:id/evaluations`
 
-Ejecuta el motor de matching IA sobre todos los candidatos de la vacante que aún no tengan `MatchResult`. Sin body.
+Ejecuta el motor de matching IA sobre cada `Application` de esta vacante que aún no tenga un `MatchResult` (**cambiado 2026-07-13**: antes obtenía los candidatos pendientes directamente de `Candidate.vacancyId`, lo que significaba que un candidato reutilizado entre vacantes vía deduplicación por hash era invisible para cualquier vacante excepto aquella a la que se subió originalmente). Sin body.
 
 **Errores:** `404` vacante no encontrada o sin candidatos pendientes de evaluar (`400` si no hay candidatos) · `500`.
 
@@ -327,6 +333,38 @@ Ejecuta el motor de matching IA sobre todos los candidatos de la vacante que aú
 | `status`     | `VacancyStatus` (string) | Sí        |
 
 **Errores:** `400` status inválido/id inválido · `404` no existe/no pertenece al usuario · `500`.
+
+### `PATCH /api/vacancies/:vacancyId/candidates/:candidateId/status`
+
+**Agregado 2026-07-23.** Cambia el estado de una `Application` (es decir, el estado de contratación de un candidato para esta vacante puntual) y aplica el límite de `Vacancy.availableSlots` — ver **§8.6** para la regla de negocio completa. Es la única vía de escritura para `ApplicationStatus` hoy; sigue sin existir un CRUD genérico de `/api/applications` (ver §8.5).
+
+| Parámetro              | Tipo                          | Requerido |
+| ----------------------- | ----------------------------- | --------- |
+| `vacancyId` (path)      | `number` (positivo)           | Sí        |
+| `candidateId` (path)    | `number` (positivo)           | Sí        |
+| `status` (body)         | `ApplicationStatus` (string)  | Sí        |
+
+**Respuesta 200:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "application": { /* Application actualizada */ },
+    "vacancy": { "id": 1, "availableSlots": 2, "status": "ACTIVE" }
+  }
+}
+```
+
+Nota: este endpoint **no** usa `sendResponseOr404` — la respuesta es `{ success, data }` directamente, sin doble envoltura (a diferencia de `PATCH /:id/status` arriba).
+
+**Errores:**
+| Código | Causa |
+|---|---|
+| 400 | Valor de `status` inválido, o `vacancyId`/`candidateId` inválido |
+| 404 | La vacante no existe/no pertenece al usuario, o el candidato no tiene `Application` para esta vacante |
+| 409 | La vacante ya está `CLOSED`, o se envía `status: "SELECCIONADO"` pero `availableSlots` ya está completo (ver §8.6) |
+| 500 | Error interno no manejado |
 
 ### `PUT /api/vacancies/:id`
 
@@ -350,6 +388,8 @@ Solo `id`. `404` si no existe/no pertenece al usuario.
 
 Lista candidatos del usuario (campos seleccionados, incluye `rawApiPayload`).
 
+**Paginación:** ninguna. `prisma.candidate.findMany` devuelve **todos** los candidatos subidos alguna vez por el usuario, sin `skip`/`take` y sin aceptar parámetros `page`/`limit`. Cada registro incluye además `rawApiPayload` (el JSON crudo que devolvió la IA por cada CV), que no es un campo pequeño — un usuario con historial extenso de candidatos recibe todo ese historial, payload incluido, en una sola respuesta.
+
 ### `GET /api/candidates/:id`
 
 | Parámetro   | Tipo                | Requerido |
@@ -368,6 +408,8 @@ Lista candidatos del usuario (campos seleccionados, incluye `rawApiPayload`).
 
 Métricas **globales de toda la plataforma** (no filtradas por usuario, a diferencia del dashboard de la sección 7): `usersCount, candidatesCount, positionsCount, vacanciesCount, activeVacancies, closedVacancies`.
 
+No es una lista — es un único objeto agregado (seis queries `count()` ejecutadas en paralelo). No aplica paginación; no hay nada que paginar.
+
 ### `GET /api/admin/users`
 
 Lista paginada de todos los usuarios del sistema.
@@ -378,6 +420,8 @@ Lista paginada de todos los usuarios del sistema.
 | `limit`           | `number` | No        | 50      |
 
 **Respuesta 200:** `{ success, data: { users: User[], meta: { totalCount, currentPage, totalPages } } }`.
+
+> **Sin tope máximo en `limit`:** mismo patrón que los resultados de vacantes — `parseInt(req.query.limit, 10) || 50` sin clamp. `?limit=999999` devuelve a todos los usuarios del sistema en una sola página. Ordenado de forma determinista por `createdAt desc`, así que las páginas no se desordenan entre requests mientras no se cree un usuario nuevo en el medio.
 
 ### `PUT /api/admin/users/:id/role`
 
@@ -426,6 +470,12 @@ Sin parámetros.
 }
 ```
 
+**Paginación y tamaño de los arrays — este endpoint no acepta parámetros `page`/`limit` en absoluto:**
+
+- `total`: no es un array — cuatro queries independientes de `count()`/agregación, siempre exactamente estas 4 claves.
+- `vacancyStatusBreakdown`: array de tamaño fijo, siempre 3 entradas (una por cada status "baseline" que el servicio hardcodea), sin importar cuántas vacantes tenga el usuario. **Inconsistencia detectada:** el baseline hardcodeado en `dashboard.service.ts` es `["ACTIVE", "CLOSED", "CONTACTING"]`, pero `VacancyStatus` en `prisma/schema.prisma` en realidad es `ACTIVE | PAUSED | CLOSED` — no existe ningún status `CONTACTING` en el schema, y `PAUSED` falta por completo de este breakdown. En la práctica: la entrada `"CONTACTING"` siempre reporta `count: 0, percentage: 0` (nunca puede matchear una fila real), y cualquier vacante que esté realmente en `PAUSED` queda excluida silenciosamente del breakdown (sí se cuenta en `total`, pero acá es invisible). No confiar en este array para reconciliar contra el status real de cada vacante hasta que esto se corrija.
+- `monthlyActivity`: **sin límite, sin paginación** — una fila por cada mes calendario que tenga al menos un evento (position/CV/vacancy creado) desde el primer evento del usuario, calculado con un `GROUP BY DATE_FORMAT(createdAt, '%Y-%m')` en SQL crudo, ascendente. Para una cuenta de varios años, este array solo crece; no existe filtro de rango `from`/`to` ni tope de cuántos meses se devuelven.
+
 ---
 
 ## 8. Contratos de Integración (Reglas de Negocio)
@@ -454,9 +504,22 @@ Todas las relaciones entre entidades (`Position.departmentId`, `Vacancy.departme
 - Cualquier otro error no controlado → `500`. En producción (`NODE_ENV=production`) el mensaje siempre es `"Internal server error"`, sin detalle interno; en desarrollo se muestra el mensaje real para debugging.
 - El frontend **no debe** parsear el texto de `error` en un `500` para tomar decisiones de negocio — solo para logging.
 
-### 8.5 Entidades del schema sin endpoint expuesto
+### 8.5 `Application` — sin CRUD genérico, pero escrita/leída activamente desde 2026-07-13
 
-`Application` está definida en `prisma/schema.prisma` (con `ApplicationStatus`) pero **no tiene rutas ni controlador activos** en la API actual — no debe asumirse ningún endpoint `/api/applications`.
+~~`Application` está definida en `prisma/schema.prisma` (con `ApplicationStatus`) pero no tiene rutas ni controlador activos en la API actual.~~ **Parcialmente superado (2026-07-13):** `Application(candidateId, vacancyId)` ahora se escribe internamente desde `POST /api/vacancies/:id/upload` (vinculando un candidato reutilizado a una nueva vacante) y se lee desde `POST /api/vacancies/:id/evaluations` (para saber qué candidatos están pendientes en una vacante) — ver sección 4. `GET /api/vacancies/:id/results` expone `ApplicationStatus` en modo lectura, anidado como `candidate.applications[0].status` (ver sección 4).
+
+**Actualizado 2026-07-23:** `PATCH /api/vacancies/:vacancyId/candidates/:candidateId/status` (sección 4) ahora permite que el frontend cambie el `ApplicationStatus` de un candidato para una vacante puntual directamente — es la vía de escritura referenciada en §8.6. Sigue sin existir un recurso genérico `/api/applications` (sin listar/crear/borrar registros `Application` por su propio id) — este endpoint está acotado a un candidato dentro de una vacante, no es un CRUD completo.
+
+### 8.6 Cupos de la vacante y auto-cierre (agregado 2026-07-23)
+
+Esta es una regla deliberadamente mínima, **no pensada para escalar a alta concurrencia**, agregada para cerrar el vacío donde una vacante nunca se cerraba sola al llenarse todos sus `availableSlots`:
+
+- Solo se verifica contra `Vacancy.availableSlots` la transición de `Application.status` **hacia** `"SELECCIONADO"`. Cualquier otra transición (`PENDIENTE`/`EN_PROCESO`/`RECHAZADO`, o reconfirmar a un candidato ya `SELECCIONADO`) nunca toca el conteo de cupos.
+- El chequeo cuenta los registros `Application` existentes con `status: "SELECCIONADO"` para esa vacante. Si el conteo ya es `>= availableSlots`, la solicitud se rechaza con `409` y **no se escribe nada** — el estado del candidato queda igual que antes de la llamada.
+- Si aceptar a este candidato completa `availableSlots`, el `status` de la vacante se pone en `"CLOSED"` en la **misma transacción** que la actualización de `Application` (`prisma.$transaction`, con la fila de `Vacancy` bloqueada vía `SELECT ... FOR UPDATE` durante toda la operación, para que dos intentos de contratación casi simultáneos sobre la misma vacante no puedan pasar ambos el chequeo de cupos).
+- **Mientras la vacante esté `CLOSED`, este endpoint rechaza *cualquier* cambio de estado de candidato con `409`** — no solo nuevas selecciones — hasta que la vacante se reactive.
+- **Nunca se reabre automáticamente.** Sacar a un candidato de `SELECCIONADO` (liberando un cupo) no reabre una vacante `CLOSED`. Reabrir siempre es una acción manual y explícita: `PATCH /api/vacancies/:id/status` (`ACTIVE`) — este endpoint nunca escribe `Vacancy.status` de vuelta a `ACTIVE`.
+- **Subir `availableSlots` tampoco reabre una vacante `CLOSED`.** `PUT /api/vacancies/:id` puede aumentar `availableSlots` (es un patch real, §8.2), pero si la vacante está `CLOSED` eso debe acompañarse de un `PATCH .../status` → `ACTIVE` manual para poder aceptar a alguien en los nuevos cupos.
 
 ---
 
@@ -469,7 +532,32 @@ Documentado para que el frontend sepa a qué atenerse hoy, no a un comportamient
 2. ~~**`success: "false"` (string) en el caso 404 de `sendResponseOr404`**, en vez de `false` (booleano) como en el resto de la API.~~ **Corregido (2026-07-07):** `sendResponseOr404` ahora devuelve `success: false` como booleano también en el caso 404, consistente con el resto de la API. Un chequeo estricto (`response.success === false`) en frontend ya funciona correctamente para este caso.
 3. **Errores de tipo de archivo/tamaño en Multer no tienen `statusCode` asignado** (`multerConfig.js` lanza un `Error` genérico), por lo que hoy caen al branch de `500` del manejador global en vez de `400`, en `POST /positions/complete` y `POST /vacancies/:id/upload`.
 4. **`GET /api/admin/stats` es global** (todos los usuarios de la plataforma), mientras que `GET /api/dashboard` es por usuario — no confundir ambos como la misma fuente de verdad.
-5. Existe un middleware `identifyUserDemo` (`demoTrialMiddleware.js`) para limitar cuentas demo a 5 días, pero **no está enlazado a ninguna ruta activa** actualmente — es código presente pero no ejecutado.
+5. ~~Existe un middleware `identifyUserDemo` (`demoTrialMiddleware.js`) para limitar cuentas demo a 5 días, pero no está enlazado a ninguna ruta activa.~~ **Eliminado (2026-07-04, #138):** el middleware de límite de cuentas demo (`demoTrialMiddleware.js`) fue borrado del repositorio junto con `matchRepository.js` por tratarse de código muerto. Ya no existe ninguna referencia a cuentas demo en el backend (la variable de entorno `DEMO_USER` quedó también sin uso).
+6. **`GET /api/dashboard` hardcodea en `vacancyStatusBreakdown` un status `"CONTACTING"` que no existe en `VacancyStatus`** (`ACTIVE | PAUSED | CLOSED`), y omite `PAUSED` por completo — ver detalle completo en la sección 7. No tratar este array como un desglose exhaustivo del status real de cada vacante hoy en día.
+7. **Ningún endpoint de listado de esta API impone un tamaño máximo de página.** Los dos endpoints paginados (`GET /api/vacancies/:id/results`, `GET /api/admin/users`) no hacen ningún clamp sobre `limit` — un valor suficientemente grande devuelve toda la tabla en una sola respuesta. Los endpoints de listado sin paginar (`GET /api/departments`, `GET /api/positions`, `GET /api/vacancies`, `GET /api/candidates`) no tienen ningún límite de tamaño, por diseño. Ver sección 10 para el detalle completo endpoint por endpoint.
+8. ~~`Candidate.hash` era único a nivel global (`@unique`) en vez de estar scoped por usuario, lo que causaba dos bugs distintos: (a) subir el mismo CV a una segunda vacante del mismo usuario reutilizaba silenciosamente el `Candidate` existente sin nunca vincularlo a la nueva vacante — la subida reportaba `success: true` pero el candidato jamás podía evaluarse para esa segunda vacante, y (b) dos usuarios distintos subiendo un PDF byte-idéntico hacían que la request del segundo usuario devolviera transparentemente los datos confidenciales del `Candidate` del primero (fuga entre tenants).~~ **Corregido (2026-07-13):** `Candidate.hash` ahora es único por `(userId, hash)`. Los candidatos reutilizados se vinculan a vacantes adicionales vía `Application` (ver sección 8.5), y dos usuarios distintos ya pueden tener cada uno su propio registro `Candidate` independiente para el mismo CV subyacente. `GET /api/vacancies` y `GET /api/vacancies/:id` todavía listan `candidates` según `Candidate.vacancyId` únicamente (la vacante de la subida *original*) — un candidato vinculado a una segunda vacante solo vía `Application` todavía no aparece en el array `candidates` de esa vacante, aunque ya sea evaluable ahí. Queda pendiente como follow-up, no corregido todavía.
+
+---
+
+## 10. Paginación y Tamaño de Listas — Referencia Rápida
+
+Respuesta consolidada a "¿cuánto devuelve realmente cada `GET`?" — ver la sección de cada endpoint arriba para el detalle completo.
+
+| Endpoint | Devuelve | ¿Paginado? | Tamaño de página default | Máximo impuesto |
+| --- | --- | --- | --- | --- |
+| `GET /api/departments` | TODOS los departamentos del usuario | No | — | — |
+| `GET /api/positions` | TODAS las posiciones del usuario | No | — | — |
+| `GET /api/positions/:id` | Un solo registro | N/A | — | — |
+| `GET /api/vacancies` | TODAS las vacantes del usuario, cada una con su array **completo** de `candidates` y `position: { id, role }` incrustados | No | — | — |
+| `GET /api/vacancies/:id` | Un solo registro | N/A | — | — |
+| `GET /api/vacancies/:id/results` | `MatchResult[]` de una vacante | Sí (`page`/`limit`) | `page=1`, `limit=20` | **Ninguno** — `limit` no tiene clamp |
+| `GET /api/candidates` | TODOS los candidatos del usuario (incl. `rawApiPayload`) | No | — | — |
+| `GET /api/candidates/:id` | Un solo registro | N/A | — | — |
+| `GET /api/admin/stats` | Un único objeto agregado, de toda la plataforma | N/A (no es lista) | — | — |
+| `GET /api/admin/users` | `User[]`, de toda la plataforma | Sí (`page`/`limit`) | `page=1`, `limit=50` | **Ninguno** — `limit` no tiene clamp |
+| `GET /api/dashboard` | `total` (objeto único) + `vacancyStatusBreakdown` (3 filas fijas) + `monthlyActivity` (1 fila por mes calendario con actividad, crece con la antigüedad de la cuenta) | No | — | — |
+
+**Conclusión práctica para el frontend:** si una cuenta acumula muchas posiciones, vacantes o candidatos, las cuatro filas marcadas "No" arriba van a devolver el dataset completo en una sola respuesta, sin forma de pedir un recorte — hay que planificar el renderizado del lado del cliente (virtualización, secciones lazy) en función de esto, en vez de asumir que el backend siempre va a devolver una página chica. Para los dos endpoints paginados, tampoco conviene hardcodear el tamaño de página default como un techo fijo, ya que un caller (o un futuro bug) puede pedir un `limit` sin límite.
 
 ---
 

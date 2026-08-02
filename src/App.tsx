@@ -55,6 +55,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/position" element={<Position />} />
+            <Route path="/position/edit/:id" element={<Position />} />
             <Route path="/uploadcv" element={<UploadCV />} />
             <Route path="/cv-history" element={<CVHistory />} />
             <Route path="/position-history" element={<PositionHistory />} />

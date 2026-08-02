@@ -4,6 +4,57 @@
 
 ---
 
+## Conexión de la API de estado de candidato, edición/eliminación de posiciones, correcciones del panel admin, eliminación de código muerto
+
+**Rama:** `features`
+**Fecha:** 2026-08-01
+
+### Contexto
+
+Este sprint completó la conexión del manejo de estado de candidatos a la API real del backend, añadió la ruta de edición de posiciones y conectó los botones de editar/eliminar en el historial de posiciones, corrigió los nombres de usuario en blanco en el panel admin y eliminó varios archivos muertos. Todos los cambios a continuación se aplicaron a la rama `features`.
+
+### Qué cambió
+
+1. **Tipo `ApplicationStatus` e interfaz `Application` añadidos a `src/types/api.types.ts`.** El tipo cubre los cuatro valores reales del enum del backend: `PENDIENTE`, `EN_PROCESO`, `SELECCIONADO`, `RECHAZADO`. La interfaz `Application` agrupa `candidateId`, `vacancyId` y `status`.
+
+2. **`vacanciesApi.updateCandidateStatus` añadido a `src/services/api/vacancies.api.ts`.** Llama a `PATCH /vacancies/:vacancyId/candidates/:candidateId/status` — la ruta de escritura para `ApplicationStatus` introducida en el backend el 2026-07-23.
+
+3. **`AdvancedResults.tsx` completamente conectado.** El selector de estado ahora usa los valores reales de `ApplicationStatus` (`PENDIENTE/EN_PROCESO/SELECCIONADO/RECHAZADO`). Llama a la API PATCH con actualización optimista + rollback en caso de error. El estado se inicializa desde `candidate.applications[0].status`. Los mensajes de error específicos de 404 y 409 se muestran en la UI.
+
+4. **`handleHire` en `Resultados.tsx` corregido.** Ahora llama a `updateCandidateStatus(..., "SELECCIONADO")` en lugar de `updateStatus("CLOSED")` directamente. La vacante ya no se cierra como efecto secundario de marcar a un candidato como contratado.
+
+5. **Ruta de edición de posición añadida.** `/position/edit/:id` añadida a `src/App.tsx`.
+
+6. **Edición y eliminación de `PositionHistory.tsx` conectadas.** El botón Editar ahora navega a `/position/edit/:id`. Eliminar muestra un mensaje de error de FK ante respuestas 400 del backend.
+
+7. **Modo edición en `Position.tsx`.** Lee `id` desde `useParams`, pre-rellena el formulario al editar y ramifica entre crear y actualizar al enviar.
+
+8. **Visualización de nombre de usuario en el panel admin corregida.** `UserTableModule`, `RoleUpdateModule` y `UserDeleteModule` ahora muestran `email.split('@')[0]` como nombre de usuario (la API nunca devuelve un campo `username`). Las iniciales del avatar se corrigieron a una sola letra.
+
+9. **Archivos muertos eliminados:** `src/components/DemoCredential.jsx`, `src/components/ui/EmptyVacancyState.tsx`, `src/utils/dashboardConfig.js`.
+
+10. **`src/vite-env.d.ts` reubicado.** Movido desde el huérfano `src/src/vite-env.d.ts` a la ubicación correcta `src/vite-env.d.ts`.
+
+11. **`docs/backend-bugs.md` creado** con 8 bugs del backend (BUG-001 al BUG-008).
+
+12. **Ramas de error 404/409 añadidas** en `AdvancedResults.tsx` y `Resultados.tsx` para los fallos en la actualización del estado de candidato.
+
+13. **El 404 de `getResults` se trata como array vacío.** Una respuesta 404 del endpoint de resultados ya no rompe la página de resultados — devuelve una lista vacía en su lugar.
+
+14. **Corrección de la fecha del candidato evaluado.** La fecha del candidato evaluado ahora se cruza con `localCandidates` para corregir la fecha faltante en la sección 2 de `AdvancedResults.tsx`.
+
+### Documentación actualizada
+
+- `docs/en/backend-documentation.md` creado (movido desde `backend-documentation.md` en la raíz); entrada del modelo `Application` actualizada para reflejar sus rutas activas.
+- `docs/en/bugs.md` y `docs/es/bugs.md`: bugs 1.3 (estados inventados), 3.1 (componentes huérfanos) y 3.4 `vite-env` anidado movidos al anexo de resueltos; tabla de estado de conexión actualizada; conteos del resumen ejecutivo actualizados.
+- `docs/en/last-changes.md` y `docs/es/last-changes.md`: esta entrada añadida.
+- `docs/en/front-documentation.md` y `docs/es/front-documentation.md`: método `updateCandidateStatus`, tipo `ApplicationStatus`, ruta `/position/edit/:id` y estado de conexión de `AdvancedResults`/`Resultados` actualizados.
+- Archivos de issues por pantalla: `position-history.md`, `admin-panel.md`, `vacancy-history.md` (en + es) actualizados.
+- `docs/es/backend-bugs.md` creado (traducción al español de `docs/backend-bugs.md`).
+- `ESTADO_ACTUAL.md` (raíz) eliminado — documento de estado obsoleto de una rama cerrada.
+
+---
+
 ## Actualización completa de la documentación contra el código actual
 
 **Rama:** `main`

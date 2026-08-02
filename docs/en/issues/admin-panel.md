@@ -27,18 +27,9 @@ The Admin Panel manages system users: paginated listing, creating new users, cha
 
 ## Identified issues
 
-### Critical bug — Blank username
+### ~~Critical bug — Blank username and double-letter avatar~~ — FIXED (2026-08-01)
 
-**Symptom:** The line `Sesión: <strong>{displayName}</strong>` shows the `—` placeholder or renders blank.
-
-**Likely cause:** The `User` interface in `src/types/api.types.ts` defines `username: string` (line 13), but the decoded JWT token that `AuthContext` stores in `localStorage` under the `tm_user` key may carry the field under a different name (e.g. `name`, `email`, or a sub-claim). If the login response doesn't include `username`, `user?.username` returns `undefined` and the `??` operator coerces it to `'—'`.
-
-**Steps to investigate:**
-1. Log in and open DevTools → Application → localStorage → inspect the `tm_user` object.
-2. Check whether the `username` field exists in the payload, or whether the backend uses a different field name.
-3. If the field has a different name (e.g. `name`), update the `User` interface in `api.types.ts` and/or the `displayName` logic in `AdminPanel.tsx`.
-
-**Note:** This same field can affect the avatar initial in `Sidebar.tsx` (`user?.username || "Acme Corp"`).
+The backend API never returns a `username` field. `UserTableModule`, `RoleUpdateModule`, and `UserDeleteModule` now display `email.split('@')[0]` as the user's display name. Avatar initials were also corrected to show only a single letter derived from the same expression.
 
 ### UI — Margin review
 
@@ -48,8 +39,7 @@ The Admin Panel manages system users: paginated listing, creating new users, cha
 
 ### StatsModule
 
-- Note from CLAUDE.md: it currently runs on a **simulated timer** and isn't wired to a real user API. Verify whether it already has its own endpoint or is still simulated.
-- If still simulated, document it as technical debt in the tests.
+- `StatsModule` has its own internal fetch via `adminService.getStats()` → `GET /admin/stats`. Verify it renders real data correctly.
 
 ### Responsive design
 
@@ -61,11 +51,10 @@ The Admin Panel manages system users: paginated listing, creating new users, cha
 
 ## Tests to perform
 
-### Username bug
+### Username display (FIXED 2026-08-01)
 
-- [ ] **Reproduce the bug:** Log in as an admin user → navigate to `/admin` → check whether `displayName` shows the correct name or `—`.
-- [ ] **Inspect localStorage:** Confirm the structure of the `tm_user` object and which fields the backend actually returns.
-- [ ] **Verify the sidebar:** The avatar initial in Sidebar also uses `user?.username` — the fix must be applied consistently in both places.
+- [x] **Blank username resolved:** `UserTableModule`, `RoleUpdateModule`, and `UserDeleteModule` now show `email.split('@')[0]` as the display name. The backend does not return a `username` field.
+- [x] **Single-letter avatar:** Avatar initials corrected to a single letter.
 
 ### User loading and pagination
 
@@ -93,8 +82,8 @@ The Admin Panel manages system users: paginated listing, creating new users, cha
 
 ### StatsModule
 
-- [ ] Verify whether it shows real or simulated (timer-based) data.
-- [ ] If simulated, document it as pending API connection.
+- [ ] Verify it shows real data from `GET /admin/stats`.
+- [ ] Confirm each metric card renders the correct count.
 
 ### Responsive
 

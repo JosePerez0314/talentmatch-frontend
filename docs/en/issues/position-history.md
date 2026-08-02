@@ -12,8 +12,9 @@ Shows every position in the system in a table with department filter tabs. Suppo
 |---|---|
 | Position list | `positionService.getAll()` → `Position[]` |
 | Department tabs | Derived from `positions` with `Array.from(new Set(...))` |
-| Delete position | `positionService.delete(id)` → optimistic UI (filters the local array) |
+| Delete position | `positionService.delete(id)` → optimistic UI (filters the local array); shows FK error on 400 |
 | Duplicate position | `positionService.duplicate(id)` → full re-fetch (`fetchPositions()`) |
+| Edit position | Navigates to `/position/edit/:id`; `Position.tsx` pre-fills the form from `positionService.getById(id)` |
 
 **State flow:**
 1. A `useEffect` calls `fetchPositions()` on mount.
@@ -32,6 +33,14 @@ PositionHistory
 ---
 
 ## Identified issues
+
+### ~~Edit button not wired~~ — FIXED (2026-08-01)
+
+The Edit button in the kebab menu previously had no route configured. This has been resolved: `/position/edit/:id` was added to `App.tsx`, the Edit button now navigates to that route, and `Position.tsx` handles edit mode by reading `useParams().id` and pre-filling the form.
+
+### ~~Delete 400 error message missing~~ — FIXED (2026-08-01)
+
+When deleting a position that is referenced by a vacancy (FK constraint), the backend returns 400. `PositionHistory.tsx` now shows a specific FK error message to the user in this case instead of a generic error banner.
 
 ### Critical bug — Kebab menu clipped by `overflow-hidden`
 
