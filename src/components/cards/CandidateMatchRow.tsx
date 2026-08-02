@@ -1,26 +1,14 @@
 import React from "react";
-import { Icons } from "../../assets/icons/index";
-import { MatchResult } from "../../types/api.types";
-
-interface NormalizedCandidate {
-    technicalSkills?: string[];
-}
-
-// MatchResult on the results endpoint is enriched with normalizedCandidate
-// and the backend still returns fileUrl on the candidate — kept as widened
-// access to avoid a regression while the shared types catch up.
-type ResultData = MatchResult & {
-    normalizedCandidate?: NormalizedCandidate;
-    candidate?: MatchResult["candidate"] & { fileUrl?: string };
-};
+import { Eye, FileText, Loader2 } from "lucide-react";
+import { MatchResult, ApplicationStatus } from "../../types/api.types";
 
 interface CandidateMatchRowProps {
-    resultData: ResultData;
+    resultData: MatchResult;
     index: number;
     onViewClick: () => void;
-    onHire?: () => void;
-    isHiring?: boolean;
-    hireDisabled?: boolean;
+    onStatusChange?: (status: ApplicationStatus) => void;
+    isUpdating?: boolean;
+    disabled?: boolean;
 }
 
 const getMatchStyles = (score: number): { bg: string; text: string } => {
@@ -33,14 +21,21 @@ const CandidateMatchRow: React.FC<CandidateMatchRowProps> = ({
     resultData,
     index,
     onViewClick,
-    onHire,
-    isHiring = false,
-    hireDisabled = false,
+    onStatusChange,
+    isUpdating = false,
+    disabled = false,
 }) => {
     const person = resultData.candidate;
     const score = resultData.matchScore ?? 0;
-    const skills = resultData.normalizedCandidate?.technicalSkills ?? [];
-    const fileUrl = person?.resumeUrl ?? person?.fileUrl;
+
+    // Extracción limpia y tipada del estado desde Application[]
+    const rawStatus = person?.applications?.[0]?.status;
+    const currentStatus: ApplicationStatus = rawStatus ?? "EN_PROCESO";
+
+    // Habilidades extraídas directamente de Candidate.skills
+    const skills = person?.skills ?? [];
+
+    const fileUrl = person?.fileUrl ?? person?.resumeUrl;
     const fileName = fileUrl ? fileUrl.split("/").pop() : "CV.pdf";
 
     const displayName = person?.fullName
@@ -54,7 +49,6 @@ const CandidateMatchRow: React.FC<CandidateMatchRowProps> = ({
             className="grid grid-cols-1 md:grid-cols-[50px_100px_1fr_280px] gap-4 px-4 md:px-6 py-6 md:py-4 items-center border border-transparent border-b-gray-50 last:border-b-transparent hover:bg-white hover:border-[#447ECA]/30 hover:shadow-xl hover:shadow-blue-900/5 hover:rounded-[22px] transition-all duration-300 group cursor-pointer"
             onClick={onViewClick}
         >
-
             <div className="hidden md:block text-gray-900 font-bold text-sm">
                 {String(index + 1).padStart(2, '0')}
             </div>
@@ -83,7 +77,7 @@ const CandidateMatchRow: React.FC<CandidateMatchRowProps> = ({
                 </div>
 
                 <div className="inline-flex items-center gap-2 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100 max-w-full overflow-hidden">
-                    <img src={Icons.stats.uploadCv} className="w-3 h-3 opacity-60 flex-shrink-0" alt="cv" />
+                    <FileText className="w-3 h-3 text-gray-400 flex-shrink-0" />
                     <span className="text-gray-500 text-[10px] truncate italic">
                         {fileName}
                     </span>
@@ -94,40 +88,47 @@ const CandidateMatchRow: React.FC<CandidateMatchRowProps> = ({
                 className="flex flex-wrap items-center justify-center md:justify-end gap-3 md:gap-4 mt-2 md:mt-0 flex-shrink-0"
                 onClick={(e) => e.stopPropagation()}
             >
-                <button
-                    onClick={() => onHire?.()}
-                    disabled={isHiring || hireDisabled}
-                    className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-[11px] font-black uppercase tracking-wider rounded-xl shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                    {isHiring ? "Contratando..." : "Contratar"}
-                </button>
+                {/* Desplegable alineado a ApplicationStatus */}
+                <div className="relative flex items-center gap-2">
+                    <select
+                        value={currentStatus === "PENDIENTE" ? "EN_PROCESO" : currentStatus}
+                        onChange={(e) => onStatusChange?.(e.target.value as ApplicationStatus)}
+                        disabled={isUpdating || disabled}
+                        className={`px-3 py-2 text-[11px] font-black uppercase tracking-wider rounded-xl shadow-sm border focus:outline-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${currentStatus === "SELECCIONADO"
+                                ? "bg-emerald-500 text-white border-emerald-600"
+                                : currentStatus === "RECHAZADO"
+                                    ? "bg-red-500 text-white border-red-600"
+                                    : "bg-amber-500 text-white border-amber-600"
+                            }`}
+                    >
+                        <option value="EN_PROCESO" className="bg-white text-gray-800">Contactar</option>
+                        <option value="SELECCIONADO" className="bg-white text-gray-800">Contratado</option>
+                        <option value="RECHAZADO" className="bg-white text-gray-800">No Contratado</option>
+                    </select>
+
+                    {isUpdating && (
+                        <Loader2 className="w-4 h-4 text-[#447ECA] animate-spin flex-shrink-0" />
+                    )}
+                </div>
 
                 <div className="flex gap-2">
                     <button
                         onClick={onViewClick}
-                        className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors"
+                        className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors text-[#447ECA]"
+                        title="Ver detalles"
                     >
-                        <img
-                            src={Icons.stats.eyeHistoryGray}
-                            className="w-5 h-5"
-                            alt="ver"
-                            style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
-                        />
+                        <Eye className="w-5 h-5" />
                     </button>
                     {fileUrl && (
                         <a
                             href={fileUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors"
+                            className="p-2.5 bg-white hover:bg-[#DCF9FF] rounded-xl border border-gray-100 hover:border-[#447ECA]/30 transition-colors text-[#447ECA]"
                             onClick={(e) => e.stopPropagation()}
+                            title="Ver CV"
                         >
-                            <img
-                                src={Icons.stats.uploadCv}
-                                className="w-5 h-5"
-                                alt="doc"
-                                style={{ filter: "invert(42%) sepia(85%) saturate(1212%) hue-rotate(189deg) brightness(91%) contrast(85%)" }}
-                            />
+                            <FileText className="w-5 h-5" />
                         </a>
                     )}
                 </div>

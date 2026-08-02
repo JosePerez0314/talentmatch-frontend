@@ -358,6 +358,8 @@ Ejecuta el motor de matching IA sobre cada `Application` de esta vacante que aú
 
 Nota: este endpoint **no** usa `sendResponseOr404` — la respuesta es `{ success, data }` directamente, sin doble envoltura (a diferencia de `PATCH /:id/status` arriba).
 
+> **Efecto secundario (2026-08-01):** cuando la transición es una *nueva selección* (`status: "SELECCIONADO"` y el candidato no estaba ya en ese estado), el backend también establece `Candidate.status = CONTRATADO` dentro de la misma `$transaction`, después de que pasen los guards de cupos. Esta escritura es atómica con las actualizaciones de `Application` y `Vacancy` — si algún guard lanza `409`, nada se escribe. El cuerpo de la respuesta **no** incluye el `Candidate` actualizado; quien necesite reflejar `Candidate.status` debe volver a hacer fetch por separado.
+
 **Errores:**
 | Código | Causa |
 |---|---|
@@ -517,6 +519,7 @@ Esta es una regla deliberadamente mínima, **no pensada para escalar a alta conc
 - Solo se verifica contra `Vacancy.availableSlots` la transición de `Application.status` **hacia** `"SELECCIONADO"`. Cualquier otra transición (`PENDIENTE`/`EN_PROCESO`/`RECHAZADO`, o reconfirmar a un candidato ya `SELECCIONADO`) nunca toca el conteo de cupos.
 - El chequeo cuenta los registros `Application` existentes con `status: "SELECCIONADO"` para esa vacante. Si el conteo ya es `>= availableSlots`, la solicitud se rechaza con `409` y **no se escribe nada** — el estado del candidato queda igual que antes de la llamada.
 - Si aceptar a este candidato completa `availableSlots`, el `status` de la vacante se pone en `"CLOSED"` en la **misma transacción** que la actualización de `Application` (`prisma.$transaction`, con la fila de `Vacancy` bloqueada vía `SELECT ... FOR UPDATE` durante toda la operación, para que dos intentos de contratación casi simultáneos sobre la misma vacante no puedan pasar ambos el chequeo de cupos).
+- **Marca de contratación (2026-08-01):** cuando `isNewSelection` es verdadero (transición hacia `SELECCIONADO` y el candidato no estaba ya en ese estado), `Candidate.status` también se establece como `CONTRATADO` dentro de la misma transacción — después de que pasan los guards de cupos, antes del chequeo de conteo y auto-cierre. Si los guards rechazan la solicitud, `Candidate.status` nunca se escribe.
 - **Mientras la vacante esté `CLOSED`, este endpoint rechaza *cualquier* cambio de estado de candidato con `409`** — no solo nuevas selecciones — hasta que la vacante se reactive.
 - **Nunca se reabre automáticamente.** Sacar a un candidato de `SELECCIONADO` (liberando un cupo) no reabre una vacante `CLOSED`. Reabrir siempre es una acción manual y explícita: `PATCH /api/vacancies/:id/status` (`ACTIVE`) — este endpoint nunca escribe `Vacancy.status` de vuelta a `ACTIVE`.
 - **Subir `availableSlots` tampoco reabre una vacante `CLOSED`.** `PUT /api/vacancies/:id` puede aumentar `availableSlots` (es un patch real, §8.2), pero si la vacante está `CLOSED` eso debe acompañarse de un `PATCH .../status` → `ACTIVE` manual para poder aceptar a alguien en los nuevos cupos.

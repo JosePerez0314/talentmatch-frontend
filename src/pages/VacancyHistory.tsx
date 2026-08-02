@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import VacancyActionModal from "../components/modals/VacancyActionModal";
 
+import { ApiError } from "../services/api/apiClient";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { Vacancy, VacancyStatus } from "../types/api.types";
 
@@ -92,7 +93,10 @@ const VacancyHistory: React.FC = () => {
                 closeMenu();
             } catch (error) {
                 console.error("Error al eliminar vacante:", error);
-                setErrorMessage("No se pudo eliminar la vacante.");
+                const detail = error instanceof ApiError
+                    ? `(${error.status}) ${error.message}`
+                    : "Error desconocido";
+                setErrorMessage(`No se pudo eliminar la vacante: ${detail}`);
             }
         }
     };
@@ -103,7 +107,7 @@ const VacancyHistory: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
                 <div>
-                    <h1 className="text-gray-800">Historial de Vacantes</h1>
+                    <h1 className="text-gray-800 text-xl font-bold">Historial de Vacantes</h1>
                     <p className="text-sm text-gray-400 mt-0.5">
                         {vacancies.length} vacante{vacancies.length !== 1 ? "s" : ""} registrada{vacancies.length !== 1 ? "s" : ""}
                     </p>
@@ -125,7 +129,7 @@ const VacancyHistory: React.FC = () => {
                 </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm min-h-[300px]">
                 {isLoading ? (
                     <div className="py-10 flex justify-center">
                         <Loader2 className="animate-spin text-[#447ECA]" size={22} />
@@ -153,29 +157,30 @@ const VacancyHistory: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <div>
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-gray-50">
-                                    <th className="px-5 py-3 text-xs text-gray-400 uppercase tracking-wider text-left">ID</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-left">Título</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-left hidden sm:table-cell">Posición</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-left">Fecha</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-left">Estado</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-center">Ver</th>
-                                    <th className="px-4 py-3 text-xs text-gray-400 uppercase tracking-wider text-right">Acciones</th>
+                                <tr className="border-b border-gray-100">
+                                    <th className="px-5 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-left">ID</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-left">Título</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-left hidden sm:table-cell">Posición</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-left">Fecha</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-left">Estado</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-center">Ver</th>
+                                    <th className="px-4 py-3.5 text-xs text-gray-400 uppercase tracking-wider text-right">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {vacancies.map((vac, index) => {
-                                    const isNearBottom = index >= vacancies.length - 3 && vacancies.length > 2;
+                                    // Solo abrimos hacia arriba si hay más de 3 filas Y es una de las 2 últimas filas
+                                    const isNearBottom = vacancies.length > 3 && index >= vacancies.length - 2;
 
                                     return (
-                                        <tr key={vac.id} className="hover:bg-gray-50 transition-colors relative">
+                                        <tr key={vac.id} className="hover:bg-gray-50/80 transition-colors">
                                             <td className="px-5 py-3.5 text-sm text-gray-400 font-mono">
                                                 Vac-{String(vac.id).padStart(3, "0")}
                                             </td>
-                                            <td className="px-4 py-3.5 text-sm text-gray-700">{vac.title}</td>
+                                            <td className="px-4 py-3.5 text-sm text-gray-700 font-medium">{vac.title}</td>
                                             <td className="px-4 py-3.5 text-sm text-gray-400 hidden sm:table-cell">
                                                 {vac.position?.role ?? "—"}
                                             </td>

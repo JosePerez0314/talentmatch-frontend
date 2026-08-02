@@ -168,7 +168,7 @@ The schema lives in `prisma/schema.prisma` (MySQL). Six models and five enums.
 - **`Vacancy`** — an active opening tied to a Position: `title`, `availableSlots`, `startDate`/`endDate`, `status` (default `ACTIVE`). Cascades on Position delete and User delete.
 - **`Candidate`** — a CV parsed from a PDF: identity + the same structured skill/experience/education fields as a Position, plus `fileUrl` (Cloudinary), a **unique `hash`** (SHA-256 of the CV, for dedup), and `rawApiPayload` (the raw AI JSON, kept for auditing). `status` defaults to `DISPONIBLE`.
 - **`MatchResult`** — the deterministic evaluation joining a Candidate to a Vacancy. Stores the total `matchScore` plus a per-criterion breakdown (`hardSkillsScore`, `experienceScore`, `roleScore`, `languagesScore`, `educationScore`, `softSkillsScore`), a `normalizedCandidate` JSON snapshot (frozen at evaluation time for auditability), a `summary`, and optional `redFlags`. **`@@unique([candidateId, vacancyId])`** — a candidate has at most one evaluation per vacancy.
-- **`Application`** — defined in the schema (with `ApplicationStatus`) but **has no active routes or controller**. Do not assume an `/api/applications` endpoint exists.
+- **`Application`** — joins a `Candidate` to a `Vacancy` and tracks the hiring workflow via `status: ApplicationStatus` (`PENDIENTE`, `EN_PROCESO`, `SELECCIONADO`, `RECHAZADO`). As of 2026-07-13 it is **written** by `POST /vacancies/:id/upload` (an `Application` row is created when a candidate is linked to a vacancy) and **read** by `POST /vacancies/:id/evaluations`. As of 2026-07-23, `PATCH /vacancies/:vacancyId/candidates/:candidateId/status` is the write path for `ApplicationStatus` — it updates the candidate's status for that specific vacancy. **This model is no longer dormant.**
 
 ### Indexing strategy
 
@@ -397,7 +397,7 @@ On the VPS **everything runs containerized** (backend + MySQL via `docker-compos
 - **`Department` delete cascades:** `Position.department` is `onDelete: Cascade`, so deleting a Department deletes its Positions instead of being blocked. Making deletion blocking would require an `onDelete: Restrict` schema change + a new migration.
 - **Response-shape inconsistency:** `sendResponseOr404` double-wraps success as `{ response: { success, data } }`; the rest return `{ success, data }`. Tracked, not yet unified.
 - **Multer errors surface as `500`:** a file-type/size/count violation throws a generic `Error`/`MulterError` with no `statusCode`, so the global handler falls through to `500` rather than a clean `4xx`. The limit *is* enforced; only the status code is imperfect.
-- **`Application` model is dormant:** present in the schema, no routes/controller.
+- **`PATCH /api/vacancies/:id/status` uses `sendResponseOr404` (double-wrapped):** see §10 and `api-documentation.md §9`.
 - **English-only code comments:** all inline/block/JSDoc comments must be in English, regardless of the working language (project convention).
 - **No `any` in TypeScript:** strict typing is enforced; the codebase is mid-migration from JS to TS.
 

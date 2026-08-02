@@ -15,7 +15,7 @@ import CandidateDetailsModal from "../components/modals/CandidateDetailsModal";
 import { vacanciesApi } from "../services/api/vacancies.api";
 import { departmentsApi } from "../services/api/departments.api";
 import { ApiError } from "../services/api/apiClient";
-import { MatchResult, Vacancy } from "../types/api.types";
+import { ApplicationStatus, MatchResult, Vacancy } from "../types/api.types";
 import { Department } from "../types/department.types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -35,7 +35,12 @@ const AVATAR_PALETTES = [
     { bg: "#E8EAF6", text: "#283593" },
 ];
 
-const CANDIDATE_STATUSES = ["No Contratado", "Contactado", "Contratado"] as const;
+const STATUS_LABELS: Record<ApplicationStatus, string> = {
+    PENDIENTE: "Pendiente",
+    EN_PROCESO: "En proceso",
+    SELECCIONADO: "Seleccionado",
+    RECHAZADO: "Rechazado",
+};
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,9 +65,10 @@ const getCandidateName = (match: MatchResult): string => {
     );
 };
 
-const getStatusStyle = (status: string): string => {
-    if (status === "Contratado") return "text-green-600 bg-green-50 border-green-200";
-    if (status === "Contactado") return "text-yellow-600 bg-yellow-50 border-yellow-200";
+const getStatusStyle = (status: ApplicationStatus): string => {
+    if (status === "SELECCIONADO") return "text-green-600 bg-green-50 border-green-200";
+    if (status === "EN_PROCESO") return "text-yellow-600 bg-yellow-50 border-yellow-200";
+    if (status === "RECHAZADO") return "text-red-500 bg-red-50 border-red-200";
     return "text-gray-500 bg-gray-50 border-gray-200";
 };
 
@@ -120,8 +126,9 @@ const EvaluationsHistory: React.FC = () => {
     const [evalError, setEvalError] = useState<string | null>(null);
 
     // UI
-    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, string>>(new Map());
+    const [candidateStatuses, setCandidateStatuses] = useState<Map<number, ApplicationStatus>>(new Map());
     const [statusDropdownId, setStatusDropdownId] = useState<number | null>(null);
+    const [statusError, setStatusError] = useState<string | null>(null);
     const [selectedMatch, setSelectedMatch] = useState<MatchResult | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
@@ -206,7 +213,6 @@ const EvaluationsHistory: React.FC = () => {
             setSelectedVacancy(vacancy);
             setEvalState("calculating");
             setEvalError(null);
-            setCandidateStatuses(new Map());
             setStatusDropdownId(null);
         }
 
@@ -221,13 +227,22 @@ const EvaluationsHistory: React.FC = () => {
             const list = Array.isArray(data) ? data : [];
             setResults(list);
 
+            // Seed statuses from Application rows
+            const seeded = new Map<number, ApplicationStatus>();
+            list.forEach((m) => {
+                const cId = m.candidate?.id ?? m.candidateId;
+                const appStatus = m.candidate?.applications?.[0]?.status;
+                if (cId != null && appStatus) seeded.set(cId, appStatus);
+            });
+            setCandidateStatuses(seeded);
+
             if (!isRecalc) {
                 setEvalState(list.length > 0 ? "done" : "empty");
             }
         } catch (err) {
-            console.error("Error en evaluación:", err);
+            console.error("Error al obtener resultados:", err);
             if (!isRecalc) {
-                setEvalError("No se pudo completar la evaluación. Intenta de nuevo.");
+                setEvalError("No se pudieron cargar las evaluaciones. Intenta de nuevo.");
                 setEvalState("idle");
                 setSelectedVacancy(null);
             }
@@ -241,22 +256,51 @@ const EvaluationsHistory: React.FC = () => {
         setEvalState("idle");
         setResults([]);
         setEvalError(null);
+        setStatusError(null);
         setCandidateStatuses(new Map());
         setStatusDropdownId(null);
         setSelectedMatch(null);
         setIsModalOpen(false);
     };
 
-    const handleStatusChange = (matchId: number, status: string) => {
-        setCandidateStatuses((prev) => new Map(prev).set(matchId, status));
+    const handleStatusChange = async (candidateId: number, newStatus: ApplicationStatus) => {
+        if (!selectedVacancy) return;
         setStatusDropdownId(null);
+        const previous = candidateStatuses.get(candidateId);
+        setCandidateStatuses((prev) => new Map(prev).set(candidateId, newStatus));
+        try {
+            const result = await vacanciesApi.updateCandidateStatus(selectedVacancy.id, candidateId, newStatus);
+            // Sync vacancy status/slots — auto-close happens here when last slot is filled
+            if (result.vacancy.status !== selectedVacancy.status || result.vacancy.availableSlots !== selectedVacancy.availableSlots) {
+                setSelectedVacancy((prev) =>
+                    prev ? { ...prev, status: result.vacancy.status, availableSlots: result.vacancy.availableSlots } : prev,
+                );
+            }
+        } catch (err) {
+            setCandidateStatuses((prev) => {
+                const next = new Map(prev);
+                previous != null ? next.set(candidateId, previous) : next.delete(candidateId);
+                return next;
+            });
+            if (err instanceof ApiError && err.status === 409) {
+                setStatusError(
+                    selectedVacancy.status === "CLOSED"
+                        ? "La vacante está cerrada. Reactívala para cambiar estados."
+                        : "No hay cupos disponibles para seleccionar más candidatos.",
+                );
+            } else if (err instanceof ApiError && err.status === 404) {
+                setStatusError("Este candidato no tiene un registro activo. Re-sube su CV y recalcula.");
+            } else {
+                setStatusError("No se pudo actualizar el estado del candidato.");
+            }
+            window.setTimeout(() => setStatusError(null), 4000);
+        }
     };
 
     // ── Screenshot → clipboard ────────────────────────────────────────────────
     const handleShare = async () => {
         if (!resultsRef.current) return;
 
-        // Cerrar menús desplegables abiertos antes de capturar
         setStatusDropdownId(null);
         setIsSharing(true);
         setShareMsg(null);
@@ -405,12 +449,21 @@ const EvaluationsHistory: React.FC = () => {
         departmentsById.get(String(selectedVacancy?.departmentId))?.name ??
         null;
 
+    const isClosed = selectedVacancy?.status === "CLOSED";
+
     return (
         <div className="min-h-screen bg-[#f0f0f5] p-8 w-full">
             {/* Share feedback toast */}
             {shareMsg && (
                 <div className="fixed bottom-6 right-6 z-50 px-4 py-3 bg-gray-900 text-white text-sm rounded-xl shadow-xl">
                     {shareMsg}
+                </div>
+            )}
+
+            {/* Status update error toast */}
+            {statusError && (
+                <div className="fixed bottom-6 left-6 z-50 px-4 py-3 bg-red-600 text-white text-sm rounded-xl shadow-xl">
+                    {statusError}
                 </div>
             )}
 
@@ -430,8 +483,12 @@ const EvaluationsHistory: React.FC = () => {
                                 <span className="text-sm font-semibold text-gray-800 truncate">
                                     {selectedVacancy?.title}
                                 </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
-                                    Activa
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                    isClosed
+                                        ? "bg-slate-200 text-slate-600"
+                                        : "bg-green-100 text-green-700"
+                                }`}>
+                                    {isClosed ? "Cerrada" : "Activa"}
                                 </span>
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">
@@ -523,8 +580,10 @@ const EvaluationsHistory: React.FC = () => {
                                     .slice(0, 2)
                                     .map((n) => n[0].toUpperCase())
                                     .join("");
-                                const currentStatus =
-                                    candidateStatuses.get(result.id) ?? "No Contratado";
+                                // Prefer nested candidate.id; fall back to top-level candidateId
+                                const cId = result.candidate?.id ?? result.candidateId;
+                                const currentStatus: ApplicationStatus =
+                                    (cId != null ? candidateStatuses.get(cId) : undefined) ?? "PENDIENTE";
 
                                 return (
                                     <div
@@ -585,23 +644,24 @@ const EvaluationsHistory: React.FC = () => {
                                                                 : result.id,
                                                         )
                                                     }
-                                                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border transition-colors ${getStatusStyle(currentStatus)}`}
+                                                    disabled={cId == null || isClosed}
+                                                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] border transition-colors disabled:opacity-50 ${getStatusStyle(currentStatus)}`}
                                                 >
-                                                    {currentStatus}
+                                                    {STATUS_LABELS[currentStatus]}
                                                     <ChevronDown size={9} />
                                                 </button>
 
                                                 {statusDropdownId === result.id && (
                                                     <div className="absolute left-0 bottom-full mb-1 z-20 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden w-36">
-                                                        {CANDIDATE_STATUSES.map((s) => (
+                                                        {(Object.keys(STATUS_LABELS) as ApplicationStatus[]).map((s) => (
                                                             <button
                                                                 key={s}
                                                                 onClick={() =>
-                                                                    handleStatusChange(result.id, s)
+                                                                    cId != null && handleStatusChange(cId, s)
                                                                 }
                                                                 className="w-full px-3 py-2 text-xs text-left hover:bg-gray-50 text-gray-700 transition-colors"
                                                             >
-                                                                {s}
+                                                                {STATUS_LABELS[s]}
                                                             </button>
                                                         ))}
                                                     </div>

@@ -1,17 +1,11 @@
 import { apiClient } from "./apiClient";
 import {
-  Application,
   ApplicationStatus,
   MatchResult,
+  UpdateCandidateStatusData,
   UploadResult,
   Vacancy,
-  VacancyStatus,
 } from "../../types/api.types";
-
-type CandidateStatusResult = {
-  application: Application;
-  vacancy: { id: number; availableSlots: number; status: VacancyStatus };
-};
 
 // Interfaz
 export interface CreateVacancyInput {
@@ -90,19 +84,20 @@ export const vacanciesApi = {
     return apiClient<MatchResult[]>(`/vacancies/${id}/evaluations`, { method: 'POST' });
   },
 
-  // PATCH /vacancies/:vacancyId/candidates/:candidateId/status - Cambiar estado del candidato
+  // PATCH /vacancies/:vacancyId/candidates/:candidateId/status - Cambiar estado de la postulación
+  // Importante: Sin doble envoltura. Retorna { application, vacancy } directamente.
   updateCandidateStatus: async (
     vacancyId: number | string,
     candidateId: number | string,
-    status: ApplicationStatus,
-  ): Promise<CandidateStatusResult> => {
-    return apiClient<CandidateStatusResult>(
+    status: ApplicationStatus
+  ): Promise<UpdateCandidateStatusData> => {
+    return apiClient<UpdateCandidateStatusData>(
       `/vacancies/${vacancyId}/candidates/${candidateId}/status`,
       {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
-      },
+      }
     );
   },
 };

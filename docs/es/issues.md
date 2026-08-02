@@ -6,7 +6,7 @@
 >
 > **Premisa:** el backend está terminado y correcto. Todo lo de abajo es trabajo de frontend.
 >
-> **Última verificación contra el código: 2026-07-14.**
+> **Última verificación contra el código: 2026-08-01.**
 
 ## Qué cambió respecto a versiones anteriores
 

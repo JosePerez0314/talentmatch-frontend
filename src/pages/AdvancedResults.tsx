@@ -290,11 +290,10 @@ const AdvancedResults: React.FC = () => {
                             <h1 className="text-lg font-bold text-gray-800">
                                 {vacancy?.title ?? "—"}
                             </h1>
-                            <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full ${
-                                isClosed ? "bg-slate-200 text-slate-600"
-                                : isPaused ? "bg-amber-100 text-amber-700"
-                                : "bg-[#DCFCE7] text-[#16A34A]"
-                            }`}>
+                            <span className={`px-2.5 py-0.5 text-[11px] font-bold rounded-full ${isClosed ? "bg-slate-200 text-slate-600"
+                                    : isPaused ? "bg-amber-100 text-amber-700"
+                                        : "bg-[#DCFCE7] text-[#16A34A]"
+                                }`}>
                                 {isClosed ? "Cerrada" : isPaused ? "Pausada" : "Abierta"}
                             </span>
                         </div>
@@ -502,144 +501,141 @@ const AdvancedResults: React.FC = () => {
 
                 {/* SECTION 2: EVALUATED CANDIDATES (with match scores) */}
                 {!isRecalculating && (
-                <section className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <div className="flex items-start justify-between mb-1">
-                        <div>
-                            <p className="text-sm font-bold text-gray-700">
-                                Evaluaciones:{" "}
-                                <span className="text-[#447ECA]">
-                                    {filteredEvaluated.length} mejores candidatos
-                                </span>
-                            </p>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                                {vacancy?.title} · {filteredEvaluated.length} candidatos evaluados
-                            </p>
+                    <section className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                        <div className="flex items-start justify-between mb-1">
+                            <div>
+                                <p className="text-sm font-bold text-gray-700">
+                                    Evaluaciones:{" "}
+                                    <span className="text-[#447ECA]">
+                                        {filteredEvaluated.length} mejores candidatos
+                                    </span>
+                                </p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                    {vacancy?.title} · {filteredEvaluated.length} candidatos evaluados
+                                </p>
+                            </div>
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg shrink-0">
+                                <BarChart2 size={12} />
+                                {vacancy?.position?.role ?? "—"}
+                            </span>
                         </div>
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500 border border-gray-200 px-3 py-1.5 rounded-lg shrink-0">
-                            <BarChart2 size={12} />
-                            {vacancy?.position?.role ?? "—"}
-                        </span>
-                    </div>
 
-                    {filteredEvaluated.length > 0 && (
-                        <div className="flex items-start gap-3 bg-[#F0F7FF] border border-[#D1E9FF] rounded-xl p-3 my-4">
-                            <Sparkles className="text-[#447ECA] shrink-0 mt-0.5" size={15} strokeWidth={2.5} />
-                            <p className="text-xs text-[#447ECA] font-medium">
-                                Evaluación IA completada. Los candidatos han sido evaluados y clasificados por compatibilidad
-                                con los requisitos de la posición. Usa "Recalcular" para actualizar si subes nuevos CVs.
+                        {filteredEvaluated.length > 0 && (
+                            <div className="flex items-start gap-3 bg-[#F0F7FF] border border-[#D1E9FF] rounded-xl p-3 my-4">
+                                <Sparkles className="text-[#447ECA] shrink-0 mt-0.5" size={15} strokeWidth={2.5} />
+                                <p className="text-xs text-[#447ECA] font-medium">
+                                    Evaluación IA completada. Los candidatos han sido evaluados y clasificados por compatibilidad
+                                    con los requisitos de la posición. Usa "Recalcular" para actualizar si subes nuevos CVs.
+                                </p>
+                            </div>
+                        )}
+
+                        {filteredEvaluated.length === 0 ? (
+                            <p className="text-sm text-gray-400 text-center py-8">
+                                No hay candidatos evaluados aún. Usa el botón{" "}
+                                <span className="font-bold text-gray-600">Recalcular MatchScore (IA)</span> para iniciar.
                             </p>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="divide-y divide-gray-50">
+                                {filteredEvaluated.map((m, idx) => {
+                                    const person = m.candidate;
+                                    const score = m.matchScore ?? 0;
+                                    const scoreColor = getScoreColor(score);
+                                    const lightText = score < 50;
+                                    const avatarStyle = getAvatarStyle(idx);
+                                    const cId = person?.id;
+                                    const candidateStatus: ApplicationStatus = (cId != null ? candidateStatuses.get(cId) : undefined) ?? "PENDIENTE";
 
-                    {filteredEvaluated.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">
-                            No hay candidatos evaluados aún. Usa el botón{" "}
-                            <span className="font-bold text-gray-600">Recalcular MatchScore (IA)</span> para iniciar.
-                        </p>
-                    ) : (
-                        <div className="divide-y divide-gray-50">
-                            {filteredEvaluated.map((m, idx) => {
-                                const person = m.candidate;
-                                const score = m.matchScore ?? 0;
-                                const scoreColor = getScoreColor(score);
-                                const lightText = score < 50;
-                                const avatarStyle = getAvatarStyle(idx);
-                                const cId = person?.id;
-                                const candidateStatus: ApplicationStatus = (cId != null ? candidateStatuses.get(cId) : undefined) ?? "PENDIENTE";
-
-                                return (
-                                    <div key={m.id ?? idx} className="flex items-center gap-3 py-3.5">
-                                        {/* Rank */}
-                                        <span className="text-gray-300 text-xs w-4 text-center shrink-0 select-none tabular-nums">
-                                            {idx + 1}
-                                        </span>
-
-                                        {/* Avatar */}
-                                        <div
-                                            className="w-9 h-9 rounded-full font-bold flex items-center justify-center text-xs shrink-0"
-                                            style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
-                                        >
-                                            {getInitials(person?.fullName ?? "?")}
-                                        </div>
-
-                                        {/* Candidate info */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-semibold text-gray-800 truncate">
-                                                {person?.fullName ?? "—"}
-                                            </p>
-                                            <p className="text-xs text-gray-400 truncate">{person?.email ?? ""}</p>
-                                            {person?.niche && (
-                                                <span
-                                                    className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
-                                                    style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
-                                                >
-                                                    {person.niche}
-                                                </span>
-                                            )}
-                                            <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
-                                                <Calendar size={10} />
-                                                {(() => {
-                                                    const full = localCandidates.find(c => c.id === person?.id);
-                                                    return formatDate(person?.createdAt ?? person?.indexedAt ?? full?.createdAt ?? full?.indexedAt);
-                                                })()}
-                                            </p>
-                                        </div>
-
-                                        {/* Status selector */}
-                                        <select
-                                            value={candidateStatus}
-                                            disabled={isClosed || cId == null}
-                                            onChange={e => cId != null && handleUpdateStatus(cId, e.target.value as ApplicationStatus)}
-                                            className={`text-xs font-semibold px-2.5 py-1.5 rounded-xl border focus:outline-none transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusStyle(candidateStatus)}`}
-                                        >
-                                            <option value="PENDIENTE">Pendiente</option>
-                                            <option value="EN_PROCESO">En Proceso</option>
-                                            <option value="SELECCIONADO">Seleccionado</option>
-                                            <option value="RECHAZADO">Rechazado</option>
-                                        </select>
-
-                                        {/* Match score badge */}
-                                        <div
-                                            className="w-14 h-14 rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm"
-                                            style={{ backgroundColor: scoreColor }}
-                                        >
-                                            <span className={`text-sm leading-none font-bold ${lightText ? "text-white" : "text-gray-800"}`}>
-                                                {score}%
+                                    return (
+                                        <div key={m.id ?? idx} className="flex items-center gap-3 py-3.5">
+                                            {/* Rank */}
+                                            <span className="text-gray-300 text-xs w-4 text-center shrink-0 select-none tabular-nums">
+                                                {idx + 1}
                                             </span>
-                                            <span className={`text-[9px] mt-0.5 ${lightText ? "text-white/70" : "text-gray-600"}`}>
-                                                Match
-                                            </span>
-                                        </div>
 
-                                        {/* View profile */}
-                                        <button
-                                            onClick={() => { setSelectedMatch(m); setIsModalOpen(true); }}
-                                            className="text-gray-400 hover:text-[#447ECA] transition-colors shrink-0"
-                                            title="Ver perfil"
-                                        >
-                                            <Eye size={17} />
-                                        </button>
-
-                                        {/* Download CV */}
-                                        {person?.resumeUrl ? (
-                                            <a
-                                                href={person.resumeUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-gray-400 hover:text-[#447ECA] transition-colors shrink-0"
-                                                title="Descargar CV"
+                                            {/* Avatar */}
+                                            <div
+                                                className="w-9 h-9 rounded-full font-bold flex items-center justify-center text-xs shrink-0"
+                                                style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
                                             >
-                                                <Download size={17} />
-                                            </a>
-                                        ) : (
-                                            <span className="w-[17px] shrink-0" />
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </section>
+                                                {getInitials(person?.fullName ?? "?")}
+                                            </div>
+
+                                            {/* Candidate info */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-semibold text-gray-800 truncate">
+                                                    {person?.fullName ?? "—"}
+                                                </p>
+                                                <p className="text-xs text-gray-400 truncate">{person?.email ?? ""}</p>
+                                                {person?.niche && (
+                                                    <span
+                                                        className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                                                        style={{ backgroundColor: avatarStyle.bg, color: avatarStyle.text }}
+                                                    >
+                                                        {person.niche}
+                                                    </span>
+                                                )}
+                                                <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                                                    <Calendar size={10} />
+                                                    Subido: {formatDate(person?.createdAt ?? person?.indexedAt)}
+                                                </p>
+                                            </div>
+
+                                            {/* Status selector */}
+                                            <select
+                                                value={candidateStatus}
+                                                disabled={isClosed || cId == null}
+                                                onChange={e => cId != null && handleUpdateStatus(cId, e.target.value as ApplicationStatus)}
+                                                className={`text-xs font-semibold px-2.5 py-1.5 rounded-xl border focus:outline-none transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusStyle(candidateStatus)}`}
+                                            >
+                                                <option value="PENDIENTE">Pendiente</option>
+                                                <option value="EN_PROCESO">En Proceso</option>
+                                                <option value="SELECCIONADO">Seleccionado</option>
+                                                <option value="RECHAZADO">Rechazado</option>
+                                            </select>
+
+                                            {/* Match score badge */}
+                                            <div
+                                                className="w-14 h-14 rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm"
+                                                style={{ backgroundColor: scoreColor }}
+                                            >
+                                                <span className={`text-sm leading-none font-bold ${lightText ? "text-white" : "text-gray-800"}`}>
+                                                    {score}%
+                                                </span>
+                                                <span className={`text-[9px] mt-0.5 ${lightText ? "text-white/70" : "text-gray-600"}`}>
+                                                    Match
+                                                </span>
+                                            </div>
+
+                                            {/* View profile */}
+                                            <button
+                                                onClick={() => { setSelectedMatch(m); setIsModalOpen(true); }}
+                                                className="text-gray-400 hover:text-[#447ECA] transition-colors shrink-0"
+                                                title="Ver perfil"
+                                            >
+                                                <Eye size={17} />
+                                            </button>
+
+                                            {/* Download CV */}
+                                            {person?.resumeUrl ? (
+                                                <a
+                                                    href={person.resumeUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-gray-400 hover:text-[#447ECA] transition-colors shrink-0"
+                                                    title="Descargar CV"
+                                                >
+                                                    <Download size={17} />
+                                                </a>
+                                            ) : (
+                                                <span className="w-[17px] shrink-0" />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
                 )}
             </div>
 

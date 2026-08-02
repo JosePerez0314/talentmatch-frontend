@@ -66,7 +66,7 @@ src/
 ├── main.tsx                # Bootstrap React (StrictMode)
 ├── index.css                # Tailwind v4 + scrollbar custom
 ├── App.css                  # (heredado, 5 líneas)
-├── src/vite-env.d.ts         # ⚠️ carpeta anidada src/src/ — ver §11
+├── vite-env.d.ts             # Tipos de cliente de Vite (reubicado desde el huérfano src/src/)
 ├── assets/icons/             # SVGs + index.ts (re-exporta como `Icons`)
 ├── components/
 │   ├── admin/                # StatCard, StatsModule, UserTableModule, CreateUserModule, RoleUpdateModule, UserDeleteModule
@@ -75,17 +75,17 @@ src/
 │   ├── modals/                 # CandidateDetailsModal, DeleteDepartmentModal, EditDepartmentModal, VacancyActionModal, TimeoutWarningModal
 │   ├── routes/                  # AdminRoute.tsx  ← guard de rol para /admin
 │   ├── Sections/                 # ActionDropdown, PositionHistoryTable, PositionSuccess, VacancySuccess, UploadCVSuccess
-│   ├── ui/                        # AuthInput, LoginForm, PillInput, ProcessingModal, SessionTimeoutGuard, EmptyVacancyState (huérfano)
-│   ├── DemoCredential.jsx (huérfano), EmptyState.jsx, EvaluationCard.tsx, HistoryTable.jsx
+│   ├── ui/                        # AuthInput, LoginForm, PillInput, ProcessingModal, SessionTimeoutGuard
+│   ├── EmptyState.jsx, EvaluationCard.tsx, HistoryTable.jsx
 ├── layouts/                  # Sidebar.tsx, Footer.jsx
 ├── pages/                    # Pantallas de nivel de ruta (ver §8)
 ├── services/api/             # apiClient + un *.api.ts por dominio (ver §6)
 ├── services/session.ts       # Persistencia de sesión en localStorage (ver §4.3)
 ├── types/                    # Contratos TypeScript por dominio (ver §7)
-└── utils/                    # loginShortcuts.ts (real), dashboardConfig.js (huérfano)
+└── utils/                    # loginShortcuts.ts
 ```
 
-**Estado de la migración TS:** solo quedan 5 archivos `.jsx`/`.js`: `CVHistory.jsx`, `DemoCredential.jsx` (huérfano), `EmptyState.jsx`, `HistoryTable.jsx`, `TimeoutWarningModal.jsx`, `ProcessingModal.jsx`, `SessionTimeoutGuard.jsx`, `dashboardConfig.js` (huérfano). Todo lo demás — incluidas todas las páginas salvo `CVHistory.jsx` — ya está en TypeScript. Regla: **componentes nuevos en TypeScript**; portar un archivo a TS cuando se le hagan cambios sustanciales.
+**Estado de la migración TS:** solo quedan algunos archivos `.jsx`/`.js`: `CVHistory.jsx`, `EmptyState.jsx`, `HistoryTable.jsx`, `TimeoutWarningModal.jsx`, `ProcessingModal.jsx`, `SessionTimeoutGuard.jsx`. Todo lo demás — incluidas todas las páginas salvo `CVHistory.jsx` — ya está en TypeScript. Regla: **componentes nuevos en TypeScript**; portar un archivo a TS cuando se le hagan cambios sustanciales.
 
 ---
 
@@ -103,6 +103,7 @@ src/
 
 | Componente           | Rutas                                              |
 | --------------------- | ---------------------------------------------------- |
+| `Position`            | `/position`, `/position/edit/:id` (modo create/edit vía `Boolean(useParams().id)`) |
 | `Vacancy`             | `/vacancy`, `/vacancy/edit/:id` (modo create/edit vía `Boolean(useParams().id)`) |
 | `Resultados`          | `/resultados`, `/resultados/:id`                       |
 | `EvaluationsHistory`  | `/evaluations-history`, `/evaluations-history/:id`     |
@@ -114,7 +115,7 @@ src/
 | --------------------------------------------------- | ----------------------- | ------------------------------ | ----------------------------------------------------------------------- |
 | `/login`                                           | `Login`                | ❌ pública                     |                                                                          |
 | `/dashboard`                                       | `Dashboard`            | ✅ sesión                      | Conectada a `dashboardService.getSummary()`                             |
-| `/position`                                        | `Position`             | ✅ sesión                      | Wizard de 4 pasos, manual o con IA                                       |
+| `/position`, `/position/edit/:id`                  | `Position`             | ✅ sesión                      | Wizard de 4 pasos, manual o con IA; modo edición pre-rellena el formulario vía `useParams().id` |
 | `/uploadcv`                                        | `UploadCV`             | ✅ sesión                      |                                                                          |
 | `/cv-history`                                      | `CVHistory`            | ✅ sesión                      | ⚠️ pantalla paralela a `CandidatesHistory`, no enlazada desde el sidebar — ver §10 |
 | `/position-history`                                | `PositionHistory`      | ✅ sesión                      |                                                                          |
@@ -200,7 +201,7 @@ Watchdog global de inactividad, montado en el layout protegido:
 - **Tailwind v4 inline** en el JSX. Abundan **valores arbitrarios hardcodeados** (`bg-[#F0F0F5]`, `text-[#447ECA]`). No hay tokens de tema centralizados.
 - Color corporativo de facto: **`#447ECA`** (azul). Fondo app: `#F0F0F5`.
 - `index.css` (25 líneas): importa Tailwind y define un scrollbar custom "enterprise" (fino, aparece en hover). `App.css` son 5 líneas sin contenido relevante.
-- **Dos librerías de íconos coexisten:** `lucide-react` (uso pervasivo) y `react-icons` (usado solo en `DeleteDepartmentModal.tsx`, `EvaluationCard.tsx` y el componente huérfano `EmptyVacancyState.tsx`). No es un bug, pero es deuda de consistencia — ver `bugs.md`.
+- **Dos librerías de íconos coexisten:** `lucide-react` (uso pervasivo) y `react-icons` (usado solo en `DeleteDepartmentModal.tsx` y `EvaluationCard.tsx`). No es un bug, pero es deuda de consistencia — ver `bugs.md`.
 - **Iconos locales:** SVGs en `assets/icons/` re-exportados como objeto `Icons` desde `assets/icons/index.ts` (`Icons.sidebar.*`, `Icons.auth.*`, `Icons.logos.*`, …).
 - No hay sistema BEM/CSS-modules.
 
@@ -217,8 +218,8 @@ Un objeto-servicio por dominio. **Nunca se llama `fetch` directo** desde una pá
 | `authService`      | `auth.api.ts`        | `login`, `register`                                                                                                  | ✅ ambos como `isPublicEndpoint: true`         |
 | `departmentsApi`   | `departments.api.ts` | `getAll`, `getById`, `create`, `update`, `delete`                                                                     | ✅ **flujo de referencia, 100 % funcional**    |
 | `positionService`  | `positions.api.ts`   | `getAll`, `getById`, `create`, `update`, `delete`, `completeWithAI`, `duplicate`                                      | ✅ funcional                                    |
-| `vacanciesApi`     | `vacancies.api.ts`   | `getAll`, `getById`, `create`, `update`, `updateStatus`, `delete`, `getResults`, `uploadCVs`, `evaluateCandidates`   | ✅ funcional                                    |
-| `candidateService` | `candidates.api.ts`  | `getAll`                                                                                                             | ✅ solo lectura — el comentario del archivo aclara explícitamente que actualizar el status de un candidato individual **no está implementado**; esa responsabilidad se movió a `vacanciesApi.updateStatus` (cierra la vacante completa) |
+| `vacanciesApi`     | `vacancies.api.ts`   | `getAll`, `getById`, `create`, `update`, `updateStatus`, `delete`, `getResults`, `uploadCVs`, `evaluateCandidates`, `updateCandidateStatus`   | ✅ funcional — `updateCandidateStatus(vacancyId, candidateId, status)` llama a `PATCH /vacancies/:vacancyId/candidates/:candidateId/status` |
+| `candidateService` | `candidates.api.ts`  | `getAll`                                                                                                             | ✅ solo lectura |
 | `dashboardService` | `dashboard.api.ts`   | `getSummary`                                                                                                         | ✅ **conectado** — `Dashboard.tsx` lo consume  |
 | `adminService`     | `admin.api.ts`       | `getStats`, `getUsers`, `updateRole`, `deleteUser`, `createUser`                                                     | ✅ **reescrito sobre `apiClient` — ya no es un mock** |
 
@@ -263,11 +264,12 @@ type EducationLevel =
   | "UNIVERSITY" | "MASTER" | "DOCTORATE";
 type VacancyStatus = "ACTIVE" | "PAUSED" | "CLOSED";
 type CandidateStatus = "DISPONIBLE" | "CONTRATADO";
+type ApplicationStatus = "PENDIENTE" | "EN_PROCESO" | "SELECCIONADO" | "RECHAZADO";
 ```
 
 | Archivo                       | Contenido                                                                                                                                                                                                                |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api.types.ts`                | Enums + `User`, `Position`, `Vacancy` (incluye `_count.candidates` y `candidates?: Candidate[]`, solo presentes en el endpoint de listado), `Candidate` (tiene `fileUrl` actual y `resumeUrl` legacy), `NormalizedCandidate`, `MatchResult` (documenta `normalizedCandidate?: string` como **JSON serializado** que hay que parsear), `ApiResponse<T>`, `ApiErrorDetail`, `UploadResult` |
+| `api.types.ts`                | Enums + `User`, `Position`, `Vacancy` (incluye `_count.candidates` y `candidates?: Candidate[]`, solo presentes en el endpoint de listado), `Candidate` (tiene `fileUrl` actual y `resumeUrl` legacy), `NormalizedCandidate`, `MatchResult` (documenta `normalizedCandidate?: string` como **JSON serializado** que hay que parsear), `ApiResponse<T>`, `ApiErrorDetail`, `UploadResult`, `ApplicationStatus` (`PENDIENTE \| EN_PROCESO \| SELECCIONADO \| RECHAZADO`), `Application` (agrupa `candidateId`, `vacancyId`, `status: ApplicationStatus`) |
 | `auth.types.ts`                | `AuthUser`, `LoginResponse`, `SessionRole`, `SessionUser`, `LoginSession`, `AuthContextValue`, `AuthUiState` — con comentarios explícitos sobre las dos "trampas" del objeto de usuario del backend (rol en mayúsculas, sin `username`) |
 | `dashboard.types.ts`          | Tipos de wire (`DashboardTotals`, `VacancyStatusBreakdownItem`, `MonthlyActivityItem`, `DashboardSummary`) **y** tipos de UI (`DashboardMetric`, `DashboardVacancyStatusCard`, `MonthlyData`) — ⚠️ el comentario en línea dice "mock data" pero estos tipos ya se llenan con datos reales (ver `bugs.md`) |
 | `department.types.ts`         | `Department`, `CreateDepartmentInput`, `UpdateDepartmentInput`                                                                                                                                                            |
@@ -296,8 +298,8 @@ type CandidateStatus = "DISPONIBLE" | "CONTRATADO";
 | Historial Vacantes      | `VacancyHistory.tsx`     | ✅     | `vacanciesApi.getAll/updateStatus/delete`                         | Kebab con transiciones de estado (Activa/Pausada/Cerrada) vía `VacancyActionModal`.                                                                     |
 | Subir CV                | `UploadCV.tsx`           | ✅     | `vacanciesApi.getAll/uploadCVs`                                  | Selector de vacante activa obligatorio, drag-and-drop a nivel de ventana + selector de archivos. Valida `application/pdf`.                              |
 | Historial CVs           | `CVHistory.jsx`          | ⚠️     | `candidateService.getAll`                                        | Pantalla paralela a `CandidatesHistory` con una fuente de datos distinta (`/candidates` plano) — no está enlazada desde el sidebar. Ver §10.            |
-| Resultados (legacy)     | `Resultados.tsx`         | ⚠️     | `vacanciesApi.getResults/updateStatus`                           | Pantalla de resultados más antigua, no enlazada desde ningún lugar de la UI. Tiene un bug de parsing en `CandidateMatchRow` (ver §10 / `bugs.md`). Es la única pantalla donde "Contratar" persiste de verdad (cierra la vacante). |
-| Resultados Avanzados    | `AdvancedResults.tsx`    | ✅     | `vacanciesApi.getResults/getById/getAll/uploadCVs/evaluateCandidates` | Pantalla de resultados **actual**: dos secciones (candidatos subidos / evaluados), guard de recálculo, manejo de estado `PAUSED`.                        |
+| Resultados (legacy)     | `Resultados.tsx`         | ✅     | `vacanciesApi.getResults/updateStatus/updateCandidateStatus`     | Pantalla de resultados más antigua, no enlazada desde ningún lugar de la UI. Tiene un bug de parsing en `CandidateMatchRow` (ver §10 / `bugs.md`). `handleHire` ahora llama a `updateCandidateStatus(..., "SELECCIONADO")` en lugar de cerrar la vacante completa. |
+| Resultados Avanzados    | `AdvancedResults.tsx`    | ✅     | `vacanciesApi.getResults/getById/getAll/uploadCVs/evaluateCandidates/updateCandidateStatus` | Pantalla de resultados **actual**: dos secciones (candidatos subidos / evaluados), guard de recálculo, manejo de `PAUSED`. El selector de estado usa los valores reales de `ApplicationStatus` vía la API PATCH con actualización optimista + rollback. El estado se inicializa desde `candidate.applications[0].status`. Mensajes de error 404/409 mostrados en la UI. |
 | Historial Candidatos    | `CandidatesHistory.tsx`  | ✅     | `vacanciesApi.getAll`                                             | Agrupa candidatos por vacante (usa `GET /vacancies` con `candidates[]` anidado, no `GET /candidates`).                                                  |
 | Evaluaciones            | `EvaluationsHistory.tsx` | ✅     | `vacanciesApi.evaluateCandidates/getResults`, `departmentsApi.getAll` | Máquina de estados (idle/calculating/done/empty). Incluye "Compartir" (captura como imagen vía `html-to-image`).                                        |
 | Panel Admin             | `AdminPanel.tsx`         | ✅     | `adminService` (real)                                             | Incluye `CreateUserModule` (nuevo). Paginación real desde `GET /admin/users`.                                                                            |
@@ -331,8 +333,6 @@ type CandidateStatus = "DISPONIBLE" | "CONTRATADO";
 - **`PillInput.tsx`** — input tipo "pills"/tags (skills, idiomas). Soporta Enter y blur para añadir; la deduplicación la hace el llamador (`Position.tsx` con `Set`).
 - **`ProcessingModal.jsx`** — modal de "procesando…" usado **solo** por `Resultados.tsx` (legacy); es una animación de progreso cosmética (`setInterval` de 3 pasos fijos), no refleja progreso real.
 - **`SessionTimeoutGuard.jsx`** — ver §4.5.
-- **`EmptyVacancyState.tsx`** — ⚠️ **huérfano**, no se importa desde ningún lugar.
-
 ### `components/modals/`
 
 - **`CandidateDetailsModal.tsx`** (442 líneas) — vista canónica de detalle de candidato; parsea correctamente `normalizedCandidate` como JSON (`parseNormalized`, con try/catch). Usada por `Resultados`, `AdvancedResults` y `EvaluationsHistory`.
@@ -357,16 +357,15 @@ type CandidateStatus = "DISPONIBLE" | "CONTRATADO";
 Los cinco módulos consumen `adminService` real, con estados de carga/error propios.
 
 - **`StatsModule.tsx`** + **`StatCard.tsx`** — grid de 6 métricas desde `GET /admin/stats`. `StatCard` resuelve el ícono de `lucide-react` dinámicamente por nombre de string (con un `@ts-ignore` porque el namespace de `lucide-react` no está tipado para indexado arbitrario), con fallback a `HelpCircle`.
-- **`UserTableModule.tsx`** — tabla paginada. ⚠️ El buscador filtra solo los usuarios de la **página actual** (10 filas), no el total del sistema — limitación de UX menor, no un bug de datos.
+- **`UserTableModule.tsx`** — tabla paginada. ⚠️ El buscador filtra solo los usuarios de la **página actual** (10 filas), no el total del sistema — limitación de UX menor, no un bug de datos. Muestra `email.split('@')[0]` como nombre de usuario (la API nunca devuelve el campo `username`).
 - **`CreateUserModule.tsx`** — nuevo módulo. Valida la política de contraseña en cliente (10-100 caracteres, mayúscula/minúscula/dígito) espejando la política documentada del backend. Si el rol elegido es `ADMIN`, hace un segundo llamado a `updateRole` tras crear el usuario.
-- **`RoleUpdateModule.tsx`** — cambio de rol con edición diferida por usuario (`pendingRoles`) antes de guardar.
-- **`UserDeleteModule.tsx`** — confirmación en dos pasos in-place ("Eliminar" → "¿Confirmar?"), sin modal ni `window.confirm`.
+- **`RoleUpdateModule.tsx`** — cambio de rol con edición diferida por usuario (`pendingRoles`) antes de guardar. La visualización del usuario usa `email.split('@')[0]`.
+- **`UserDeleteModule.tsx`** — confirmación en dos pasos in-place ("Eliminar" → "¿Confirmar?"), sin modal ni `window.confirm`. La visualización del usuario usa `email.split('@')[0]`.
 
 ### Sueltos
 
 - **`EvaluationCard.tsx`** — tarjeta de vacante activa en Evaluaciones, con botón "Calcular".
 - **`HistoryTable.jsx`** — tabla genérica usada solo por `CVHistory.jsx`; lee varios nombres de campo alternativos para la URL del CV (`cv.fileUrl || cv.cvUrl || cv.rawApiPayload?.cvUrl`), lo que sugiere que se escribió contra una forma de API más antigua/laxa que la que documenta `candidates.api.ts` hoy.
-- **`DemoCredential.jsx`** — ⚠️ **huérfano**, no se importa ni renderiza en ninguna parte. `Login.tsx` no lo usa.
 - **`EmptyState.jsx`** — estado vacío genérico, usado por `CVHistory.jsx`.
 
 ---
@@ -380,11 +379,9 @@ Inventario completo, con severidad y archivos, en [`bugs.md`](./bugs.md). Resume
 - Dos pares de pantallas solapadas y no del todo enlazadas: `Resultados` vs `AdvancedResults`, y `CVHistory` vs `CandidatesHistory`.
 - `/evaluations-history/:id` declara un parámetro de ruta que nunca se lee.
 - Mecanismo `isDynamic`/`lastVacancyId` del Sidebar, vestigial.
-- Componentes huérfanos: `DemoCredential.jsx`, `EmptyVacancyState.tsx`, `utils/dashboardConfig.js`.
 - Comentarios desactualizados: `dashboard.types.ts` dice "mock data" (ya no lo es); `main.tsx` tiene un `@ts-ignore` con un comentario sobre migrar `App` a `.tsx` (ya migrado).
-- Estados de candidato `"CONTACTADO"`/`"NO_CONTRATADO"` solo existen en la UI, nunca se persisten y no están en el enum real del backend.
 - `apiClient.ts` sigue sin fallback para `VITE_API_URL`; no hay `.env.example` comprometido.
-- Detalles cosméticos: typo `VacacyHistory` en el import de `App.tsx`, carpeta anidada `src/src/vite-env.d.ts`.
+- Detalle cosmético: typo `VacacyHistory` en el import de `App.tsx`.
 
 ---
 
@@ -403,10 +400,9 @@ Inventario completo, con severidad y archivos, en [`bugs.md`](./bugs.md). Resume
 **Deuda técnica destacada (ver `bugs.md` para el detalle completo):**
 
 - Pantallas duplicadas/paralelas sin consolidar (`Resultados`/`AdvancedResults`, `CVHistory`/`CandidatesHistory`).
-- Estados de candidato ad-hoc en la UI que no existen en el backend.
 - Dos librerías de íconos (`lucide-react` + `react-icons`) coexistiendo.
 - `apiClient` sin fallback de `VITE_API_URL` y sin `.env.example` comprometido.
-- Puñado de código muerto (componentes huérfanos, mecanismo del sidebar, comentarios desactualizados).
+- Código muerto restante (mecanismo `isDynamic` del sidebar, comentarios desactualizados).
 
 ---
 

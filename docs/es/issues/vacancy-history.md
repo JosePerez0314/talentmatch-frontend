@@ -27,6 +27,10 @@ Muestra todas las vacantes en una tabla con acciones de edición, cambio de esta
 
 ## Issues identificados
 
+### Bug del backend — `DELETE /api/vacancies/:id` siempre devuelve 400
+
+**Nota:** Todos los intentos de eliminar una vacante fallan con `400 "Invalid data sent to the database"`. Este es un **bug del backend** (BUG-001 en `docs/backend-bugs.md`), no un problema del frontend. Causa raíz: `req.params.id` se pasa directamente a Prisma sin `parseInt`, causando `PrismaClientValidationError`. El frontend llama correctamente a `vacanciesApi.delete(id)` — la corrección debe hacerse en el backend.
+
 ### Bug crítico — Menú kebab cortado por `overflow-x-auto`
 
 **Síntoma:** Al hacer clic en los 3 puntos de las últimas vacantes de la tabla, el dropdown de acciones aparece recortado o invisible.

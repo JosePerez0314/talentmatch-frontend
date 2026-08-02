@@ -27,18 +27,9 @@ El Panel de Administración permite gestionar usuarios del sistema: ver listado 
 
 ## Issues identificados
 
-### Bug crítico — Nombre de usuario en blanco
+### ~~Bug crítico — Nombre de usuario en blanco y avatar con doble inicial~~ — CORREGIDO (2026-08-01)
 
-**Síntoma:** La línea `Sesión: <strong>{displayName}</strong>` muestra el marcador `—` o aparece en blanco.
-
-**Causa probable:** La interfaz `User` en `src/types/api.types.ts` define `username: string` (línea 13), pero el token JWT decodificado que `AuthContext` guarda en `localStorage` bajo la clave `tm_user` puede contener el campo con un nombre distinto (ej. `name`, `email`, o sub-claim). Si la respuesta de login no incluye `username`, `user?.username` devuelve `undefined` y el operador `??` lo coerciona a `'—'`.
-
-**Pasos para investigar:**
-1. Hacer login y abrir DevTools → Application → localStorage → revisar el objeto `tm_user`.
-2. Verificar si el campo `username` existe en el payload o si el backend usa otro nombre de campo.
-3. Si el campo es diferente (ej. `name`), actualizar la interfaz `User` en `api.types.ts` y/o el `displayName` en `AdminPanel.tsx`.
-
-**Nota:** Este mismo campo puede afectar la inicial del avatar en `Sidebar.tsx` (`user?.username || "Acme Corp"`).
+La API del backend nunca devuelve el campo `username`. `UserTableModule`, `RoleUpdateModule` y `UserDeleteModule` ahora muestran `email.split('@')[0]` como nombre de usuario. Las iniciales del avatar también se corrigieron para mostrar solo una letra derivada de la misma expresión.
 
 ### UI — Revisión de márgenes
 
@@ -48,8 +39,7 @@ El Panel de Administración permite gestionar usuarios del sistema: ver listado 
 
 ### StatsModule
 
-- Nota del CLAUDE.md: actualmente corre en un **temporizador simulado** y no está conectado a una API real de usuarios. Verificar si ya tiene endpoint propio o sigue siendo simulado.
-- Si sigue siendo simulado, documentarlo como deuda técnica en los tests.
+- `StatsModule` tiene su propia llamada interna vía `adminService.getStats()` → `GET /admin/stats`. Verificar que renderiza los datos reales correctamente.
 
 ### Responsive design
 
@@ -61,11 +51,10 @@ El Panel de Administración permite gestionar usuarios del sistema: ver listado 
 
 ## Tests a realizar
 
-### Bug de nombre de usuario
+### Visualización de nombre de usuario (CORREGIDO 2026-08-01)
 
-- [ ] **Reproducir bug:** Hacer login con un usuario admin → navegar a `/admin` → verificar si `displayName` muestra el nombre correcto o `—`.
-- [ ] **Inspeccionar localStorage:** Confirmar la estructura del objeto `tm_user` y qué campos devuelve el backend.
-- [ ] **Verificar sidebar:** La inicial del avatar en Sidebar también usa `user?.username` — el fix debe aplicarse en ambos lugares de forma consistente.
+- [x] **Nombre en blanco resuelto:** `UserTableModule`, `RoleUpdateModule` y `UserDeleteModule` ahora muestran `email.split('@')[0]` como nombre. El backend no devuelve el campo `username`.
+- [x] **Avatar con letra única:** Las iniciales del avatar corregidas a una sola letra.
 
 ### Carga y paginación de usuarios
 
@@ -93,8 +82,8 @@ El Panel de Administración permite gestionar usuarios del sistema: ver listado 
 
 ### StatsModule
 
-- [ ] Verificar si muestra datos reales o simulados (temporizador).
-- [ ] Si es simulado, documentar como pendiente de conexión a API.
+- [ ] Verificar que muestra datos reales de `GET /admin/stats`.
+- [ ] Confirmar que cada tarjeta de métrica muestra el conteo correcto.
 
 ### Responsive
 
