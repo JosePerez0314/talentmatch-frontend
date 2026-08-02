@@ -160,7 +160,8 @@ const DepartmentHistory: React.FC = () => {
                                             </span>
                                         )}
 
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {/* Se eliminaron las clases opacity-0 y group-hover:opacity-100 para mantenerlo visible siempre */}
+                                        <div>
                                             <button
                                                 onClick={(e) => toggleMenu(dept.id, e)}
                                                 title="Opciones de departamento"
