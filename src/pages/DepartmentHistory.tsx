@@ -104,7 +104,7 @@ const DepartmentHistory: React.FC = () => {
                 <div className="bg-white rounded-2xl shadow-sm min-h-[220px]">
                     {/* Sub-header */}
                     <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                        <p className="text-xs text-black uppercase tracking-wide font-medium">
+                        <p className="text-xs text-gray-600 uppercase tracking-wide font-medium">
                             {loading ? "Cargando…" : `${departments.length} departamento${departments.length !== 1 ? "s" : ""}`}
                         </p>
                     </div>
